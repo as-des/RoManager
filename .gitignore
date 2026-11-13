@@ -1,0 +1,39 @@
+# ---------- Сборка ----------
+/bin/
+/obj/
+/new-build/
+/wwwroot/
+/frontend/node_modules/
+/frontend/dist/
+/publish/
+/dist/
+*.tsbuildinfo
+
+# ---------- Личные данные и секреты ----------
+# Ключевой файл и хранилище аккаунтов НИКОГДА не коммитим.
+rom-key.json
+AccountData.json
+AccountData.json.*
+*.locked
+rom.log
+rom.log.*
+shader.json
+/wv2/
+
+# ---------- Локальный браузер (422 МБ) ----------
+/chrome-win64/
+
+# ---------- Старые локальные DLL WebView2 (заменены NuGet) ----------
+/libs/
+
+# ---------- IDE / ОС ----------
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+Thumbs.db
+desktop.ini
+.DS_Store
