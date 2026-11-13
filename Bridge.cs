@@ -20,6 +20,14 @@ public sealed class Bridge
         Roblox.Init();
     }
 
+    /* Версия приложения для нижней панели и окна истории обновлений. */
+    public string GetVersion()
+    {
+        var v = typeof(Bridge).Assembly.GetName().Version;
+        if (v == null) return "2.1.0";
+        return $"{v.Major}.{v.Minor}.{(v.Build >= 0 ? v.Build : 0)}";
+    }
+
     /* ---------- встроенный логин Roblox (как в оригинале RAM) ---------- */
     public void OpenBrowserLogin()
     {

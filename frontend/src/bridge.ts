@@ -28,6 +28,7 @@ export interface RomBridge {
   SaveSettings(json: string): Promise<void>
   GetShaderSettings(): Promise<string>
   SaveShaderSettings(json: string): void
+  GetVersion(): Promise<string>
   DragSettings(): void
   CloseSettingsWindow(): void
   Logout(): void
@@ -50,6 +51,11 @@ declare global {
     __keyFileDropped?: (d: { name: string; content: string | null }) => void
     goTo?: (id: string) => void
     openModal?: (title: string, text: string) => void
+    __notify?: (
+      text: string,
+      kind?: string,
+      actions?: { label: string; id: string }[],
+    ) => void
     __applyShaderSettings?: (settings: unknown) => void
   }
 }

@@ -123,6 +123,36 @@ export const IconDownload = () => (
   </svg>
 )
 
+export const IconClose = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...p}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+export const IconCheckCircle = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <polyline points="8 12.5 11 15.5 16 9.5" />
+  </svg>
+)
+
+export const IconAlertCircle = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="12" y1="7.5" x2="12" y2="13" />
+    <line x1="12" y1="16.5" x2="12" y2="16.6" />
+  </svg>
+)
+
+export const IconInfoCircle = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" {...stroke} {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="12" y1="11" x2="12" y2="16.5" />
+    <line x1="12" y1="7.5" x2="12" y2="7.6" />
+  </svg>
+)
+
 export const IconWinMin = () => (
   <svg viewBox="0 0 10 10">
     <line x1="2" y1="5" x2="8" y2="5" />

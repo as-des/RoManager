@@ -67,7 +67,7 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 ## Исправленные баги 28.10
 - Session инициализируется в Attach (иначе NRE при входе)
 - «Подтвердить вход» подключена к мосту: JS override enterDashboard → rom.CompleteAccess
-- Ошибки мастера входа показываются модалкой, не только статус-баром дашборда
+- Ошибки мастера входа показываются плашкой в верхней части окна (раньше — модалкой), не только статус-баром дашборда
 - Рамка адаптивная: `.window-container {100vw/100vh; border none}`; чёрный фон offer.html НЕ копируем (html/body = var(--win-bg))
 
 ## Добавление аккаунта (как в оригинале RAM)
@@ -99,7 +99,7 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 ## Multi Roblox
 - `Roblox.ApplyMultiInstance()`: при включении берёт `new Mutex(true, "ROBLOX_singletonMutex")` и держит его, пока приложение живо; при выключении отпускает.
 - Таймеры presence включаются только при `sharePresence`, автообновление cookie — только при `autoCookieRefresh`.
-- Важно: включать при закрытом Roblox. Если мьютекс занят, настройка сохраняется, но в статус-бар уходит предупреждение.
+- Важно: включать при закрытом Roblox. Если мьютекс занят, настройка сохраняется, но сверху появляется красная плашка-предупреждение.
 - `useBundledChrome`: если выключено, `ChromeLogin.FindBrowser()` не ищет `chrome-win64` рядом и переходит к реестру/Program Files/Edge.
 
 ## Безопасность и релиз
@@ -143,6 +143,14 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 - Стекло: `.panel`, `.card`, `.modal`, titlebar и status-bar получили полупрозрачный фон + `backdrop-filter: blur(...) saturate(...)`; кнопки/сегменты/шапка таблицы — полупрозрачные фоны без blur (дешевле по GPU). Шейдер просвечивает и размывается под панелями.
 - Шапка таблицы: вынесена отдельной таблицей `.accounts-table-header` над `.accounts-scroll` (как в legacy-бэкапе), поэтому строки физически не заезжают под неё; шапка прозрачная, в тон панели. Одинаковые ширины колонок в шапке и теле заданы через `<colgroup>` + `table-layout: fixed` (40px / статус 16% / запуск 25% / данные 25%), `.accounts-scroll` имеет `scrollbar-gutter: stable`, шапка — `width: calc(100% - 8px)` под кастомный скроллбар. Проверено при `scrollTop=228`.
 
+## Уведомления и история обновлений
+- Все `PushStatus(text, kind)` из C# идут в глобальный обработчик в `App.tsx`: `busy`/`idle` — в нижнюю панель, `success`/`danger` дополнительно показываются плашкой сверху.
+- `window.openModal(title, text)` больше не открывает модалку: необработанные ошибки входа приходят красной плашкой с заголовком.
+- Новый канал `window.__notify(text, kind, actions)` (kind: info/success/danger/warning) — поддерживает кнопки действий в ряд: `[{label, id}]`, где `id` = `settings` или `changelog`. Готовые обработчики можно передавать и напрямую из React.
+- Плашки: `components/NotificationStack.tsx`, стек до 4 штук, success/info закрываются через 6 с, danger/warning — только крестиком. В конце каждой плашки всегда кнопка X; за плашкой подсветка сверху вниз в цвет типа.
+- Кнопка версии — в правом краю нижней панели (`StatusBar`), значение берётся из `Bridge.GetVersion()` (assembly version, сейчас 2.1.0).
+- Клик по версии открывает `components/ChangelogModal.tsx` с данными из `src/changelog.ts`: прокрутка, закрытие крестиком, Esc и кликом по фону. При выпуске новой версии дополнять массив `CHANGELOG`.
+
 ## Проверки 13.11.2026 (после переустановки Windows)
 - Собрано на чистом .NET 8 SDK 8.0.428 + Node.js 26 (npm 11): `typecheck`, `vite build`, `dotnet build` Debug/Release — без ошибок и предупреждений.
 - v2: сгенерирован новый ключ (PBKDF2 600k), создан `AccountData.json` с `"version":2` (AES-256-GCM), повторный вход — `TryUnlock OK`, неверный PIN отклонён.
@@ -152,6 +160,7 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 - `shader.json` с `enabled:false` полностью убирает волны, интерфейс и стекло читаемы.
 - Release-сборка (self-contained, win-x64) запускается на чистом окружении и показывает landing; в `RoManager.dll` нет строк `ROM_TEST_*` (в Debug — есть).
 - `dotnet publish` кладёт `wwwroot`, `app.ico`, WebView2 DLL и .NET 8 внутрь папки.
+- Плашки проверены скриншотами Debug-копии: успех/ошибка, кнопки действий и X, подсветка за плашкой; кнопка v2.1.0 в нижней панели открывает окно истории обновлений.
 
 ## TODO / следующие шаги
 - [x] Отдельное окно настроек (SettingsFrame.cs + wwwroot/settings.html): перемещаемое, кнопка «Сохранить настройки», id: setPresenceRate/setAutoRecheck/setJoinDelay/setAutoClose/setFpsUnl/setMaxFps/setPresence

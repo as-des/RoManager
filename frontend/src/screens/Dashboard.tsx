@@ -24,13 +24,19 @@ const mapAccounts = (list: AccountDto[] | null | undefined): Account[] =>
     dataOk: !!a.dataOk,
   }))
 
-const IDLE: Status = { text: 'Готов к работе', kind: 'idle' }
+const IDLE_TEXT = 'Готов к работе'
 
-export function Dashboard() {
+interface Props {
+  status: Status
+  setStatus: (text: string, kind?: StatusKind) => void
+  version: string
+  onShowChangelog: () => void
+}
+
+export function Dashboard({ status, setStatus, version, onShowChangelog }: Props) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [manageMode, setManageMode] = useState<ManageMode>(null)
-  const [status, setStatusState] = useState<Status>(IDLE)
   const [addOpen, setAddOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteText, setDeleteText] = useState('')
@@ -38,21 +44,10 @@ export function Dashboard() {
   const lastIndex = useRef(-1)
   const selectedRef = useRef(selected)
   const pendingDelete = useRef<number[]>([])
-  const statusTimer = useRef<number | null>(null)
   const gameInput = useRef<HTMLInputElement>(null)
   const playerInput = useRef<HTMLInputElement>(null)
 
   selectedRef.current = selected
-
-  const setStatus = useCallback((text: string, kind: StatusKind = 'idle') => {
-    if (statusTimer.current) window.clearTimeout(statusTimer.current)
-    setStatusState({ text, kind })
-    if (kind === 'success') {
-      statusTimer.current = window.setTimeout(() => setStatusState(IDLE), 2500)
-    } else if (kind === 'idle' && text !== IDLE.text) {
-      statusTimer.current = window.setTimeout(() => setStatusState(IDLE), 3000)
-    }
-  }, [])
 
   const nameOf = useCallback(
     (id: number) => accounts.find(a => a.id === id)?.name ?? '—',
@@ -61,7 +56,7 @@ export function Dashboard() {
 
   const updateSelectionStatus = useCallback(
     (ids: Set<number>) => {
-      if (ids.size === 0) setStatus(IDLE.text)
+      if (ids.size === 0) setStatus(IDLE_TEXT)
       else if (ids.size === 1) setStatus(`Выбран аккаунт ${nameOf([...ids][0])}`)
       else setStatus(`Выбрано аккаунтов: ${ids.size}`)
     },
@@ -71,16 +66,14 @@ export function Dashboard() {
   // C# → JS
   useEffect(() => {
     window.__setAccounts = list => setAccounts(mapAccounts(list as AccountDto[]))
-    window.__setStatus = (text, kind) => setStatus(text, (kind as StatusKind) || 'idle')
     window.__showAddAccountModal = () => setAddOpen(true)
     window.__closeAddAccountModal = () => setAddOpen(false)
     return () => {
       window.__setAccounts = undefined
-      window.__setStatus = undefined
       window.__showAddAccountModal = undefined
       window.__closeAddAccountModal = undefined
     }
-  }, [setStatus])
+  }, [])
 
   // первичная загрузка (на случай, если push пришёл до монтирования)
   useEffect(() => {
@@ -112,7 +105,7 @@ export function Dashboard() {
       if (selectedRef.current.size > 0) {
         setSelected(new Set())
         lastIndex.current = -1
-        setStatus(IDLE.text)
+        setStatus(IDLE_TEXT)
       }
     }
     document.addEventListener('click', onDocClick)
@@ -152,7 +145,7 @@ export function Dashboard() {
     } else if (next.size === 1 && next.has(id)) {
       next.clear()
       lastIndex.current = -1
-      setStatus(IDLE.text)
+      setStatus(IDLE_TEXT)
     } else {
       next.clear()
       next.add(id)
@@ -389,7 +382,11 @@ export function Dashboard() {
           </div>
         </div>
 
-        <StatusBar status={status} />
+        <StatusBar
+          status={status}
+          version={version}
+          onShowChangelog={onShowChangelog}
+        />
       </div>
 
       <AddAccountModal open={addOpen} onClose={() => setAddOpen(false)} />
