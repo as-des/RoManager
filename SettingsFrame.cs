@@ -13,15 +13,24 @@ internal sealed class SettingsFrame : Form
     public SettingsFrame()
     {
         Inst = this;
-        Text = "Settings — RoManager";
-        FormBorderStyle = FormBorderStyle.None;
+        Text = "Настройки — RoManager";
+        // Нативная рамка, как у главного окна: системный заголовок и ресайз.
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = false;
+        MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(520, 640);
-        BackColor = Color.FromArgb(30, 30, 30);
+        MinimumSize = new Size(480, 520);
+        BackColor = Color.FromArgb(10, 10, 10);
+        DoubleBuffered = true;
         ShowInTaskbar = false;
         try { Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "app.ico")); } catch { }
 
-        _wv = new WebView2 { Dock = DockStyle.Fill };
+        _wv = new WebView2
+        {
+            Dock = DockStyle.Fill,
+            DefaultBackgroundColor = Color.FromArgb(10, 10, 10),
+        };
         Controls.Add(_wv);
 
         Load += async (_, _) =>
@@ -100,6 +109,12 @@ internal sealed class SettingsFrame : Form
     {
         ReleaseCapture();
         _ = SendMessage(Handle, 0xA1, 2, 0);
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        try { int v = 1; DwmSetWindowAttribute(Handle, 20, ref v, 4); DwmSetWindowAttribute(Handle, 19, ref v, 4); } catch { }
     }
 
     protected override void OnShown(EventArgs e)

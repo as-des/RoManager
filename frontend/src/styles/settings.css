@@ -9,21 +9,9 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; background: var(--win-bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color: #e0e0e0; overflow: hidden; }
 
-  .settings-window { width: 100%; height: 100%; background: var(--win-bg); display: flex; flex-direction: column; }
-  .settings-titlebar {
-    background: var(--win-title); height: 32px; display: flex; justify-content: space-between;
-    align-items: center; padding-left: 12px; user-select: none; flex-shrink: 0;
-  }
-  .settings-titlebar span { font-size: 12px; color: var(--win-text); }
-  .settings-titlebar .win-btn { width: 46px; }
-  .win-btn { width: 46px; height: 100%; background: transparent; border: none; color: #ccc;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
-  .win-btn:hover { background: var(--win-control-hover); color: #fff; }
-  .win-btn.close:hover { background: var(--win-control-close); color: #fff; }
-  .win-btn svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 1.5; fill: none; }
-  .space { flex: 1; }
+  .settings-window { width: 100%; height: 100%; background: var(--win-bg); display: flex; flex-direction: column; overflow: hidden; }
 
-  .settings-tabs { display: flex; background: #252525; border-bottom: 1px solid #111; }
+  .settings-tabs { display: flex; background: #252525; border-bottom: 1px solid #111; flex-shrink: 0; }
   .settings-tab {
     padding: 8px 16px; font-size: 13px; color: #aaa; cursor: pointer;
     border-right: 1px solid #111; background: #1e1e1e; transition: background .15s, color .15s;
@@ -75,3 +63,15 @@
 .shader-speed { display: flex; align-items: center; gap: 8px; }
 .shader-speed input[type="range"] { width: 150px; accent-color: #3b82f6; cursor: pointer; }
 .shader-speed span { color: #ddd; font-size: 12px; min-width: 42px; text-align: right; }
+
+/* Тёмные скроллбары, как в главном окне. */
+html { color-scheme: dark; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); background-clip: content-box; }

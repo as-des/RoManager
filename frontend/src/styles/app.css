@@ -951,6 +951,14 @@
 .notice-stack-warning { --notice-glow: rgba(234, 179, 8, 0.52); }
 .notice-stack-info    { --notice-glow: rgba(59, 130, 246, 0.55); }
 
+/* Последняя плашка уходит — подсветка гаснет вместе с ней, а не рывком. */
+.notice-stack.is-clearing::before {
+  animation: noticeGlowOut 0.28s ease forwards;
+}
+@keyframes noticeGlowOut {
+  to { opacity: 0; }
+}
+
 .notice {
   grid-area: 1 / 1;
   position: relative;
@@ -1151,6 +1159,34 @@
   color: #fff;
 }
 
+.changelog-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.changelog-lang {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.changelog-lang-btn {
+  font-family: inherit;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 7px 9px;
+  border: none;
+  background: transparent;
+  color: #8a92a2;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.changelog-lang-btn:hover { color: #fff; }
+.changelog-lang-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 /* Скролл-бокс для списка обновлений. */
 .changelog-body {
   flex: 1;
@@ -1183,20 +1219,17 @@
 .changelog-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .changelog-list li {
   position: relative;
-  padding-left: 16px;
+  padding-left: 18px;
   font-size: 13.5px;
   line-height: 1.7;
   color: #c2c8d4;
 }
 .changelog-list li::before {
-  content: '';
+  content: '–';
   position: absolute;
-  left: 2px;
-  top: 9px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--primary);
+  left: 0;
+  top: 0;
+  color: #6b7280;
 }
 
 /* --- Адаптивная раскладка под нативное окно --- */
@@ -1297,3 +1330,6 @@ html { color-scheme: dark; }
   .dash-header,
   .dash-body { width: 100%; max-width: 1600px; margin-left: auto; margin-right: auto; }
 }
+
+/* Во время ресайза шейдер не рисуем совсем — остаётся тёмный фон. */
+html.is-resizing .shader-bg { visibility: hidden; }

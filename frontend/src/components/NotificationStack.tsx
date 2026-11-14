@@ -38,10 +38,13 @@ export function NotificationStack({
 
   const topKind = notices[0].kind
   const deckDepth = Math.min(notices.length - 1, 3)
+  const clearing = notices.every(n => n.leaving)
 
   return (
     <div
-      className={'notice-stack notice-stack-' + topKind}
+      className={
+        'notice-stack notice-stack-' + topKind + (clearing ? ' is-clearing' : '')
+      }
       aria-live="polite"
       style={{ paddingBottom: 10 + deckDepth * 8 }}
     >

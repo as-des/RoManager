@@ -103,23 +103,6 @@ function SettingsWindow() {
 
   return (
     <div className="settings-window">
-      <div
-        className="settings-titlebar"
-        onMouseDown={e => {
-          if ((e.target as Element).closest('.win-btn')) return
-          rom()?.DragSettings()
-        }}
-      >
-        <span>Настройки — RoManager</span>
-        <div className="space" />
-        <button className="win-btn close" onClick={() => rom()?.CloseSettingsWindow()}>
-          <svg viewBox="0 0 10 10">
-            <line x1="2" y1="2" x2="8" y2="8" />
-            <line x1="8" y1="2" x2="2" y2="8" />
-          </svg>
-        </button>
-      </div>
-
       <div className="settings-tabs">
         <div
           className={'settings-tab' + (tab === 'general' ? ' active' : '')}

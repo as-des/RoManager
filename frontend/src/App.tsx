@@ -22,6 +22,8 @@ export default function App() {
   const noticesRef = useRef<Notice[]>([])
   const noticeTimers = useRef(new Map<number, number>())
   const removalTimers = useRef(new Map<number, number>())
+  const nativeResizing = useRef(false)
+  const resizeIdleTimer = useRef<number | null>(null)
 
   const goTo = useCallback((next: Screen) => setScreen(next), [])
 
@@ -141,10 +143,38 @@ export default function App() {
     }
 
     // Нативная рамка: во время перетаскивания C# просит временно упростить отрисовку.
-    window.__setResizing = active => {
-      document.documentElement.classList.toggle('is-resizing', !!active)
-      window.dispatchEvent(new CustomEvent('rom:resizing', { detail: !!active }))
+    // Плюс страховка на случай, если событие от C# не пришло: любой resize окна
+    // сам включает «лёгкий» режим и выключает его через 180 мс после последнего кадра.
+    let resizeOn = false
+    const setResizeState = (active: boolean) => {
+      if (active === resizeOn) return
+      resizeOn = active
+      document.documentElement.classList.toggle('is-resizing', active)
+      window.dispatchEvent(new CustomEvent('rom:resizing', { detail: active }))
     }
+
+    window.__setResizing = active => {
+      nativeResizing.current = !!active
+      if (active) {
+        if (resizeIdleTimer.current) {
+          window.clearTimeout(resizeIdleTimer.current)
+          resizeIdleTimer.current = null
+        }
+        setResizeState(true)
+      } else if (!resizeIdleTimer.current) {
+        setResizeState(false)
+      }
+    }
+
+    const onWindowResize = () => {
+      setResizeState(true)
+      if (resizeIdleTimer.current) window.clearTimeout(resizeIdleTimer.current)
+      resizeIdleTimer.current = window.setTimeout(() => {
+        resizeIdleTimer.current = null
+        if (!nativeResizing.current) setResizeState(false)
+      }, 180)
+    }
+    window.addEventListener('resize', onWindowResize)
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (document.querySelector('.modal-overlay.show, .changelog-overlay.show')) {
@@ -161,6 +191,10 @@ export default function App() {
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onWindowResize)
+      if (resizeIdleTimer.current) window.clearTimeout(resizeIdleTimer.current)
+      resizeIdleTimer.current = null
+      nativeResizing.current = false
       if (statusTimer.current) window.clearTimeout(statusTimer.current)
       noticeTimers.current.forEach(t => window.clearTimeout(t))
       noticeTimers.current.clear()

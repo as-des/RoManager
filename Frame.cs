@@ -29,7 +29,8 @@ internal sealed class MainFrame : Form
         FormBorderStyle = FormBorderStyle.Sizable;
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(1000, 680);
-        BackColor = Color.FromArgb(26, 26, 26);
+        BackColor = Color.FromArgb(10, 10, 10);
+        DoubleBuffered = true;
         MinimumSize = new Size(760, 520);
         try { Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "app.ico")); } catch { }
 
