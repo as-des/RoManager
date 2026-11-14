@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { IconAlertCircle, IconCheckCircle, IconClose, IconInfoCircle } from './icons'
 
 export type NoticeKind = 'info' | 'success' | 'danger' | 'warning'
@@ -13,6 +14,7 @@ export interface Notice {
   text: string
   kind: NoticeKind
   actions?: NoticeAction[]
+  leaving?: boolean
 }
 
 function NoticeIcon({ kind }: { kind: NoticeKind }) {
@@ -22,8 +24,8 @@ function NoticeIcon({ kind }: { kind: NoticeKind }) {
 }
 
 /**
- * Плашки над содержимым окна. Кнопки действий — в ряд,
- * последней всегда идёт крестик.
+ * Плашки над содержимым окна. Новые ложатся поверх старых как карточки
+ * (видны только края нижних). Подсветка одна на весь стек.
  */
 export function NotificationStack({
   notices,
@@ -34,10 +36,27 @@ export function NotificationStack({
 }) {
   if (notices.length === 0) return null
 
+  const topKind = notices[0].kind
+  const deckDepth = Math.min(notices.length - 1, 3)
+
   return (
-    <div className="notice-stack" aria-live="polite">
-      {notices.map(n => (
-        <div key={n.id} className={'notice notice-' + n.kind} role="status">
+    <div
+      className={'notice-stack notice-stack-' + topKind}
+      aria-live="polite"
+      style={{ paddingBottom: 10 + deckDepth * 8 }}
+    >
+      {notices.map((n, index) => (
+        <div
+          key={n.id}
+          className={
+            'notice notice-' +
+            n.kind +
+            (index > 0 ? ' is-behind' : '') +
+            (n.leaving ? ' is-leaving' : '')
+          }
+          style={{ '--deck': index } as CSSProperties}
+          role="status"
+        >
           <div className="notice-icon">
             <NoticeIcon kind={n.kind} />
           </div>

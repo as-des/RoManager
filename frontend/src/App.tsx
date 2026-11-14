@@ -21,28 +21,71 @@ export default function App() {
 
   const statusTimer = useRef<number | null>(null)
   const noticeSeq = useRef(0)
+  const noticesRef = useRef<Notice[]>([])
   const noticeTimers = useRef(new Map<number, number>())
+  const removalTimers = useRef(new Map<number, number>())
 
   const goTo = useCallback((next: Screen) => setScreen(next), [])
 
-  const dismissNotice = useCallback((id: number) => {
+  const clearNoticeTimer = useCallback((id: number) => {
     const timer = noticeTimers.current.get(id)
     if (timer) window.clearTimeout(timer)
     noticeTimers.current.delete(id)
-    setNotices(list => list.filter(n => n.id !== id))
+    const removal = removalTimers.current.get(id)
+    if (removal) window.clearTimeout(removal)
+    removalTimers.current.delete(id)
   }, [])
 
-  /** success/info уходят сами, danger/warning висят до закрытия. */
+  const dismissNotice = useCallback(
+    (id: number) => {
+      const current = noticesRef.current
+      const target = current.find(n => n.id === id)
+      if (!target || target.leaving) return
+      clearNoticeTimer(id)
+      // Сначала проигрываем исчезновение, потом убираем из стека.
+      const next = current.map(n => (n.id === id ? { ...n, leaving: true } : n))
+      noticesRef.current = next
+      setNotices(next)
+      const removal = window.setTimeout(() => {
+        removalTimers.current.delete(id)
+        const rest = noticesRef.current.filter(n => n.id !== id)
+        noticesRef.current = rest
+        setNotices(rest)
+      }, 280)
+      removalTimers.current.set(id, removal)
+    },
+    [clearNoticeTimer],
+  )
+
+  /**
+   * Одно уведомление на один текст: повторный вызов обновляет существующее,
+   * а не добавляет дубликат. У каждого есть время жизни.
+   */
   const notify = useCallback(
     (text: string, kind: NoticeKind = 'info', title?: string, actions?: NoticeAction[]) => {
-      const id = ++noticeSeq.current
-      setNotices(list => [...list.slice(-3), { id, text, kind, title, actions }])
-      if (kind === 'success' || kind === 'info') {
-        const timer = window.setTimeout(() => dismissNotice(id), 6000)
-        noticeTimers.current.set(id, timer)
+      const existing = noticesRef.current.find(n => n.text.trim() === text.trim())
+      const id = existing?.id ?? ++noticeSeq.current
+      const item: Notice = {
+        id,
+        text,
+        kind,
+        title: title ?? existing?.title,
+        actions: actions ?? existing?.actions,
+        leaving: false,
       }
+      const next = [item, ...noticesRef.current.filter(n => n.id !== id)].slice(0, 4)
+      noticesRef.current = next
+      setNotices(next)
+
+      clearNoticeTimer(id)
+      const lifetime =
+        kind === 'success' ? 5000 : kind === 'info' ? 6000 : kind === 'warning' ? 9000 : 12000
+      noticeTimers.current.set(
+        id,
+        window.setTimeout(() => dismissNotice(id), lifetime),
+      )
     },
-    [dismissNotice],
+    [clearNoticeTimer, dismissNotice],
   )
 
   const setStatus = useCallback((text: string, kind: StatusKind = 'idle') => {
@@ -100,7 +143,7 @@ export default function App() {
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (document.querySelector('.modal-overlay.show')) {
+      if (document.querySelector('.modal-overlay.show, .changelog-overlay.show')) {
         if (e.key === 'Escape') setChangelogOpen(false)
         return
       }
@@ -117,6 +160,8 @@ export default function App() {
       if (statusTimer.current) window.clearTimeout(statusTimer.current)
       noticeTimers.current.forEach(t => window.clearTimeout(t))
       noticeTimers.current.clear()
+      removalTimers.current.forEach(t => window.clearTimeout(t))
+      removalTimers.current.clear()
       window.goTo = undefined
       window.openModal = undefined
       window.__notify = undefined

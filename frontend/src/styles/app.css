@@ -919,57 +919,76 @@
 
 /* --- Плашки уведомлений в верхней части окна --- */
 .notice-stack {
+  --notice-glow: rgba(59, 130, 246, 0.38);
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(720px, calc(100% - 48px));
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 8px 0 10px;
   z-index: 95;
   pointer-events: none;
 }
 
-.notice {
-  --notice-accent: #3b82f6;
-  --notice-glow: rgba(59, 130, 246, 0.3);
-  position: relative;
+/* Одна большая мягкая подсветка на весь стек, в цвет верхней плашки. */
+.notice-stack::before {
+  content: '';
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  top: -70px;
+  bottom: -120px;
+  background: radial-gradient(
+    ellipse 58% 92% at 50% 16%,
+    var(--notice-glow) 0%,
+    transparent 74%
+  );
+  filter: blur(56px);
+  opacity: 1;
   z-index: 0;
+  pointer-events: none;
+}
+
+.notice-stack-success { --notice-glow: rgba(34, 197, 94, 0.55); }
+.notice-stack-danger  { --notice-glow: rgba(239, 68, 68, 0.58); }
+.notice-stack-warning { --notice-glow: rgba(234, 179, 8, 0.52); }
+.notice-stack-info    { --notice-glow: rgba(59, 130, 246, 0.55); }
+
+.notice {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: calc(60 - var(--deck));
+  transform: translateY(calc(var(--deck) * 8px)) scale(calc(1 - var(--deck) * 0.012));
+  transform-origin: top center;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 3px solid var(--notice-accent);
+  padding: 10px 12px 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
-  background: rgba(14, 16, 23, 0.82);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.38), 0 12px 38px -14px var(--notice-glow);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(30, 34, 45, 0.38);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.26);
   pointer-events: auto;
   animation: noticeIn 0.22s ease;
 }
 
-/* Подсветка за плашкой: сверху вниз. */
-.notice::before {
-  content: '';
-  position: absolute;
-  left: 5%;
-  right: 5%;
-  top: -14px;
-  bottom: -24px;
-  background: linear-gradient(to bottom, var(--notice-glow) 0%, transparent 76%);
-  filter: blur(18px);
-  opacity: 0.95;
-  z-index: -1;
-  pointer-events: none;
-}
+.notice.is-behind { pointer-events: none; }
+.notice.is-behind .notice-icon,
+.notice.is-behind .notice-copy,
+.notice.is-behind .notice-actions,
+.notice.is-behind .notice-close { visibility: hidden; }
 
-.notice-success { --notice-accent: #22c55e; --notice-glow: rgba(34, 197, 94, 0.32); }
-.notice-danger  { --notice-accent: #ef4444; --notice-glow: rgba(239, 68, 68, 0.34); }
-.notice-warning { --notice-accent: #eab308; --notice-glow: rgba(234, 179, 8, 0.3); }
-.notice-info    { --notice-accent: #3b82f6; --notice-glow: rgba(59, 130, 246, 0.32); }
+.notice.is-leaving { animation: noticeOut 0.28s ease forwards; }
+
+.notice-success { --notice-accent: #22c55e; }
+.notice-danger  { --notice-accent: #ef4444; }
+.notice-warning { --notice-accent: #eab308; }
+.notice-info    { --notice-accent: #3b82f6; }
 
 .notice-icon {
   width: 18px;
@@ -993,7 +1012,7 @@
 .notice-text {
   font-size: 12.5px;
   line-height: 1.45;
-  color: #c9ced9;
+  color: #d0d5de;
   white-space: pre-line;
   word-break: break-word;
 }
@@ -1010,14 +1029,14 @@
   padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.07);
   color: #dfe3ea;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .notice-action:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.24);
   color: #fff;
 }
@@ -1040,8 +1059,12 @@
 .notice-close:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
 @keyframes noticeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; translate: 0 -8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes noticeOut {
+  to { opacity: 0; translate: 0 -14px; filter: blur(1px); }
 }
 
 /* --- Кнопка версии в нижней панели --- */
@@ -1065,91 +1088,117 @@
   color: #fff;
 }
 
-/* --- Окно истории обновлений --- */
+/* --- Окно истории обновлений (на всё окно) --- */
+.changelog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.6);
+  transition: opacity 0.25s;
+}
+.changelog-overlay.show { display: block; opacity: 1; }
+
 .changelog-modal {
-  width: min(92%, 560px);
-  max-width: 560px;
-  max-height: 78%;
+  width: 100%;
+  height: 100%;
   padding: 0;
+  border: none;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: linear-gradient(180deg, rgba(18, 21, 30, 0.94), rgba(10, 12, 18, 0.94));
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  transform: scale(0.985);
+  transition: transform 0.25s;
 }
+.changelog-overlay.show .changelog-modal { transform: scale(1); }
 
 .changelog-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 18px 13px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px 26px 15px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   flex-shrink: 0;
 }
-.changelog-heading { display: flex; flex-direction: column; gap: 2px; }
-.changelog-title { font-size: 15px; font-weight: 600; color: #fff; }
+.changelog-heading { display: flex; flex-direction: column; gap: 3px; }
+.changelog-title { font-size: 17px; font-weight: 600; color: #fff; }
 .changelog-sub {
   font-size: 11px;
   color: #7d8595;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.9px;
 }
-.changelog-close {
-  width: 28px;
-  height: 28px;
+.changelog-back {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  color: #8a92a3;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7ebf2;
+  font-family: inherit;
+  font-size: 12.5px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.changelog-close svg { width: 14px; height: 14px; }
-.changelog-close:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.changelog-back svg { width: 15px; height: 15px; }
+.changelog-back:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
 
+/* Скролл-бокс для списка обновлений. */
 .changelog-body {
-  padding: 16px 20px 20px;
-  overflow-y: auto;
+  flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  padding: 26px 32px 40px;
+  scrollbar-gutter: stable;
 }
-.changelog-body::-webkit-scrollbar { width: 8px; }
+.changelog-body::-webkit-scrollbar { width: 9px; }
 .changelog-body::-webkit-scrollbar-track { background: transparent; }
 .changelog-body::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.14);
-  border-radius: 4px;
+  border-radius: 5px;
 }
 .changelog-body::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 
 .changelog-release + .changelog-release {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 .changelog-version-row {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.changelog-version { font-size: 13.5px; font-weight: 600; color: #fff; }
-.changelog-date { font-size: 11.5px; color: #7d8595; }
-.changelog-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.changelog-version { font-size: 15.5px; font-weight: 600; color: #fff; }
+.changelog-date { font-size: 12.5px; color: #8a92a2; }
+.changelog-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .changelog-list li {
   position: relative;
-  padding-left: 14px;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: #b9c0cd;
+  padding-left: 16px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #c2c8d4;
 }
 .changelog-list li::before {
   content: '';
   position: absolute;
   left: 2px;
-  top: 7px;
-  width: 4px;
-  height: 4px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--primary);
 }

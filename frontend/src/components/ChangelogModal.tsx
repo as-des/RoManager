@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { CHANGELOG } from '../changelog'
-import { IconClose } from './icons'
+import { IconBack } from './icons'
 
 /** Окно истории обновлений. Открывается кнопкой версии в нижней панели. */
 export function ChangelogModal({
@@ -21,19 +21,20 @@ export function ChangelogModal({
 
   return (
     <div
-      className={'modal-overlay' + (open ? ' show' : '')}
+      className={'changelog-overlay' + (open ? ' show' : '')}
       onMouseDown={e => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="modal changelog-modal">
+      <div className="changelog-modal">
         <div className="changelog-head">
           <div className="changelog-heading">
             <span className="changelog-title">История обновлений</span>
             <span className="changelog-sub">RoManager</span>
           </div>
-          <button className="changelog-close" title="Закрыть" aria-label="Закрыть" onClick={onClose}>
-            <IconClose />
+          <button className="changelog-back" onClick={onClose}>
+            <IconBack />
+            Назад
           </button>
         </div>
 

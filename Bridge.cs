@@ -317,7 +317,6 @@ public sealed class Bridge
             {
                 Log("TryUnlock fail: " + msg);
                 Push("window.openModal(" + Json("Ошибка входа") + "," + Json(msg) + ");");
-                PushStatus(msg, "danger");
                 return;
             }
             Log("TryUnlock OK");
