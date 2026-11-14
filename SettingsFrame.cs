@@ -13,7 +13,7 @@ internal sealed class SettingsFrame : Form
     public SettingsFrame()
     {
         Inst = this;
-        Text = "Настройки — RoManager";
+        Text = Loc.T("Настройки — RoManager", "Settings — RoManager");
         // Нативная рамка, как у главного окна: системный заголовок и ресайз.
         FormBorderStyle = FormBorderStyle.Sizable;
         MaximizeBox = false;
@@ -101,6 +101,32 @@ internal sealed class SettingsFrame : Form
                     null, 404, "Not Found", "Content-Type: text/plain; charset=utf-8\r\n");
             }
         };
+    }
+
+    /** Заголовок окна настроек на текущем языке. */
+    public void ApplyLanguage() =>
+        Text = Loc.T("Настройки — RoManager", "Settings — RoManager");
+
+    /** Выполнить JS в окне настроек (смена языка из главного окна). */
+    public static void PushSettings(string js)
+    {
+        var inst = Inst;
+        if (inst == null || inst.IsDisposed) return;
+        void Run()
+        {
+            try
+            {
+                if (inst._wv?.CoreWebView2 != null)
+                    _ = inst._wv.CoreWebView2.ExecuteScriptAsync(js);
+            }
+            catch { }
+        }
+        try
+        {
+            if (inst.InvokeRequired) inst.BeginInvoke(new Action(Run));
+            else Run();
+        }
+        catch { }
     }
 
     [DllImport("user32.dll")] static extern bool ReleaseCapture();

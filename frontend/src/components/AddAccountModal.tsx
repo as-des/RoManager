@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { rom } from '../bridge'
+import { useI18n } from '../i18n'
 import { IconGlobe } from './icons'
 import { ModalOverlay } from './Modal'
 
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function AddAccountModal({ open, onClose }: Props) {
+  const { t } = useI18n()
   const [cookie, setCookie] = useState('')
 
   useEffect(() => {
@@ -18,9 +20,9 @@ export function AddAccountModal({ open, onClose }: Props) {
   return (
     <ModalOverlay open={open}>
       <div className="modal" style={{ maxWidth: 440 }}>
-        <h3 style={{ marginBottom: 6 }}>Добавить аккаунт</h3>
+        <h3 style={{ marginBottom: 6 }}>{t.add.title}</h3>
         <p className="hint" style={{ marginBottom: 14 }}>
-          Войти через браузер Roblox или вставить cookie вручную.
+          {t.add.hint}
         </p>
         <button
           className="btn btn-primary"
@@ -30,13 +32,13 @@ export function AddAccountModal({ open, onClose }: Props) {
           }}
         >
           <IconGlobe />
-          Войти через браузер
+          {t.add.browser}
         </button>
         <div style={{ height: 10 }} />
         <div className="input-group" style={{ margin: 0 }}>
           <input
             type="password"
-            placeholder=".ROBLOSECURITY cookie (необязательно)"
+            placeholder={t.add.cookie}
             spellCheck={false}
             value={cookie}
             onChange={e => setCookie(e.target.value)}
@@ -50,10 +52,10 @@ export function AddAccountModal({ open, onClose }: Props) {
             rom()?.AddAccountManual(cookie)
           }}
         >
-          Добавить по cookie
+          {t.add.byCookie}
         </button>
         <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={onClose}>
-          Отмена
+          {t.common.cancel}
         </button>
       </div>
     </ModalOverlay>

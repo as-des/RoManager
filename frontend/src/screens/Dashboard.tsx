@@ -13,6 +13,8 @@ import {
   IconTrash,
 } from '../components/icons'
 import { StatusBar } from '../components/StatusBar'
+import { LanguageSwitch } from '../components/LanguageSwitch'
+import { fmt, useI18n } from '../i18n'
 import type { Account, AccountDto, ManageMode, Status, StatusKind } from '../types'
 
 const mapAccounts = (list: AccountDto[] | null | undefined): Account[] =>
@@ -24,8 +26,6 @@ const mapAccounts = (list: AccountDto[] | null | undefined): Account[] =>
     dataOk: !!a.dataOk,
   }))
 
-const IDLE_TEXT = 'Готов к работе'
-
 interface Props {
   status: Status
   setStatus: (text: string, kind?: StatusKind) => void
@@ -34,6 +34,8 @@ interface Props {
 }
 
 export function Dashboard({ status, setStatus, version, onShowChangelog }: Props) {
+  const { t } = useI18n()
+  const idleText = t.dash.ready
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [manageMode, setManageMode] = useState<ManageMode>(null)
@@ -56,11 +58,11 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
 
   const updateSelectionStatus = useCallback(
     (ids: Set<number>) => {
-      if (ids.size === 0) setStatus(IDLE_TEXT)
-      else if (ids.size === 1) setStatus(`Выбран аккаунт ${nameOf([...ids][0])}`)
-      else setStatus(`Выбрано аккаунтов: ${ids.size}`)
+      if (ids.size === 0) setStatus(idleText)
+      else if (ids.size === 1) setStatus(fmt(t.dash.selectedOne, { name: nameOf([...ids][0]) }))
+      else setStatus(fmt(t.dash.selectedMany, { count: ids.size }))
     },
-    [nameOf, setStatus],
+    [idleText, nameOf, setStatus, t],
   )
 
   // C# → JS
@@ -105,12 +107,12 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
       if (selectedRef.current.size > 0) {
         setSelected(new Set())
         lastIndex.current = -1
-        setStatus(IDLE_TEXT)
+        setStatus(idleText)
       }
     }
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
-  }, [setStatus])
+  }, [idleText, setStatus])
 
   // панель «Управление» доступна только при одном выбранном аккаунте
   useEffect(() => {
@@ -145,7 +147,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
     } else if (next.size === 1 && next.has(id)) {
       next.clear()
       lastIndex.current = -1
-      setStatus(IDLE_TEXT)
+      setStatus(idleText)
     } else {
       next.clear()
       next.add(id)
@@ -161,7 +163,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
     const accName = nameOf(accId)
 
     if (mode === 'launcher') {
-      setStatus(`Запуск лаунчера для ${accName}…`, 'busy')
+      setStatus(fmt(t.dash.launchingLauncher, { name: accName }), 'busy')
       rom()?.Manage('launcher', '', accId)
       setManageMode(null)
       return
@@ -173,8 +175,8 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
 
     setStatus(
       mode === 'game'
-        ? `${accName} входит в игру ${value}…`
-        : `${accName} подключается к игроку ${value}…`,
+        ? fmt(t.dash.enteringGame, { name: accName, value })
+        : fmt(t.dash.joiningPlayer, { name: accName, value }),
       'busy',
     )
     rom()?.Manage(mode, value, accId)
@@ -186,7 +188,11 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
     if (selected.size === 0) return
     const names = [...selected].map(nameOf)
     pendingDelete.current = [...selected]
-    setDeleteText(names.length === 1 ? `Аккаунт: ${names[0]}` : `Аккаунты: ${names.join(', ')}`)
+    setDeleteText(
+      names.length === 1
+        ? fmt(t.dash.deleteOne, { name: names[0] })
+        : fmt(t.dash.deleteMany, { names: names.join(', ') }),
+    )
     setDeleteOpen(true)
   }
 
@@ -206,15 +212,18 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
     <div className="screen active">
       <div className="dashboard fade-in">
         <div className="dash-header">
+          <div className="dash-header-left">
+            <LanguageSwitch />
+          </div>
           <button className="btn btn-ghost btn-sm" onClick={() => rom()?.Logout()}>
-            Выйти
+            {t.dash.logout}
           </button>
         </div>
 
         <div className="dash-body">
           <div className="panel accounts-panel">
             <div className="panel-title">
-              Аккаунты (<span>{accounts.length}</span>)
+              {t.dash.accounts} (<span>{accounts.length}</span>)
             </div>
             <table className="accounts-table-header">
               <colgroup>
@@ -227,10 +236,10 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
               <thead>
                 <tr>
                   <th></th>
-                  <th>АККАУНТ</th>
-                  <th>СТАТУС</th>
-                  <th>ПОСЛЕДНИЙ ЗАПУСК</th>
-                  <th>ДАННЫЕ</th>
+                  <th>{t.dash.colAccount}</th>
+                  <th>{t.dash.colStatus}</th>
+                  <th>{t.dash.colLast}</th>
+                  <th>{t.dash.colData}</th>
                 </tr>
               </thead>
             </table>
@@ -262,12 +271,12 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
                             <span
                               className={'status-dot ' + (acc.online ? 'online' : 'offline')}
                             />
-                            {acc.online ? 'Активен' : 'Неактивен'}
+                            {acc.online ? t.dash.online : t.dash.offline}
                           </span>
                         </td>
                         <td>{acc.lastOnline}</td>
                         <td className={acc.dataOk ? 'data-ok' : 'data-old'}>
-                          {acc.dataOk ? 'Актуальны' : 'Устарели · обновить'}
+                          {acc.dataOk ? t.dash.dataOk : t.dash.dataOld}
                         </td>
                       </tr>
                     )
@@ -279,19 +288,19 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
 
           <div className="sidebar">
             <div className="panel">
-              <div className="panel-title">Действия</div>
+              <div className="panel-title">{t.dash.actions}</div>
               <div className="actions-row">
                 <button
                   className="btn btn-primary btn-add-acc"
                   onClick={() => rom()?.OpenAddAccount()}
                 >
                   <IconPlus />
-                  Добавить
+                  {t.dash.add}
                 </button>
                 <button
                   className="btn btn-secondary btn-icon"
                   disabled={selected.size !== 1}
-                  title="Обновить данные"
+                  title={t.dash.refresh}
                   onClick={() => {
                     if (selected.size === 1) rom()?.RefreshAccount([...selected][0])
                   }}
@@ -301,7 +310,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
                 <button
                   className="btn btn-danger btn-icon"
                   disabled={selected.size === 0}
-                  title="Удалить"
+                  title={t.dash.delete}
                   onClick={askDelete}
                 >
                   <IconTrash />
@@ -310,7 +319,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
             </div>
 
             <div className={'panel' + (canManage ? '' : ' disabled')}>
-              <div className="panel-title">Управление аккаунтом</div>
+              <div className="panel-title">{t.dash.manage}</div>
 
               <div className={'manage-row' + (manageMode ? ' has-active' : '')}>
                 <div
@@ -324,7 +333,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
                     <IconGamepad />
                   </div>
                   <div className="manage-content" onClick={e => e.stopPropagation()}>
-                    <input ref={gameInput} type="text" placeholder="ID сервера" />
+                    <input ref={gameInput} type="text" placeholder={t.dash.serverId} />
                     <button className="manage-submit" onClick={() => executeManage('game')}>
                       <IconArrowRight />
                     </button>
@@ -342,7 +351,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
                     <IconPlayer />
                   </div>
                   <div className="manage-content" onClick={e => e.stopPropagation()}>
-                    <input ref={playerInput} type="text" placeholder="Ник игрока" />
+                    <input ref={playerInput} type="text" placeholder={t.dash.playerNick} />
                     <button className="manage-submit" onClick={() => executeManage('player')}>
                       <IconArrowRight />
                     </button>
@@ -363,7 +372,7 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
                   </div>
                   <div className="manage-content">
                     <span className="manage-label" style={{ paddingLeft: 4 }}>
-                      Запуск лаунчера
+                      {t.dash.launchLauncher}
                     </span>
                   </div>
                 </div>
@@ -371,11 +380,11 @@ export function Dashboard({ status, setStatus, version, onShowChangelog }: Props
             </div>
 
             <div className="panel">
-              <div className="panel-title">Настройки</div>
+              <div className="panel-title">{t.dash.settings}</div>
               <div className="actions-list">
                 <button className="btn btn-secondary" onClick={() => rom()?.OpenSettings()}>
                   <IconGear />
-                  Открыть настройки
+                  {t.dash.openSettings}
                 </button>
               </div>
             </div>

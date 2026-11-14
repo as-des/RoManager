@@ -10,6 +10,7 @@ internal static class Program
     [STAThread]
     static void Main()
     {
+        Loc.Load();
         ApplicationConfiguration.Initialize();
         Application.Run(new MainFrame());
     }
@@ -329,6 +330,9 @@ internal sealed class MainFrame : Form
     {
         if (InvokeRequired) BeginInvoke(a); else a();
     }
+
+    /** Заголовок главного окна не зависит от языка, но метод нужен Loc.ApplyTitles. */
+    public void ApplyLanguage() => Text = "RoManager";
 
     protected override void OnHandleCreated(EventArgs e)
     {

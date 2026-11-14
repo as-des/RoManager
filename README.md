@@ -29,6 +29,9 @@ C# WinForms + WebView2, интерфейс — React + TypeScript + Vite.
   по кнопке версии в нижней панели.
 - **Настройки:** отдельное окно, автообновление cookie, интервал presence, задержка
   запуска, закрытие предыдущего клиента, встроенный браузер, фон, режим логов.
+- **Язык интерфейса:** русский и английский, переключатель на всех экранах — включая
+  страницу авторизации (там же настройки интерфейса). Выбор хранится в `ui.json`
+  рядом с exe, поэтому работает ещё до разблокировки хранилища.
 
 ## Требования
 
@@ -73,6 +76,7 @@ dotnet publish -c Release -r win-x64 --self-contained true -o publish
 ```
 RoManager.csproj        WinForms + WebView2 (net8.0-windows)
 Frame.cs                главное окно, хост WebView2, локальный сервер app.local
+Localization.cs         язык интерфейса (ui.json) и строки C# RU/EN
 SettingsFrame.cs        отдельное окно настроек
 BrowserLoginFrame.cs    встроенный вход Roblox во временном профиле
 Bridge.cs               JS ↔ C# мост (window.chrome.webview.hostObjects.rom)
@@ -89,7 +93,7 @@ design/offer.html       исходный макет (референс, не ме
 - `rom-key.json` и `AccountData.json` **не коммитятся** и не входят в репозиторий;
 - в Release отключены DevTools, внешняя навигация и разрешения WebView2;
 - в лог не попадают фраза, PIN и cookie;
-- `shader.json` не зашифрован, но секретов не содержит.
+- `shader.json` и `ui.json` не зашифрованы, но секретов не содержат (фон и язык интерфейса).
 
 ## Участие
 

@@ -18,6 +18,7 @@ AccountData.json.*
 rom.log
 rom.log.*
 shader.json
+ui.json
 /wv2/
 
 # ---------- Локальный браузер (422 МБ) ----------

@@ -28,12 +28,24 @@ public sealed class Bridge
         return $"{v.Major}.{v.Minor}.{(v.Build >= 0 ? v.Build : 0)}";
     }
 
+    /* ---------- язык интерфейса (ui.json, доступен до входа) ---------- */
+    public string GetUiLanguage() => Loc.Language;
+
+    public void SetUiLanguage(string lang)
+    {
+        Loc.Set(lang);
+        Loc.ApplyTitles();
+        var js = $"window.__applyLanguage && window.__applyLanguage({Json(Loc.Language)});";
+        Push(js);
+        SettingsFrame.PushSettings(js);
+    }
+
     /* ---------- встроенный логин Roblox (как в оригинале RAM) ---------- */
     public void OpenBrowserLogin()
     {
-        if (Session == null || !Session.Ready) { PushStatus("Сначала войдите в приложение", "danger"); return; }
+        if (Session == null || !Session.Ready) { PushStatus(Loc.T("Сначала войдите в приложение", "Sign in first"), "danger"); return; }
         Log("OpenBrowserLogin");
-        PushStatus("Открываю окно входа Roblox…", "busy");
+        PushStatus(Loc.T("Открываю окно входа Roblox…", "Opening the Roblox sign-in window…"), "busy");
         MainFrame.Inst.RunOnUi(() =>
         {
             if (BrowserLoginFrame.Inst == null || BrowserLoginFrame.Inst.IsDisposed)
@@ -50,7 +62,7 @@ public sealed class Bridge
     {
         if (string.IsNullOrWhiteSpace(cookie) || cookie.Length < 50) return false;
         var v = Roblox.ValidateCookie(cookie);
-        if (!v.ok) { Log("cookie invalid: " + v.err); PushStatus("Cookie недействителен: " + v.err, "danger"); return false; }
+        if (!v.ok) { Log("cookie invalid: " + v.err); PushStatus(Loc.T("Cookie недействителен: ", "Invalid cookie: ") + v.err, "danger"); return false; }
         var acc = new AccountInfo
         {
             Name = v.name,
@@ -62,7 +74,7 @@ public sealed class Bridge
         Vault.Upsert(acc);
         Vault.Save();
         LogDev($"account added: {v.name} ({v.uid})");
-        PushStatus($"Аккаунт {v.name} добавлен", "success");
+        PushStatus(Loc.F("Аккаунт {0} добавлен", "Account {0} added", v.name), "success");
         PushAccounts();
         Push("window.__enterDashboard();");
         return true;
@@ -71,11 +83,11 @@ public sealed class Bridge
     /* Открыть окно «Обновить данные»: профиль тоже свежий, cookie подставляется в него */
     public void OpenBrowserRefresh(long id)
     {
-        if (Session == null || !Session.Ready) { PushStatus("Сначала войдите в приложение", "danger"); return; }
+        if (Session == null || !Session.Ready) { PushStatus(Loc.T("Сначала войдите в приложение", "Sign in first"), "danger"); return; }
         var acc = Vault.Find(id);
-        if (acc == null) { PushStatus("Аккаунт не найден", "danger"); return; }
+        if (acc == null) { PushStatus(Loc.T("Аккаунт не найден", "Account not found"), "danger"); return; }
         Log("OpenBrowserRefresh " + acc.Name);
-        PushStatus($"Обновление данных {acc.Name}…", "busy");
+        PushStatus(Loc.F("Обновление данных {0}…", "Refreshing data for {0}…", acc.Name), "busy");
         var cookie = acc.Cookie;
         MainFrame.Inst.RunOnUi(() =>
         {
@@ -93,8 +105,8 @@ public sealed class Bridge
         if (acc == null) return false;
         if (string.IsNullOrWhiteSpace(cookie) || cookie.Length < 50) return false;
         var v = Roblox.ValidateCookie(cookie);
-        if (!v.ok) { Log("refresh invalid: " + v.err); PushStatus("Cookie недействителен: " + v.err, "danger"); return false; }
-        if (v.uid != acc.UserId) { PushStatus("Вошёл другой аккаунт — обновление отменено", "danger"); return false; }
+        if (!v.ok) { Log("refresh invalid: " + v.err); PushStatus(Loc.T("Cookie недействителен: ", "Invalid cookie: ") + v.err, "danger"); return false; }
+        if (v.uid != acc.UserId) { PushStatus(Loc.T("Вошёл другой аккаунт — обновление отменено", "A different account signed in — refresh cancelled"), "danger"); return false; }
         acc.Cookie = cookie;
         acc.Name = v.name;
         acc.DataOk = true;
@@ -102,7 +114,7 @@ public sealed class Bridge
         acc.LastUpdated = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
         Vault.Save();
         Log("account refreshed: " + v.name);
-        PushStatus($"Данные {v.name} обновлены", "success");
+        PushStatus(Loc.F("Данные {0} обновлены", "Data for {0} updated", v.name), "success");
         PushAccounts();
         return true;
     }
@@ -292,13 +304,13 @@ public sealed class Bridge
             Task.Run(() =>
             {
                 try { Log("inner begin"); CompleteAccessInner(keyContent, phrase, pin); Log("inner end"); }
-                catch (Exception ex) { Log("inner EX: " + ex); Push("window.openModal('Ошибка входа','Необработанное: " + ex.Message.Replace("'", "") + "');"); }
+                catch (Exception ex) { Log("inner EX: " + ex); Push("window.openModal(" + Json(Loc.T("Ошибка входа", "Sign-in error")) + "," + Json(Loc.T("Необработанная ошибка: ", "Unexpected error: ") + ex.Message.Replace("'", "")) + ");"); }
             });
         }
         catch (Exception ex)
         {
             Log("outer EX: " + ex);
-            Push("window.openModal('Ошибка входа','Необработанное: " + ex.Message.Replace("'", "") + "');");
+            Push("window.openModal(" + Json(Loc.T("Ошибка входа", "Sign-in error")) + "," + Json(Loc.T("Необработанная ошибка: ", "Unexpected error: ") + ex.Message.Replace("'", "")) + ");");
         }
     }
 
@@ -307,22 +319,22 @@ public sealed class Bridge
         Task.Run(() =>
         {
             if (string.IsNullOrWhiteSpace(keyContent))
-            { PushStatus("Сначала выберите ключевой файл", "danger"); return; }
+            { PushStatus(Loc.T("Сначала выберите ключевой файл", "Select a key file first"), "danger"); return; }
             var w = (phrase ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (w.Length != 2) { PushStatus("Фраза должна состоять из двух слов", "danger"); return; }
-            if (!Regex.IsMatch(pin ?? "", @"^\d{4,6}$")) { PushStatus("PIN должен быть 4–6 цифр", "danger"); return; }
+            if (w.Length != 2) { PushStatus(Loc.T("Фраза должна состоять из двух слов", "The phrase must contain exactly two words"), "danger"); return; }
+            if (!Regex.IsMatch(pin ?? "", @"^\d{4,6}$")) { PushStatus(Loc.T("PIN должен быть 4–6 цифр", "PIN must be 4–6 digits"), "danger"); return; }
 
             var (ok, msg) = Vault.TryUnlock(keyContent, phrase, pin);
             if (!ok)
             {
                 Log("TryUnlock fail: " + msg);
-                Push("window.openModal(" + Json("Ошибка входа") + "," + Json(msg) + ");");
+                Push("window.openModal(" + Json(Loc.T("Ошибка входа", "Sign-in error")) + "," + Json(msg) + ");");
                 return;
             }
             Log("TryUnlock OK");
             Roblox.RestartTimers();
             Roblox.ApplyMultiInstance();
-            PushStatus("Вход выполнен", "success");
+            PushStatus(Loc.T("Вход выполнен", "Signed in"), "success");
             PushAccounts();
             Push("window.__enterDashboard();");
         });
@@ -333,9 +345,9 @@ public sealed class Bridge
         Task.Run(() =>
         {
             var w = (phrase ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (w.Length != 2) { PushStatus("Фраза должна состоять из двух слов", "danger"); return; }
-            if (!Regex.IsMatch(pin ?? "", @"^\d{4,6}$")) { PushStatus("PIN должен быть 4–6 цифр", "danger"); return; }
-            if (pin != pinConfirm) { PushStatus("PIN не совпадает", "danger"); return; }
+            if (w.Length != 2) { PushStatus(Loc.T("Фраза должна состоять из двух слов", "The phrase must contain exactly two words"), "danger"); return; }
+            if (!Regex.IsMatch(pin ?? "", @"^\d{4,6}$")) { PushStatus(Loc.T("PIN должен быть 4–6 цифр", "PIN must be 4–6 digits"), "danger"); return; }
+            if (pin != pinConfirm) { PushStatus(Loc.T("PIN не совпадает", "PINs do not match"), "danger"); return; }
 
             var iterations = Crypto.DefaultIterations;
             var salt = Crypto.Salt();
@@ -373,8 +385,8 @@ public sealed class Bridge
                 if (!ok) { PushStatus(msg, "danger"); return; }
                 Vault.Save();
                 PushStatus(saved
-                    ? "Ключ создан и сохранён. Сейв инициализирован."
-                    : "Ключ создан, но ФАЙЛ НЕ СКАЧАН — нажмите «Скачать ключевой файл»!", saved ? "success" : "busy");
+                    ? Loc.T("Ключ создан и сохранён. Сейв инициализирован.", "Key created and saved. Vault initialised.")
+                    : Loc.T("Ключ создан, но ФАЙЛ НЕ СКАЧАН — нажмите «Скачать ключевой файл»!", "Key created, but the FILE WAS NOT SAVED — click “Download key file”!"), saved ? "success" : "busy");
                 PushAccounts();
                 Push("window.__enterDashboard();");
             });
@@ -392,13 +404,13 @@ public sealed class Bridge
     {
         Task.Run(async () =>
         {
-            PushStatus("Открываю браузер Roblox для входа…", "busy");
+            PushStatus(Loc.T("Открываю браузер Roblox для входа…", "Opening the Roblox browser for sign-in…"), "busy");
             Push("window.__closeAddAccountModal();");
             var (cookie, _, _) = await ChromeLogin.StartAsync(s => PushStatus(s, "busy"));
             if (string.IsNullOrEmpty(cookie))
-            { PushStatus("Не удалось получить cookie (возможно, аккаунт не вошёл)", "danger"); return; }
+            { PushStatus(Loc.T("Не удалось получить cookie (возможно, аккаунт не вошёл)", "Could not get the cookie (the account may not be signed in)"), "danger"); return; }
             var v = Roblox.ValidateCookie(cookie);
-            if (!v.ok) { PushStatus("Cookie недействителен: " + v.err, "danger"); return; }
+            if (!v.ok) { PushStatus(Loc.T("Cookie недействителен: ", "Invalid cookie: ") + v.err, "danger"); return; }
             var acc = new AccountInfo
             {
                 Name = v.name,
@@ -409,7 +421,7 @@ public sealed class Bridge
             };
             Vault.Upsert(acc);
             Vault.Save();
-            PushStatus($"Аккаунт {v.name} добавлен", "success");
+            PushStatus(Loc.F("Аккаунт {0} добавлен", "Account {0} added", v.name), "success");
             PushAccounts();
         });
     }
@@ -422,9 +434,9 @@ public sealed class Bridge
             cookie = (cookie ?? "").Trim();
             if (cookie.StartsWith("_|WARNING")) { /* окей, дальше чистим */ }
             cookie = Regex.Replace(cookie, @"^(_|\.ROBLOSECURITY=|_ROBLOSECURITY=)", "", RegexOptions.IgnoreCase).Trim();
-            if (cookie.Length < 50) { PushStatus("Cookie выглядит некорректно", "danger"); return; }
+            if (cookie.Length < 50) { PushStatus(Loc.T("Cookie выглядит некорректно", "The cookie looks invalid"), "danger"); return; }
             var v = Roblox.ValidateCookie(cookie);
-            if (!v.ok) { PushStatus("Cookie недействителен: " + v.err, "danger"); return; }
+            if (!v.ok) { PushStatus(Loc.T("Cookie недействителен: ", "Invalid cookie: ") + v.err, "danger"); return; }
             var acc = new AccountInfo
             {
                 Name = v.name,
@@ -435,7 +447,7 @@ public sealed class Bridge
             };
             Vault.Upsert(acc);
             Vault.Save();
-            PushStatus($"Аккаунт {v.name} добавлен", "success");
+            PushStatus(Loc.F("Аккаунт {0} добавлен", "Account {0} added", v.name), "success");
             PushAccounts();
         });
     }
@@ -444,10 +456,10 @@ public sealed class Bridge
     public void RefreshAccount(long id)
     {
         var acc = Vault.Find(id);
-        if (acc == null) { PushStatus("Аккаунт не найден", "danger"); return; }
+        if (acc == null) { PushStatus(Loc.T("Аккаунт не найден", "Account not found"), "danger"); return; }
         Task.Run(() =>
         {
-            PushStatus($"Проверка {acc.Name}…", "busy");
+            PushStatus(Loc.F("Проверка {0}…", "Checking {0}…", acc.Name), "busy");
             var v = Roblox.ValidateCookie(acc.Cookie);
             acc.DataOk = v.ok;
             acc.LastUpdated = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
@@ -455,10 +467,10 @@ public sealed class Bridge
             PushAccounts();
             if (v.ok)
             {
-                PushStatus($"Данные {acc.Name} актуальны", "success");
+                PushStatus(Loc.F("Данные {0} актуальны", "Data for {0} is up to date", acc.Name), "success");
                 return;
             }
-            PushStatus($"Сессия {acc.Name} устарела — откройте вход", "danger");
+            PushStatus(Loc.F("Сессия {0} устарела — откройте вход", "The session for {0} has expired — sign in again", acc.Name), "danger");
             OpenBrowserRefresh(id);
         });
     }
@@ -470,17 +482,17 @@ public sealed class Bridge
             var ids = JsonSerializer.Deserialize<long[]>(idsJson);
             Vault.Remove(ids);
             Vault.Save();
-            PushStatus($"Удалено аккаунтов: {ids.Length}", "success");
+            PushStatus(Loc.F("Удалено аккаунтов: {0}", "Accounts deleted: {0}", ids.Length), "success");
             PushAccounts();
         }
-        catch (Exception ex) { PushStatus("Ошибка удаления: " + ex.Message, "danger"); }
+        catch (Exception ex) { PushStatus(Loc.T("Ошибка удаления: ", "Delete error: ") + ex.Message, "danger"); }
     }
 
     /* ---------- manage ---------- */
     public void Manage(string mode, string value, long accId)
     {
         var acc = Vault.Find(accId);
-        if (acc == null) { PushStatus("Сначала выберите аккаунт", "danger"); return; }
+        if (acc == null) { PushStatus(Loc.T("Сначала выберите аккаунт", "Select an account first"), "danger"); return; }
         value = (value ?? "").Trim();
         Task.Run(() =>
         {
@@ -488,11 +500,11 @@ public sealed class Bridge
             {
                 if (mode == "launcher")
                 {
-                    PushStatus($"Запуск лаунчера для {acc.Name}…", "busy");
+                    PushStatus(Loc.F("Запуск лаунчера для {0}…", "Launching the launcher for {0}…", acc.Name), "busy");
                     Roblox.Launch(acc, null, null, null, homeMode: true);
                     acc.LastOnline = DateTime.Now.ToString("dd.MM.yyyy HH:mm"); // «Последний запуск»
                     Roblox.RegisterLaunch(acc);
-                    PushStatus($"Лаунчер Roblox запущен ({acc.Name})", "success");
+                    PushStatus(Loc.F("Лаунчер Roblox запущен ({0})", "Roblox launcher started ({0})", acc.Name), "success");
                     return;
                 }
 
@@ -505,26 +517,26 @@ public sealed class Bridge
 
                 if (mode == "player")
                 {
-                    PushStatus($"Проверяю игрока {value}…", "busy");
+                    PushStatus(Loc.F("Проверяю игрока {0}…", "Looking up player {0}…", value), "busy");
                     var (uid, err) = Roblox.GetUserId(value);
-                    if (uid == 0) { PushStatus("Ошибка: " + err, "danger"); return; }
+                    if (uid == 0) { PushStatus(Loc.T("Ошибка: ", "Error: ") + err, "danger"); return; }
                     var (place, job, perr) = Roblox.GetUserPlace(acc.Cookie, uid);
-                    if (place == null) { PushStatus($"К игроку {value}: {perr}", "danger"); return; }
+                    if (place == null) { PushStatus(Loc.F("К игроку {0}: {1}", "To player {0}: {1}", value, perr), "danger"); return; }
                     pid = place; jobId = job;
                     label = Roblox.GetPlaceName(pid) ?? ("#" + pid);
-                    PushStatus($"{acc.Name} подключается к игроку {value} ({(label)})…", "busy");
+                    PushStatus(Loc.F("{0} подключается к игроку {1} ({2})…", "{0} is connecting to player {1} ({2})…", acc.Name, value, label), "busy");
                 }
                 else if (mode == "game")
                 {
                     var pm = Regex.Match(value, @"(?:games/|placeId=|\bplaces/)(\d+)");
                     pid = pm.Success ? pm.Groups[1].Value : (Regex.IsMatch(value, @"^\d+$") ? value : null);
-                    if (pid == null) { PushStatus("Не понял ID игры", "danger"); return; }
+                    if (pid == null) { PushStatus(Loc.T("Не понял ID игры", "Could not recognise the game ID"), "danger"); return; }
                     label = Roblox.GetPlaceName(pid) ?? ("#" + pid);
                     PushStatus(code != null
-                        ? $"{acc.Name} входит на приват сервер {label}…"
-                        : $"{acc.Name} входит в игру {label}…", "busy");
+                        ? Loc.F("{0} входит на приват сервер {1}…", "{0} is joining private server {1}…", acc.Name, label)
+                        : Loc.F("{0} входит в игру {1}…", "{0} is joining game {1}…", acc.Name, label), "busy");
                 }
-                else { PushStatus("Неизвестное действие", "danger"); return; }
+                else { PushStatus(Loc.T("Неизвестное действие", "Unknown action"), "danger"); return; }
 
                 var delay = Math.Clamp(Vault.Settings.JoinDelayMs, 0, 30000);
                 if (delay > 0) Thread.Sleep(delay);
@@ -535,11 +547,11 @@ public sealed class Bridge
                 acc.LastGameName = label;
                 acc.LastOnline = DateTime.Now.ToString("dd.MM.yyyy HH:mm"); // «Последний запуск»
                 Roblox.RegisterLaunch(acc);
-                PushStatus($"{acc.Name}: запуск {label}…", "success");
+                PushStatus(Loc.F("{0}: запуск {1}…", "{0}: launching {1}…", acc.Name, label), "success");
             }
             catch (Exception ex)
             {
-                PushStatus("Ошибка запуска: " + ex.Message, "danger");
+                PushStatus(Loc.T("Ошибка запуска: ", "Launch error: ") + ex.Message, "danger");
             }
         });
     }
@@ -571,11 +583,12 @@ public sealed class Bridge
             Roblox.RestartTimers();
             var multiOk = Roblox.ApplyMultiInstance();
             PushStatus(
-                multiOk ? "Настройки сохранены"
-                        : "Настройки сохранены. Multi Roblox не включился: закройте Roblox и сохраните ещё раз",
+                multiOk ? Loc.T("Настройки сохранены", "Settings saved")
+                        : Loc.T("Настройки сохранены. Multi Roblox не включился: закройте Roblox и сохраните ещё раз",
+                                "Settings saved. Multi Roblox could not start: close Roblox and save again"),
                 multiOk ? "success" : "danger");
         }
-        catch (Exception ex) { PushStatus("Ошибка настроек: " + ex.Message, "danger"); }
+        catch (Exception ex) { PushStatus(Loc.T("Ошибка настроек: ", "Settings error: ") + ex.Message, "danger"); }
     }
 
     /* ---------- настройки GLSL-фона ----------
@@ -600,21 +613,21 @@ public sealed class Bridge
             File.WriteAllText(ShaderSettingsPath, json ?? "{}");
             Push($"window.__applyShaderSettings({json});");
         }
-        catch (Exception ex) { PushStatus("Ошибка сохранения фона: " + ex.Message, "danger"); }
+        catch (Exception ex) { PushStatus(Loc.T("Ошибка сохранения фона: ", "Background save error: ") + ex.Message, "danger"); }
     }
 
     /* Экспорт ключевого файла текущей сессии */
     public void ExportKeyFile()
     {
         var c = Vault.GetKeyFileContent() ?? PendingKey;
-        if (c == null) { PushStatus("Сессия не открыта", "danger"); return; }
+        if (c == null) { PushStatus(Loc.T("Сессия не открыта", "Session is not unlocked"), "danger"); return; }
         SaveKeyFile(c, "rom-key.json");
-        PushStatus("Ключевой файл сохранён", "success");
+        PushStatus(Loc.T("Ключевой файл сохранён", "Key file saved"), "success");
     }
     public void Logout()
     {
         Session?.Clear();
         Push("window.goTo('landing');");
-        PushStatus("Сессия закрыта");
+        PushStatus(Loc.T("Сессия закрыта", "Session closed"));
     }
 }

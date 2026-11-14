@@ -24,6 +24,8 @@ export interface RomBridge {
   ExportKeyFile(): void
   // прочее
   OpenSettings(): void
+  GetUiLanguage(): Promise<string>
+  SetUiLanguage(lang: string): void
   GetSettings(): Promise<string>
   SaveSettings(json: string): Promise<void>
   GetShaderSettings(): Promise<string>
@@ -57,6 +59,7 @@ declare global {
       actions?: { label: string; id: string }[],
     ) => void
     __applyShaderSettings?: (settings: unknown) => void
+    __applyLanguage?: (lang: string) => void
     __setResizing?: (active: boolean) => void
   }
 }

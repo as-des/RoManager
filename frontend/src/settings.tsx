@@ -2,9 +2,12 @@ import { StrictMode, useEffect, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import { rom } from './bridge'
+import { LanguageSwitch } from './components/LanguageSwitch'
+import { fmt, LanguageProvider, useI18n } from './i18n'
 import { DEFAULT_SHADER_SETTINGS, normalizeShaderSettings, SPEED_MAX, SPEED_MIN } from './shaderSettings'
 import type { ShaderSettings } from './shaderSettings'
 import './styles/settings.css'
+import './styles/lang.css'
 
 type Tab = 'general' | 'developer' | 'misc'
 
@@ -40,6 +43,7 @@ const clamp = (v: number, min: number, max: number) =>
   Number.isNaN(v) ? min : Math.min(max, Math.max(min, v))
 
 function SettingsWindow() {
+  const { t } = useI18n()
   const [tab, setTab] = useState<Tab>('general')
   const [s, setS] = useState<Settings>(DEFAULTS)
   const [shader, setShader] = useState<ShaderSettings>(DEFAULT_SHADER_SETTINGS)
@@ -108,25 +112,33 @@ function SettingsWindow() {
           className={'settings-tab' + (tab === 'general' ? ' active' : '')}
           onClick={() => setTab('general')}
         >
-          General
+          {t.settings.tabs.general}
         </div>
         <div
           className={'settings-tab' + (tab === 'developer' ? ' active' : '')}
           onClick={() => setTab('developer')}
         >
-          Developer
+          {t.settings.tabs.developer}
         </div>
         <div
           className={'settings-tab' + (tab === 'misc' ? ' active' : '')}
           onClick={() => setTab('misc')}
         >
-          Miscellaneous
+          {t.settings.tabs.misc}
         </div>
+        <div className="settings-tabs-spacer" />
+        <LanguageSwitch className="settings-lang" />
       </div>
 
       <div className="settings-content">
         <div className={'settings-pane' + (tab === 'general' ? ' active' : '')}>
-          <div className="sec-title">Сессия и аккаунты</div>
+          <div className="sec-title">{t.settings.interface}</div>
+          <div className="setting-row-flex">
+            <label>{t.settings.language}</label>
+            <LanguageSwitch />
+          </div>
+
+          <div className="sec-title">{t.settings.session}</div>
 
           <div className="setting-item">
             <input
@@ -134,11 +146,11 @@ function SettingsWindow() {
               checked={s.autoCookieRefresh}
               onChange={bool('autoCookieRefresh')}
             />
-            <label>Автоматически обновлять cookie</label>
+            <label>{t.settings.autoCookie}</label>
           </div>
           <div className="setting-row-flex">
             <label style={{ opacity: s.autoCookieRefresh ? 1 : 0.5 }}>
-              Интервал обновления (мин)
+              {t.settings.refreshInterval}
             </label>
             <input
               type="number"
@@ -150,7 +162,7 @@ function SettingsWindow() {
             />
           </div>
           <div className="setting-row-flex">
-            <label>Задержка запуска, мс</label>
+            <label>{t.settings.launchDelay}</label>
             <input
               type="number"
               min={0}
@@ -166,46 +178,40 @@ function SettingsWindow() {
               checked={s.autoCloseLast}
               onChange={bool('autoCloseLast')}
             />
-            <label>Закрывать предыдущий Roblox перед запуском</label>
+            <label>{t.settings.closePrev}</label>
           </div>
 
-          <div className="sec-title">Multi Roblox</div>
+          <div className="sec-title">{t.settings.multiTitle}</div>
           <div className="setting-item">
             <input
               type="checkbox"
               checked={s.multiInstance}
               onChange={bool('multiInstance')}
             />
-            <label>Разрешить несколько клиентов Roblox одновременно</label>
+            <label>{t.settings.multiLabel}</label>
           </div>
-          <div className="hint">
-            Включайте при закрытом Roblox: приложение удерживает системный мьютекс
-            <b> ROBLOX_singletonMutex</b>. Если Roblox уже запущен, настройка применится
-            после его закрытия и повторного сохранения.
-          </div>
+          <div className="hint">{t.settings.multiHint}</div>
 
-          <div className="hint">
-            Некоторые настройки применяются сразу, другие — при следующем запуске.
-          </div>
+          <div className="hint">{t.settings.appliedHint}</div>
         </div>
 
         <div className={'settings-pane' + (tab === 'developer' ? ' active' : '')}>
-          <div className="sec-title">Отладка</div>
+          <div className="sec-title">{t.settings.debug}</div>
           <div className="setting-item">
             <input
               type="checkbox"
               checked={s.devLogMode}
               onChange={bool('devLogMode')}
             />
-            <label>Писать подробный лог (rom.log)</label>
+            <label>{t.settings.devLog}</label>
           </div>
           <div className="hint" style={{ fontSize: 11, color: '#999' }}>
-            Влияет на мировые исключения и вывода в файл лога.
+            {t.settings.devLogHint}
           </div>
         </div>
 
         <div className={'settings-pane' + (tab === 'misc' ? ' active' : '')}>
-          <div className="sec-title">Presence</div>
+          <div className="sec-title">{t.settings.presence}</div>
           <div className="setting-row-flex">
             <div className="setting-item" style={{ margin: 0 }}>
               <input
@@ -213,9 +219,9 @@ function SettingsWindow() {
                 checked={s.sharePresence}
                 onChange={bool('sharePresence')}
               />
-              <label>Показывать присутствие</label>
+              <label>{t.settings.showPresence}</label>
             </div>
-            <span className="label">Обновление (сек)</span>
+            <span className="label">{t.settings.updateSec}</span>
             <input
               type="number"
               min={5}
@@ -228,9 +234,9 @@ function SettingsWindow() {
           <div className="setting-row-flex">
             <div className="setting-item" style={{ margin: 0 }}>
               <input type="checkbox" checked={s.unlockFps} onChange={bool('unlockFps')} />
-              <label>Разблокировать FPS</label>
+              <label>{t.settings.unlockFps}</label>
             </div>
-            <span className="label">Макс FPS</span>
+            <span className="label">{t.settings.maxFps}</span>
             <input
               type="number"
               min={30}
@@ -239,53 +245,51 @@ function SettingsWindow() {
               onChange={num('maxFps', 30, 9999)}
             />
           </div>
-          <div className="sec-title">Браузер</div>
+          <div className="sec-title">{t.settings.browser}</div>
           <div className="setting-item">
             <input
               type="checkbox"
               checked={s.useBundledChrome}
               onChange={bool('useBundledChrome')}
             />
-            <label>Встраивать Chrome (chrome-win64), если он рядом</label>
+            <label>{t.settings.bundled}</label>
           </div>
-          <div className="hint">
-            Если выключено или папки нет, используется установленный Chrome, затем Edge.
-          </div>
+          <div className="hint">{t.settings.bundledHint}</div>
 
-          <div className="sec-title">Фон (GLSL)</div>
+          <div className="sec-title">{t.settings.background}</div>
           <div className="setting-item">
             <input
               type="checkbox"
               checked={shader.enabled}
               onChange={e => setShader(prev => ({ ...prev, enabled: e.target.checked }))}
             />
-            <label>Анимированный фон</label>
+            <label>{t.settings.animated}</label>
           </div>
           <div className="setting-row-flex">
-            <label>Цвета волн</label>
+            <label>{t.settings.waveColors}</label>
             <div className="shader-colors">
               <input
                 type="color"
-                title="Волна 1"
+                title={t.settings.wave1}
                 value={shader.color1}
                 onChange={shaderColor('color1')}
               />
               <input
                 type="color"
-                title="Волна 2"
+                title={t.settings.wave2}
                 value={shader.color2}
                 onChange={shaderColor('color2')}
               />
               <input
                 type="color"
-                title="Волна 3"
+                title={t.settings.wave3}
                 value={shader.color3}
                 onChange={shaderColor('color3')}
               />
             </div>
           </div>
           <div className="setting-row-flex">
-            <label>Скорость</label>
+            <label>{t.settings.speed}</label>
             <div className="shader-speed">
               <input
                 type="range"
@@ -299,22 +303,21 @@ function SettingsWindow() {
             </div>
           </div>
           <div className="hint">
-            Скорость анимации от {SPEED_MIN} до {SPEED_MAX}; 1.00× — как в оригинале. Фон
-            применяется сразу после сохранения.
+            {fmt(t.settings.speedHint, { min: SPEED_MIN.toFixed(2), max: SPEED_MAX.toFixed(2) })}
           </div>
         </div>
       </div>
 
       <div style={{ padding: '16px 20px', background: '#2d2d2d', borderTop: '1px solid #111' }}>
         <button className="btn btn-primary" disabled={saving} onClick={save}>
-          Сохранить настройки
+          {t.common.save}
         </button>
         <button
           className="btn"
           onClick={() => rom()?.CloseSettingsWindow()}
           style={{ marginLeft: 10 }}
         >
-          Отмена
+          {t.common.cancel}
         </button>
       </div>
     </div>
@@ -323,6 +326,8 @@ function SettingsWindow() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SettingsWindow />
+    <LanguageProvider>
+      <SettingsWindow />
+    </LanguageProvider>
   </StrictMode>,
 )

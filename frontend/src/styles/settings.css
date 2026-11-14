@@ -18,6 +18,8 @@
   }
   .settings-tab:hover { background: #2a2a2a; color: #fff; }
   .settings-tab.active { background: #2d2d2d; color: #fff; border-bottom: 1px solid #2d2d2d; margin-bottom: -1px; }
+  .settings-tabs-spacer { flex: 1; }
+  .settings-tab .lang-switch, .settings-lang { align-self: center; margin: 0 10px; }
 
   .settings-content { padding: 20px; background: #2d2d2d; flex: 1; overflow-y: auto; color: #e0e0e0; font-size: 13px; }
   .settings-pane { display: none; }

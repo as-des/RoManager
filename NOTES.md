@@ -194,3 +194,27 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 - WebView2 NuGet пакет в локальном кэше битый (нет lib/netcoreapp) — поэтому пакет заменён на локальные net462-dll, это работает
 - Если WebView2 Runtime не установлен у пользователя — нужен installer (как в SecureManager publish chrome-win64)
 - Chrome для CDP-логина ищется: `chrome-win64\chrome.exe` рядом (до 4 род. папок) → реестр App Paths → Program Files
+
+
+## Локализация интерфейса (RU/EN) — 14.11.2026
+
+- Язык интерфейса хранится в **незашифрованном** `ui.json` рядом с exe (`{"language":"ru"|"en"}`),
+  поэтому доступен до разблокировки хранилища: мастер авторизации, страница входа, окна.
+  В `AccountData.json` язык не пишется; `shader.json` и `ui.json` секретов не содержат.
+- C#: `Localization.cs` (`Loc.Load/Set/T/F/ApplyTitles`). `Program.Main` вызывает `Loc.Load()`
+  до создания окна. Все сообщения `Bridge.cs` и `Engine.cs` (ошибки хранилища, Roblox,
+  auth-ticket, ChromeLogin) переведены через `Loc.T/Loc.F`.
+- Мост: `GetUiLanguage()` / `SetUiLanguage(lang)` — сохраняет `ui.json`, обновляет заголовки
+  окон и рассылает `window.__applyLanguage` в главное окно и окно настроек.
+- React: `frontend/src/i18n.tsx` — словари RU/EN, `LanguageProvider`, `useI18n`, `fmt`.
+  Быстрый старт — `localStorage['rom.lang']`, источник истины — C#. Историю обновлений
+  локализует глобальное состояние языка (без собственного переключателя в состоянии).
+- Переключатель `LanguageSwitch` есть на всех экранах: landing (верхняя панель),
+  шаги мастера, dashboard (шапка), окно настроек (табы) и окно истории обновлений.
+- На странице авторизации — кнопка «Настройки интерфейса» (`InterfaceSettings.tsx`):
+  язык и включение анимированного фона (пишется в `shader.json`).
+- Проверено в изолированной копии: landing RU/EN, `ui.json` переживает перезапуск,
+  мастер, dashboard с реальными аккаунтами, окно настроек, живая смена языка
+  (обновляются оба окна и системные заголовки).
+- `ui.json` добавлен в `.gitignore`; `npm run typecheck`, `npm run build`,
+  `dotnet build` Debug/Release проходят без ошибок.

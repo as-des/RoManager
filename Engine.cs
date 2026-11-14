@@ -185,11 +185,11 @@ static class Vault
         {
             var doc = JsonDocument.Parse(keyJson);
             var root = doc.RootElement;
-            if (!root.TryGetProperty("salt", out var saltEl)) return (false, "Неверный формат файла.");
+            if (!root.TryGetProperty("salt", out var saltEl)) return (false, Loc.T("Неверный формат файла.", "Invalid file format."));
             var salt = saltEl.GetString()!;
             var check = root.TryGetProperty("check", out var cEl) ? cEl.GetString() : null;
             if (string.IsNullOrEmpty(check))
-                return (false, "Файл не содержит check-контрольной суммы.");
+                return (false, Loc.T("Файл не содержит check-контрольной суммы.", "The file does not contain a check checksum."));
 
             var version = root.TryGetProperty("version", out var vEl) && vEl.TryGetInt32(out var v) ? v : 1;
             var iterations = root.TryGetProperty("iterations", out var iEl) && iEl.TryGetInt32(out var it)
@@ -201,25 +201,25 @@ static class Vault
             {
                 var derived = Crypto.DeriveKey(salt, phrase, pin, iterations);
                 if (!Crypto.CheckEquals(derived.check, check))
-                    return (false, "Файл, фраза или PIN не совпадают.");
+                    return (false, Loc.T("Файл, фраза или PIN не совпадают.", "The file, phrase or PIN do not match."));
                 key = derived.key;
             }
             else if (Crypto.CheckHash(salt, phrase, pin) != check)
-                return (false, "Файл, фраза или PIN не совпадают.");
+                return (false, Loc.T("Файл, фраза или PIN не совпадают.", "The file, phrase or PIN do not match."));
 
             _writable = true;
             var store = Load(salt, phrase, pin, check, key);
             if (_loadFailed)
             {
                 if (key != null) CryptographicOperations.ZeroMemory(key);
-                return (false, "Хранилище не расшифровывается этим ключом. Данные не изменены.");
+                return (false, Loc.T("Хранилище не расшифровывается этим ключом. Данные не изменены.", "The vault cannot be decrypted with this key. Data was not changed."));
             }
             _repo = store;
             S.Salt = salt; S.Check = check; S.Phrase = phrase.Trim(); S.Pin = pin;
             S.Key = key; S.Version = version; S.Iterations = iterations;
             return (true, "");
         }
-        catch (Exception ex) { return (false, "Ошибка: " + ex.Message); }
+        catch (Exception ex) { return (false, Loc.T("Ошибка: ", "Error: ") + ex.Message); }
     }
 
     static bool _loadFailed;
@@ -229,7 +229,7 @@ static class Vault
         var dataVersion = doc.TryGetProperty("version", out var vEl) && vEl.TryGetInt32(out var v) ? v : 1;
         if (dataVersion >= 2)
         {
-            if (key == null) throw new CryptographicException("Для этого хранилища нужен ключ версии 2.");
+            if (key == null) throw new CryptographicException(Loc.T("Для этого хранилища нужен ключ версии 2.", "This vault requires a version 2 key."));
             return Crypto.DecryptGcm(
                 doc.GetProperty("nonce").GetString(),
                 doc.GetProperty("tag").GetString(),
@@ -325,7 +325,7 @@ static class Vault
             File.WriteAllText(tmp, Jsons.S(obj));
             File.Move(tmp, FilePath, true);
         }
-        catch (Exception ex) { Bridge.PushStatus("Ошибка сохранения: " + ex.Message, "danger"); }
+        catch (Exception ex) { Bridge.PushStatus(Loc.T("Ошибка сохранения: ", "Save error: ") + ex.Message, "danger"); }
     }
 
     public static List<AccountInfo> All() => _repo.Accounts;
@@ -498,7 +498,7 @@ static class Roblox
     /* Validate cookie -> user info */
     public static (bool ok, string name, long uid, string err) ValidateCookie(string cookie)
     {
-        if (string.IsNullOrWhiteSpace(cookie)) return (false, null, 0, "Пустой cookie");
+        if (string.IsNullOrWhiteSpace(cookie)) return (false, null, 0, Loc.T("Пустой cookie", "Empty cookie"));
         try
         {
             var r = Req(HttpMethod.Get, "https://users.roblox.com/v1/users/authenticated", cookie);
@@ -520,7 +520,7 @@ static class Roblox
             var resp = Http.SendAsync(r).GetAwaiter().GetResult();
             var txt = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             var arr = JsonDocument.Parse(txt).RootElement.GetProperty("data");
-            if (arr.GetArrayLength() == 0) return (0, "Игрок не найден");
+            if (arr.GetArrayLength() == 0) return (0, Loc.T("Игрок не найден", "Player not found"));
             return (arr[0].GetProperty("id").GetInt64(), "");
         }
         catch (Exception ex) { return (0, ex.Message); }
@@ -583,7 +583,7 @@ static class Roblox
             if (!string.IsNullOrEmpty(ticket)) return (ticket, "");
             if (!resp.IsSuccessStatusCode)
                 return (null, $"HTTP {(int)resp.StatusCode}: {txt.Truncate(200)}");
-            return (null, "сервер не вернул билет: " + txt.Truncate(200));
+            return (null, Loc.T("сервер не вернул билет: ", "the server did not return a ticket: ") + txt.Truncate(200));
         }
         catch (Exception ex)
         {
@@ -610,13 +610,13 @@ static class Roblox
             var resp = Http.SendAsync(r).GetAwaiter().GetResult();
             var txt = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             var arr = JsonDocument.Parse(txt).RootElement.GetProperty("userPresences");
-            if (arr.GetArrayLength() == 0) return (null, null, "Игрок не найден");
+            if (arr.GetArrayLength() == 0) return (null, null, Loc.T("Игрок не найден", "Player not found"));
             var p = arr[0];
             int type = p.TryGetProperty("userPresenceType", out var t) ? t.GetInt32() : 0;
-            if (type != 2) return (null, null, "Игрок сейчас не в игре");
+            if (type != 2) return (null, null, Loc.T("Игрок сейчас не в игре", "The player is not in a game right now"));
             string placeId = p.TryGetProperty("placeId", out var pl) ? pl.GetInt64().ToString() : null;
             string jobId = p.TryGetProperty("gameId", out var gj) ? gj.GetString() : null;
-            if (string.IsNullOrEmpty(placeId)) return (null, null, "Не удалось определить игру игрока");
+            if (string.IsNullOrEmpty(placeId)) return (null, null, Loc.T("Не удалось определить игру игрока", "Could not determine the player's game"));
             return (placeId, jobId, "");
         }
         catch (Exception ex) { return (null, null, ex.Message); }
@@ -647,7 +647,7 @@ static class Roblox
         if (ticket == null)
         {
             Bridge.Log("auth-ticket failed: " + err);
-            throw new Exception("Не удалось получить auth-ticket: " + err);
+            throw new Exception(Loc.T("Не удалось получить auth-ticket: ", "Could not get the auth ticket: ") + err);
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -668,7 +668,7 @@ static class Roblox
         }
         catch (Win32Exception ex)
         {
-            throw new Exception("Roblox не установлен или протокол roblox-player не зарегистрирован: " + ex.Message);
+            throw new Exception(Loc.T("Roblox не установлен или протокол roblox-player не зарегистрирован: ", "Roblox is not installed or the roblox-player protocol is not registered: ") + ex.Message);
         }
         WatchClient(acc, before);
     }
@@ -869,7 +869,7 @@ static class ChromeLogin
         Action<string> status, string injectCookie = null)
     {
         var exe = FindBrowser();
-        if (exe == null) { status?.Invoke("Браузер Chrome/Edge не найден"); return (null, null, 0); }
+        if (exe == null) { status?.Invoke(Loc.T("Браузер Chrome/Edge не найден", "Chrome/Edge browser not found")); return (null, null, 0); }
         Bridge.Log($"chrome exe={exe}");
         int port = FreePort();
         var profile = Path.Combine(Path.GetTempPath(), "rom_chrome_" + Guid.NewGuid().ToString("N").Substring(0, 8));
@@ -896,7 +896,7 @@ static class ChromeLogin
                     catch { }
                 }
             }
-            if (browserWs == null) { status?.Invoke("DevTools недоступен"); return (null, null, 0); }
+            if (browserWs == null) { status?.Invoke(Loc.T("DevTools недоступен", "DevTools unavailable")); return (null, null, 0); }
             Bridge.Log("browser ws ok");
 
             using var ws = new ClientWebSocket();
@@ -982,10 +982,10 @@ static class ChromeLogin
                     }
                 }
                 catch (Exception ex) { if (tries % 25 == 0) Bridge.Log("cookie poll fail: " + ex.Message); }
-                if (cookie != null) { Bridge.Log("cookie captured, tries=" + tries); status?.Invoke("Куки получены, проверяем..."); }
+                if (cookie != null) { Bridge.Log("cookie captured, tries=" + tries); status?.Invoke(Loc.T("Куки получены, проверяем…", "Cookies received, validating…")); }
             }
 
-            if (cookie == null && proc.HasExited) { Bridge.Log("proc exited w/o cookie"); status?.Invoke("Окно закрыто без входа"); return (null, null, 0); }
+            if (cookie == null && proc.HasExited) { Bridge.Log("proc exited w/o cookie"); status?.Invoke(Loc.T("Окно закрыто без входа", "The window was closed without signing in")); return (null, null, 0); }
             try { await Cdp("Browser.close", null, 4000); } catch { }
             try { proc.Kill(); } catch { }
             try { if (!proc.WaitForExit(3000)) proc.Kill(); } catch { }
@@ -997,7 +997,7 @@ static class ChromeLogin
             Bridge.Log("ChromeLogin EX: " + ex);
             try { proc.Kill(); } catch { }
             try { Directory.Delete(profile, true); } catch { }
-            status?.Invoke("Ошибка браузера: " + ex.Message);
+            status?.Invoke(Loc.T("Ошибка браузера: ", "Browser error: ") + ex.Message);
             return (null, null, 0);
         }
         finally

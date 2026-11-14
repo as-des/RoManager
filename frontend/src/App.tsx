@@ -4,15 +4,16 @@ import { ChangelogModal } from './components/ChangelogModal'
 import { NotificationStack } from './components/NotificationStack'
 import type { Notice, NoticeAction, NoticeKind } from './components/NotificationStack'
 import { ShaderBackground } from './components/ShaderBackground'
+import { useI18n } from './i18n'
 import { Dashboard } from './screens/Dashboard'
 import { Wizard } from './screens/Wizard'
 import type { Screen, Status, StatusKind } from './types'
 
-const IDLE: Status = { text: 'Готов к работе', kind: 'idle' }
-
 export default function App() {
+  const { t } = useI18n()
+  const idleText = t.dash.ready
   const [screen, setScreen] = useState<Screen>('landing')
-  const [status, setStatusState] = useState<Status>(IDLE)
+  const [status, setStatusState] = useState<Status>({ text: idleText, kind: 'idle' })
   const [notices, setNotices] = useState<Notice[]>([])
   const [version, setVersion] = useState('2.1.0')
   const [changelogOpen, setChangelogOpen] = useState(false)
@@ -24,6 +25,13 @@ export default function App() {
   const removalTimers = useRef(new Map<number, number>())
   const nativeResizing = useRef(false)
   const resizeIdleTimer = useRef<number | null>(null)
+
+  // Смена языка не должна оставлять старый «Готов к работе» в нижней панели.
+  useEffect(() => {
+    setStatusState(prev =>
+      prev.kind === 'idle' && prev.text !== idleText ? { text: idleText, kind: 'idle' } : prev,
+    )
+  }, [idleText])
 
   const goTo = useCallback((next: Screen) => setScreen(next), [])
 
@@ -92,11 +100,17 @@ export default function App() {
     if (statusTimer.current) window.clearTimeout(statusTimer.current)
     setStatusState({ text, kind })
     if (kind === 'success') {
-      statusTimer.current = window.setTimeout(() => setStatusState(IDLE), 2500)
-    } else if (kind === 'idle' && text !== IDLE.text) {
-      statusTimer.current = window.setTimeout(() => setStatusState(IDLE), 3000)
+      statusTimer.current = window.setTimeout(
+        () => setStatusState({ text: idleText, kind: 'idle' }),
+        2500,
+      )
+    } else if (kind === 'idle' && text !== idleText) {
+      statusTimer.current = window.setTimeout(
+        () => setStatusState({ text: idleText, kind: 'idle' }),
+        3000,
+      )
     }
-  }, [])
+  }, [idleText])
 
   // Версия для нижней панели.
   useEffect(() => {

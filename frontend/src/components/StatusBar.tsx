@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n'
 import type { Status } from '../types'
 
 export function StatusBar({
@@ -9,6 +10,7 @@ export function StatusBar({
   version: string
   onShowChangelog: () => void
 }) {
+  const { t } = useI18n()
   const dot =
     'status-indicator' +
     (status.kind === 'busy' ? ' active' : status.kind === 'success' ? ' success' : '')
@@ -21,7 +23,7 @@ export function StatusBar({
       <div className="status-spacer" />
       <button
         className="status-version"
-        title="История обновлений"
+        title={t.dash.changelog}
         onClick={onShowChangelog}
       >
         v{version}

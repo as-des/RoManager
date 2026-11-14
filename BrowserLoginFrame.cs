@@ -29,7 +29,9 @@ internal sealed class BrowserLoginFrame : Form
         _refreshId = refreshId;
         _profileDir = Path.Combine(Path.GetTempPath(), "rom_prof_" + Guid.NewGuid().ToString("N").Substring(0, 12));
 
-        Text = refreshId != null ? "Обновление данных — RoManager" : "Вход Roblox — RoManager";
+        Text = refreshId != null
+            ? Loc.T("Обновление данных — RoManager", "Refreshing data — RoManager")
+            : Loc.T("Вход Roblox — RoManager", "Roblox sign-in — RoManager");
         FormBorderStyle = FormBorderStyle.None;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(1024, 760);
@@ -182,6 +184,15 @@ internal sealed class BrowserLoginFrame : Form
     {
         ReleaseCapture();
         _ = SendMessage(Handle, 0xA1, 2, 0);
+    }
+
+    /** Заголовок окна входа на текущем языке. */
+    public void ApplyLanguage()
+    {
+        Text = _refreshId != null
+            ? Loc.T("Обновление данных — RoManager", "Refreshing data — RoManager")
+            : Loc.T("Вход Roblox — RoManager", "Roblox sign-in — RoManager");
+        if (_title != null) _title.Text = Text;
     }
 
     protected override void OnShown(EventArgs e)

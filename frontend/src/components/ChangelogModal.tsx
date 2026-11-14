@@ -1,13 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { CHANGELOG } from '../changelog'
+import { useI18n } from '../i18n'
 import { IconBack } from './icons'
-
-type Lang = 'ru' | 'en'
-
-const TEXT = {
-  ru: { title: 'История обновлений', back: 'Назад' },
-  en: { title: 'Changelog', back: 'Back' },
-} as const
 
 /** Окно истории обновлений. Открывается кнопкой версии в нижней панели. */
 export function ChangelogModal({
@@ -17,8 +11,7 @@ export function ChangelogModal({
   open: boolean
   onClose: () => void
 }) {
-  const [lang, setLang] = useState<Lang>('ru')
-  const t = TEXT[lang]
+  const { lang, setLang, t } = useI18n()
 
   useEffect(() => {
     if (!open) return
@@ -39,12 +32,12 @@ export function ChangelogModal({
       <div className="changelog-modal">
         <div className="changelog-head">
           <div className="changelog-heading">
-            <span className="changelog-title">{t.title}</span>
+            <span className="changelog-title">{t.changelog.title}</span>
             <span className="changelog-sub">RoManager</span>
           </div>
 
           <div className="changelog-head-actions">
-            <div className="changelog-lang" role="group" aria-label="Language">
+            <div className="changelog-lang" role="group" aria-label={t.common.language}>
               <button
                 className={'changelog-lang-btn' + (lang === 'ru' ? ' active' : '')}
                 onClick={() => setLang('ru')}
@@ -61,7 +54,7 @@ export function ChangelogModal({
 
             <button className="changelog-back" onClick={onClose}>
               <IconBack />
-              {t.back}
+              {t.common.back}
             </button>
           </div>
         </div>

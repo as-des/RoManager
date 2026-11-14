@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useI18n } from '../i18n'
 import { IconAlertCircle, IconCheckCircle, IconClose, IconInfoCircle } from './icons'
 
 export type NoticeKind = 'info' | 'success' | 'danger' | 'warning'
@@ -34,6 +35,7 @@ export function NotificationStack({
   notices: Notice[]
   onDismiss: (id: number) => void
 }) {
+  const { t } = useI18n()
   if (notices.length === 0) return null
 
   const topKind = notices[0].kind
@@ -78,8 +80,8 @@ export function NotificationStack({
           ) : null}
           <button
             className="notice-close"
-            title="Закрыть"
-            aria-label="Закрыть уведомление"
+            title={t.common.close}
+            aria-label={t.notice.close}
             onClick={() => onDismiss(n.id)}
           >
             <IconClose />
