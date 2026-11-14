@@ -57,6 +57,7 @@ declare global {
       actions?: { label: string; id: string }[],
     ) => void
     __applyShaderSettings?: (settings: unknown) => void
+    __setResizing?: (active: boolean) => void
   }
 }
 

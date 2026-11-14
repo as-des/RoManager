@@ -127,8 +127,8 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 
 ## Анимированный фон (GLSL)
 - Источник: `dopdop.html` (WebGL-шейдер «Pastel Blue/Purple Waves», simplex noise). Файл лежит только в `bin/.../wwwroot/` как референс, в проект не копируется.
-- Порт: `frontend/src/components/ShaderBackground.tsx` — тот же вершинный/фрагментный шейдер, рендер в 1/3 разрешения (`SCALE_FACTOR = 3`), resize с debounce 100 мс, `requestAnimationFrame`, корректная очистка ресурсов при unmount.
-- Подключение: в `App.tsx` canvas и `.shader-scrim` (затемнение `rgba(8,10,16,0.3)`) лежат под titlebar и `.window-content`; у `.screen`/`.window-content` фон прозрачный, панели и карточки остались непрозрачными — читаемость не страдает.
+- Порт: `frontend/src/components/ShaderBackground.tsx` — тот же вершинный/фрагментный шейдер, рендер в 1/3 разрешения (`SCALE_FACTOR = 3`), resize через `requestAnimationFrame` (без debounce), `requestAnimationFrame`, корректная очистка ресурсов при unmount. Пока тянется рамка окна, кадры анимации пропускаются.
+- Подключение: в `App.tsx` canvas и `.shader-scrim` (затемнение `rgba(8,10,16,0.3)`) лежат под `.window-content`; у `.screen`/`.window-content` фон прозрачный, панели и карточки остались непрозрачными — читаемость не страдает.
 - Проверено: фон виден на landing и дашборде, анимация идёт (два кадра подряд различаются), C# собирается без ошибок.
 - Настройки фона: вкладка Miscellaneous → «Фон (GLSL)» — три цвета волн (`input[type=color]`) и один ползунок скорости с жёсткими границами 0.5–2.0 (по умолчанию 1.00×, как в оригинале; значение ограничивается и в UI, и при нормализации). Хранятся в незашифрованном `shader.json` рядом с exe (нужны до входа), сохраняются кнопкой «Сохранить настройки» вместе с остальными.
 - C#: `Bridge.GetShaderSettings()` / `SaveShaderSettings(json)`; после сохранения пуш `window.__applyShaderSettings(json)` применяет фон в главном окне без перезапуска.
@@ -136,11 +136,14 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 - Мелочь: у drop-зоны ключевого файла скрыт нативный `<input type=file>` (`display:none`); disabled-панель на дашборде больше не полупрозрачна, чтобы шейдер не просвечивал.
 - Тест-хук: `ROM_TEST_SETTINGS_JS` — JS внутри окна настроек.
 
-## Ресайз и матовое стекло
-- Безрамное окно теперь тянется за края и углы: в `App` рендерится `ResizeHandles` (8 невидимых зон с курсорами), `pointerdown` → `rom.BeginResize(edge)`.
-- C# (`Bridge.BeginResize/EndResize`) держит таймер 15 мс и двигает `Bounds` по `Cursor.Position`, пока зажата ЛКМ — не зависит от pointer-событий WebView2 при ресайзе. Работает только в `Normal`, минимум 760×520, максимизация не ломается.
-- Тест-хук: `ROM_TEST_RESIZE=dx,dy` — ресайз как за правый нижний угол (проверено: 1000×680 → 1140×770).
-- Стекло: `.panel`, `.card`, `.modal`, titlebar и status-bar получили полупрозрачный фон + `backdrop-filter: blur(...) saturate(...)`; кнопки/сегменты/шапка таблицы — полупрозрачные фоны без blur (дешевле по GPU). Шейдер просвечивает и размывается под панелями.
+## Нативная рамка и ресайз
+- Главное окно (`Frame.cs`) — обычное `FormBorderStyle.Sizable`: системный заголовок, кнопки «свернуть/развернуть/закрыть», перетаскивание и ресайз за края делает Windows. Тёмный заголовок — `DwmSetWindowAttribute(20/19)` в `OnHandleCreated` и `OnShown`.
+- HTML-titlebar и `ResizeHandles` больше не рендерятся в `App.tsx` (файлы `TitleBar.tsx`/`ResizeHandles.tsx` и методы `Bridge.BeginResize/EndResize` оставлены для отката, но не используются).
+- WebView2 растянут `Dock = Fill`; `DefaultBackgroundColor` выставлен тёмным, чтобы не мигало белым при старте и ресайзе.
+- `ResizeBegin`/`ResizeEnd` из C# вызывают `window.__setResizing(bool)`: на `html` появляется класс `is-resizing`, который временно отключает `backdrop-filter`, анимации и кадры шейдера. Раскладка при перетаскивании пересчитывается без тяжёлой композиции.
+- CSS: `html/body/#root` ровно 100%, `.window-container` = 100%×100% без рамки/радиуса; таблица и панели получили `min-width: 0`, добавлены breakpoints 1100 / 900 / 680 / 620 px и `max-height: 620px`. Под 900 px dashboard переходит в одну колонку, сайдбар — в auto-fit сетку, под 620 px скрывается колонка «Данные». На ширине >1700 px контент ограничен 1600 px.
+- Скроллбары тёмные (`color-scheme: dark` + `::-webkit-scrollbar`), поэтому в маленьком окне нет белой полосы.
+- Стекло: `.panel`, `.card`, `.modal`, status-bar получили полупрозрачный фон + `backdrop-filter: blur(...) saturate(...)`; кнопки/сегменты/шапка таблицы — полупрозрачные фоны без blur (дешевле по GPU). Шейдер просвечивает и размывается под панелями.
 - Шапка таблицы: вынесена отдельной таблицей `.accounts-table-header` над `.accounts-scroll` (как в legacy-бэкапе), поэтому строки физически не заезжают под неё; шапка прозрачная, в тон панели. Одинаковые ширины колонок в шапке и теле заданы через `<colgroup>` + `table-layout: fixed` (40px / статус 16% / запуск 25% / данные 25%), `.accounts-scroll` имеет `scrollbar-gutter: stable`, шапка — `width: calc(100% - 8px)` под кастомный скроллбар. Проверено при `scrollTop=228`.
 
 ## Уведомления и история обновлений
@@ -163,6 +166,8 @@ Log: `Bridge.Log()` → `bin/Debug/net8.0-windows/rom.log`.
 - Release-сборка (self-contained, win-x64) запускается на чистом окружении и показывает landing; в `RoManager.dll` нет строк `ROM_TEST_*` (в Debug — есть).
 - `dotnet publish` кладёт `wwwroot`, `app.ico`, WebView2 DLL и .NET 8 внутрь папки.
 - Плашки проверены скриншотами Debug-копии: успех/ошибка, кнопки действий и X, подсветка за плашкой; кнопка v2.1.0 в нижней панели открывает окно истории обновлений.
+- Нативная рамка проверена в Debug-копии: тёмный системный заголовок, старт 1000×680 (внешне 1016×719), размеры 780×560, 820×560, 760×520, 1400×900 и максимизация 3456×1408. Дашборд на 760×520 переходит в одну колонку, шапка/статус-бар не обрезаются, скроллбары тёмные.
+- Мастер и окно истории обновлений проверены на 780×520/820×560: карточка и заголовок не выходят за границы, скролл работает. Ресайз с `WM_ENTERSIZEMOVE` → серия `MoveWindow` → `WM_EXITSIZEMOVE` не оставляет артефактов и не ломает раскладку.
 
 ## TODO / следующие шаги
 - [x] Отдельное окно настроек (SettingsFrame.cs + wwwroot/settings.html): перемещаемое, кнопка «Сохранить настройки», id: setPresenceRate/setAutoRecheck/setJoinDelay/setAutoClose/setFpsUnl/setMaxFps/setPresence

@@ -192,9 +192,10 @@ export function ShaderBackground() {
       gl.getUniformLocation(program, 'u_color3'),
     ]
 
-    let resizeTimer = 0
+    let resizeRaf = 0
 
     const resize = () => {
+      resizeRaf = 0
       const realWidth = window.innerWidth
       const realHeight = window.innerHeight
       const renderWidth = Math.floor(realWidth / SCALE_FACTOR)
@@ -206,12 +207,20 @@ export function ShaderBackground() {
       gl.viewport(0, 0, renderWidth, renderHeight)
     }
 
+    // Ресайз без задержки: один пересчёт на кадр вместо debounce на 100 мс.
     const onResize = () => {
-      window.clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(resize, 100)
+      if (resizeRaf) return
+      resizeRaf = requestAnimationFrame(resize)
+    }
+
+    // Пока тянется рамка окна, не тратим кадры на анимацию фона.
+    let pausedByResize = false
+    const onResizing = (e: Event) => {
+      pausedByResize = !!(e as CustomEvent).detail
     }
 
     window.addEventListener('resize', onResize)
+    window.addEventListener('rom:resizing', onResizing)
     resize()
 
     let raf = 0
@@ -219,7 +228,7 @@ export function ShaderBackground() {
     let lastFrame = performance.now()
 
     const render = (now: number) => {
-      if (!enabledRef.current) {
+      if (!enabledRef.current || pausedByResize) {
         lastFrame = now
         raf = requestAnimationFrame(render)
         return
@@ -245,8 +254,9 @@ export function ShaderBackground() {
     return () => {
       alive = false
       cancelAnimationFrame(raf)
-      window.clearTimeout(resizeTimer)
+      cancelAnimationFrame(resizeRaf)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('rom:resizing', onResizing)
       if (window.__applyShaderSettings === apply) window.__applyShaderSettings = undefined
       document.documentElement.classList.remove('shader-off')
       gl.deleteBuffer(buffer)

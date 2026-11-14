@@ -25,7 +25,8 @@ internal sealed class MainFrame : Form
     {
         Inst = this;
         Text = "RoManager";
-        FormBorderStyle = FormBorderStyle.None;
+        // Нативная рамка Windows: заголовок, кнопки и ресайз рисует система.
+        FormBorderStyle = FormBorderStyle.Sizable;
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(1000, 680);
         BackColor = Color.FromArgb(26, 26, 26);
@@ -43,7 +44,12 @@ internal sealed class MainFrame : Form
             catch { }
         });
 
-        _wv = new WebView2 { Dock = DockStyle.Fill };
+        // Тёмный фон до первой отрисовки — чтобы при старте и ресайзе не мигало белым.
+        _wv = new WebView2
+        {
+            Dock = DockStyle.Fill,
+            DefaultBackgroundColor = Color.FromArgb(10, 10, 10),
+        };
         Controls.Add(_wv);
 
         Load += async (_, _) =>
@@ -72,6 +78,12 @@ internal sealed class MainFrame : Form
             wv2.NewWindowRequested += (_, e) => e.Handled = true;
             wv2.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
             Bridge.Attach(wv2);
+            // Пока пользователь тянет рамку, UI отключает тяжёлые эффекты (блюр/шейдер),
+            // чтобы окно меняло размер без подвисаний.
+            ResizeBegin += (_, _) =>
+                Bridge.Push("window.__setResizing && window.__setResizing(true);");
+            ResizeEnd += (_, _) =>
+                Bridge.Push("window.__setResizing && window.__setResizing(false);");
             wv2.WebMessageReceived += (_, e) =>
             { if (e.TryGetWebMessageAsString() == "drag") DragWindow(); };
             MapLocal(wv2);
@@ -315,6 +327,19 @@ internal sealed class MainFrame : Form
     public void RunOnUi(Action a)
     {
         if (InvokeRequired) BeginInvoke(a); else a();
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        // Тёмный системный заголовок (Windows 10/11), пока окно ещё не показано.
+        try
+        {
+            int v = 1;
+            DwmSetWindowAttribute(Handle, 20, ref v, 4);
+            DwmSetWindowAttribute(Handle, 19, ref v, 4);
+        }
+        catch { }
     }
 
     protected override void OnShown(EventArgs e)

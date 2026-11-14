@@ -3,9 +3,7 @@ import { rom } from './bridge'
 import { ChangelogModal } from './components/ChangelogModal'
 import { NotificationStack } from './components/NotificationStack'
 import type { Notice, NoticeAction, NoticeKind } from './components/NotificationStack'
-import { ResizeHandles } from './components/ResizeHandles'
 import { ShaderBackground } from './components/ShaderBackground'
-import { TitleBar } from './components/TitleBar'
 import { Dashboard } from './screens/Dashboard'
 import { Wizard } from './screens/Wizard'
 import type { Screen, Status, StatusKind } from './types'
@@ -142,6 +140,12 @@ export default function App() {
       else if (k === 'danger') notify(text, 'danger')
     }
 
+    // Нативная рамка: во время перетаскивания C# просит временно упростить отрисовку.
+    window.__setResizing = active => {
+      document.documentElement.classList.toggle('is-resizing', !!active)
+      window.dispatchEvent(new CustomEvent('rom:resizing', { detail: !!active }))
+    }
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (document.querySelector('.modal-overlay.show, .changelog-overlay.show')) {
         if (e.key === 'Escape') setChangelogOpen(false)
@@ -167,6 +171,8 @@ export default function App() {
       window.__notify = undefined
       window.__setStatus = undefined
       window.__enterDashboard = undefined
+      window.__setResizing = undefined
+      document.documentElement.classList.remove('is-resizing')
     }
   }, [notify, setStatus])
 
@@ -174,7 +180,6 @@ export default function App() {
     <div className="window-container">
       <ShaderBackground />
       <div className="shader-scrim" />
-      <TitleBar />
       <div className="window-content">
         <NotificationStack notices={notices} onDismiss={dismissNotice} />
 
@@ -190,8 +195,6 @@ export default function App() {
         )}
 
         <ChangelogModal open={changelogOpen} onClose={() => setChangelogOpen(false)} />
-
-        <ResizeHandles />
       </div>
     </div>
   )
