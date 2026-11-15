@@ -1,0 +1,144 @@
+using RoManager.Core;
+
+namespace RoManager.App;
+
+/**
+ * Строки интерфейса WinUI. Ключ → (ru, en); выбор языка берём из Loc ядра,
+ * чтобы он совпадал с ui.json и переживал перезапуск.
+ *
+ * Словарь повторяет структуру frontend/src/i18n.tsx, но плоскими ключами:
+ * XAML-разметка обновляет текст через ApplyLanguage(), без биндингов.
+ */
+public sealed class Strings
+{
+    public static Strings I { get; } = new();
+
+    static readonly Dictionary<string, (string Ru, string En)> Map = new()
+    {
+        // landing
+        ["landing.subtitle"] = ("Менеджер аккаунтов Roblox", "Roblox account manager"),
+        ["landing.haveAccess"] = ("У меня есть доступ", "I have access"),
+        ["landing.noAccess"] = ("У меня нет доступа", "I don't have access"),
+        ["landing.settings"] = ("Настройки", "Settings"),
+        ["landing.hint"] = ("Нужен ключевой файл, фраза из двух слов и PIN.",
+                            "You need a key file, a two-word phrase and a PIN."),
+
+        // common
+        ["common.back"] = ("Назад", "Back"),
+        ["common.next"] = ("Далее", "Next"),
+        ["common.cancel"] = ("Отмена", "Cancel"),
+        ["common.close"] = ("Закрыть", "Close"),
+        ["common.save"] = ("Сохранить настройки", "Save settings"),
+
+        // wizard
+        ["wizard.step"] = ("Шаг {0} / 4", "Step {0} / 4"),
+        ["wizard.keyFile"] = ("Ключевой файл", "Key file"),
+        ["wizard.dropHint"] = ("Перетащите .json файл или нажмите", "Drop a .json file or click"),
+        ["wizard.keyPhrase"] = ("Ключевая фраза", "Key phrase"),
+        ["wizard.twoWords"] = ("Два слова через пробел", "Two words separated by a space"),
+        ["wizard.phraseError"] = ("Фраза должна состоять ровно из двух слов.",
+                                  "The phrase must contain exactly two words."),
+        ["wizard.pin"] = ("PIN-код", "PIN code"),
+        ["wizard.pinHint"] = ("PIN-код (4–6 цифр)", "PIN code (4–6 digits)"),
+        ["wizard.pinError"] = ("PIN должен содержать от 4 до 6 цифр.",
+                               "PIN must contain 4 to 6 digits."),
+        ["wizard.confirm"] = ("Подтверждение", "Confirmation"),
+        ["wizard.file"] = ("Файл", "File"),
+        ["wizard.phrase"] = ("Фраза", "Phrase"),
+        ["wizard.confirmLogin"] = ("Подтвердить вход", "Confirm sign-in"),
+        ["wizard.createPhrase"] = ("Создайте ключевую фразу", "Create a key phrase"),
+        ["wizard.createPin"] = ("Создайте PIN-код", "Create a PIN code"),
+        ["wizard.createPinHint"] = ("PIN-код (4–6 цифр). Запомните его!", "PIN code (4–6 digits). Remember it!"),
+        ["wizard.confirmPinTitle"] = ("Подтвердите PIN", "Confirm the PIN"),
+        ["wizard.confirmPinHint"] = ("Введите PIN ещё раз", "Enter the PIN again"),
+        ["wizard.pinMismatch"] = ("PIN не совпадает.", "PINs do not match."),
+        ["wizard.done"] = ("Готово!", "Done!"),
+        ["wizard.doneLine1"] = ("Ключевой файл создан.", "The key file has been created."),
+        ["wizard.doneLine2"] = ("Сохраните его вместе с фразой и PIN.",
+                                "Keep it together with the phrase and PIN."),
+        ["wizard.downloadKey"] = ("Скачать ключевой файл", "Download key file"),
+        ["wizard.toMain"] = ("На главный экран", "Back to main screen"),
+        ["wizard.keyJson"] = ("key.json", "key.json"),
+        ["wizard.openFile"] = ("Выбрать файл…", "Choose file…"),
+
+        // статусы/ошибки
+        ["err.signin"] = ("Ошибка входа", "Sign-in error"),
+        ["err.selectKey"] = ("Сначала выберите ключевой файл", "Select a key file first"),
+        ["err.twoWords"] = ("Фраза должна состоять из двух слов", "The phrase must contain exactly two words"),
+        ["err.pin"] = ("PIN должен быть 4–6 цифр", "PIN must be 4–6 digits"),
+        ["err.pinMismatch"] = ("PIN не совпадает", "PINs do not match"),
+        ["err.unexpected"] = ("Необработанная ошибка: ", "Unexpected error: "),
+        ["status.signedIn"] = ("Вход выполнен", "Signed in"),
+        ["status.sessionClosed"] = ("Сессия закрыта", "Session closed"),
+        ["status.keySaved"] = ("Ключевой файл сохранён", "Key file saved"),
+        ["status.keyCreated"] = ("Ключ создан и сохранён. Сейв инициализирован.",
+                                 "Key created and saved. Vault initialised."),
+        ["status.keyCreatedUnsaved"] = ("Ключ создан, но ФАЙЛ НЕ СОХРАНЁН — нажмите «Скачать ключевой файл»!",
+                                        "Key created, but the FILE WAS NOT SAVED — click “Download key file”!"),
+        ["status.sessionLocked"] = ("Сессия не открыта", "Session is not unlocked"),
+        ["status.settingsSaved"] = ("Настройки сохранены", "Settings saved"),
+
+        // настройки
+        ["settings.title"] = ("Настройки — RoManager", "Settings — RoManager"),
+        ["settings.tabs.general"] = ("Общие", "General"),
+        ["settings.tabs.developer"] = ("Разработчик", "Developer"),
+        ["settings.tabs.misc"] = ("Разное", "Miscellaneous"),
+        ["settings.interface"] = ("Интерфейс", "Interface"),
+        ["settings.language"] = ("Язык интерфейса", "Interface language"),
+        ["settings.animatedBg"] = ("Анимированный фон", "Animated background"),
+        ["settings.session"] = ("Сессия и аккаунты", "Session & accounts"),
+        ["settings.autoCookie"] = ("Автоматически обновлять cookie", "Refresh cookies automatically"),
+        ["settings.refreshInterval"] = ("Интервал обновления (мин)", "Refresh interval (min)"),
+        ["settings.launchDelay"] = ("Задержка запуска, мс", "Launch delay, ms"),
+        ["settings.closePrev"] = ("Закрывать предыдущий Roblox перед запуском",
+                                  "Close the previous Roblox before launch"),
+        ["settings.multiTitle"] = ("Multi Roblox", "Multi Roblox"),
+        ["settings.multiLabel"] = ("Разрешить несколько клиентов Roblox одновременно",
+                                   "Allow multiple Roblox clients at once"),
+        ["settings.multiHint"] = (
+            "Включайте при закрытом Roblox: приложение удерживает системный мьютекс ROBLOX_singletonMutex. Если Roblox уже запущен, настройка применится после его закрытия и повторного сохранения.",
+            "Enable while Roblox is closed: the app holds the ROBLOX_singletonMutex system mutex. If Roblox is already running, the setting applies after you close it and save again."),
+        ["settings.appliedHint"] = ("Некоторые настройки применяются сразу, другие — при следующем запуске.",
+                                    "Some settings apply immediately, others on the next launch."),
+        ["settings.debug"] = ("Отладка", "Debugging"),
+        ["settings.devLog"] = ("Писать подробный лог (rom.log)", "Write a detailed log (rom.log)"),
+        ["settings.devLogHint"] = ("Влияет на мировые исключения и вывод в файл лога.",
+                                   "Affects global exceptions and log file output."),
+        ["settings.presence"] = ("Presence", "Presence"),
+        ["settings.showPresence"] = ("Показывать присутствие", "Show presence"),
+        ["settings.updateSec"] = ("Обновление (сек)", "Update (sec)"),
+        ["settings.unlockFps"] = ("Разблокировать FPS", "Unlock FPS"),
+        ["settings.maxFps"] = ("Макс FPS", "Max FPS"),
+        ["settings.browser"] = ("Браузер", "Browser"),
+        ["settings.bundled"] = ("Встраивать Chrome (chrome-win64), если он рядом",
+                                "Use bundled Chrome (chrome-win64) when present"),
+        ["settings.bundledHint"] = ("Если выключено или папки нет, используется установленный Chrome, затем Edge.",
+                                    "If disabled or missing, the installed Chrome is used, then Edge."),
+        ["settings.background"] = ("Фон", "Background"),
+        ["settings.waveColors"] = ("Цвета волн", "Wave colours"),
+        ["settings.wave1"] = ("Волна 1", "Wave 1"),
+        ["settings.wave2"] = ("Волна 2", "Wave 2"),
+        ["settings.wave3"] = ("Волна 3", "Wave 3"),
+        ["settings.speed"] = ("Скорость", "Speed"),
+        ["settings.speedHint"] = (
+            "Скорость анимации от {0} до {1}; 1.00× — как в оригинале. Фон применяется сразу после сохранения.",
+            "Animation speed from {0} to {1}; 1.00× is the original. The background applies right after saving."),
+        ["settings.locked"] = ("Доступно после входа", "Available after sign-in"),
+        ["settings.about"] = ("О приложении", "About"),
+        ["settings.version"] = ("Версия", "Version"),
+        ["settings.dataFolder"] = ("Папка данных", "Data folder"),
+        ["settings.changelog"] = ("История обновлений", "Changelog"),
+
+        // dashboard (временно, до этапа 4)
+        ["dash.accounts"] = ("Аккаунты", "Accounts"),
+        ["dash.logout"] = ("Выйти", "Log out"),
+        ["dash.ready"] = ("Готов к работе", "Ready"),
+        ["dash.wip"] = ("Дашборд ещё переносится на WinUI. Аккаунты уже читаются из хранилища.",
+                        "The dashboard is still being ported to WinUI. Accounts are already read from the vault."),
+    };
+
+    public string this[string key] =>
+        Map.TryGetValue(key, out var v) ? (Loc.IsEnglish ? v.En : v.Ru) : key;
+
+    public string F(string key, params object[] args) => string.Format(this[key], args);
+}

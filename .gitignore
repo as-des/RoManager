@@ -38,3 +38,8 @@ ui.json
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ---------- src/*: артефакты сборки новых проектов ----------
+/src/**/bin/
+/src/**/obj/
+

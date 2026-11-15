@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>RoManager.Core</RootNamespace>
+    <AssemblyName>RoManager.Core</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- UI-слою нужны внутренние типы ядра (Crypto, Vault, Roblox, Jsons):
+         они не публичные специально, чтобы не расширять внешний контракт. -->
+    <InternalsVisibleTo Include="RoManager" />
+    <InternalsVisibleTo Include="RoManager.Core.Tests" />
+  </ItemGroup>
+</Project>

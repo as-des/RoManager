@@ -17,6 +17,13 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Новые проекты WinUI 3 живут в src/ и не должны попадать в сборку 2.1.0 -->
+    <Compile Remove="src\**\*.cs" />
+    <None Remove="src\**\*" />
+    <Content Remove="src\**\*" />
+    <EmbeddedResource Remove="src\**\*" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Вся папка wwwroot (включая Vite-ассеты и /v2) попадает в bin -->
     <None Update="wwwroot\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

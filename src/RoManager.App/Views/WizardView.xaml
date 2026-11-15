@@ -1,0 +1,129 @@
+﻿<UserControl
+    x:Class="RoManager.App.Views.WizardView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="620">
+        <StackPanel>
+            <!-- РЁР°РїРєР° РјР°СЃС‚РµСЂР° -->
+            <Grid Margin="0,0,4,12">
+                <Button x:Name="BackButton" Style="{StaticResource AppGhostButton}"
+                        HorizontalAlignment="Left" Click="OnBack">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE72B;" FontSize="12" />
+                        <TextBlock x:Name="BackText" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Ellipse x:Name="Dot1" Width="8" Height="8" />
+                    <Ellipse x:Name="Dot2" Width="8" Height="8" />
+                    <Ellipse x:Name="Dot3" Width="8" Height="8" />
+                    <Ellipse x:Name="Dot4" Width="8" Height="8" />
+                </StackPanel>
+            </Grid>
+
+            <Border Style="{StaticResource AppCardBorder}" MinWidth="380">
+                <StackPanel Spacing="14">
+                    <TextBlock x:Name="StepLabel" Style="{StaticResource AppCaption}" />
+
+                    <!-- РЁР°Рі 1: РєР»СЋС‡РµРІРѕР№ С„Р°Р№Р» -->
+                    <StackPanel x:Name="FilePanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="FileTitle" Style="{StaticResource AppH2}" />
+                        <Border x:Name="DropZone" Height="128" CornerRadius="10" Background="#FF101014"
+                                BorderBrush="{StaticResource AppBorder}" BorderThickness="1"
+                                AllowDrop="True" DragOver="OnDropDragOver" DragLeave="OnDropDragLeave"
+                                Drop="OnDrop" Tapped="OnDropZoneTapped">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                                <FontIcon Glyph="&#xE8E5;" FontSize="26" Foreground="{StaticResource AppMuted}" />
+                                <TextBlock x:Name="DropHint" Style="{StaticResource AppMutedText}" HorizontalAlignment="Center" />
+                                <TextBlock x:Name="KeyFileName" Style="{StaticResource AppCaption}" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="ChooseFileButton" Style="{StaticResource AppSecondaryButton}" Click="OnChooseFile" />
+                        <Button x:Name="FileNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnFileNext" IsEnabled="False" />
+                    </StackPanel>
+
+                    <!-- РЁР°Рі 2: С„СЂР°Р·Р° -->
+                    <StackPanel x:Name="PhrasePanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="PhraseTitle" Style="{StaticResource AppH2}" />
+                        <TextBlock x:Name="PhraseHint" Style="{StaticResource AppMutedText}" />
+                        <TextBox x:Name="PhraseBox" Style="{StaticResource AppTextBox}" />
+                        <TextBlock x:Name="PhraseError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="PhraseNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnPhraseNext" />
+                    </StackPanel>
+
+                    <!-- РЁР°Рі 3: PIN -->
+                    <StackPanel x:Name="PinPanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="PinTitle" Style="{StaticResource AppH2}" />
+                        <TextBlock x:Name="PinHint" Style="{StaticResource AppMutedText}" />
+                        <PasswordBox x:Name="PinBox" Style="{StaticResource AppPasswordBox}" MaxLength="6" PasswordChanged="OnPinChanged" />
+                        <TextBlock x:Name="PinError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="PinNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnPinNext" />
+                    </StackPanel>
+
+                    <!-- РЁР°Рі 4: РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ РІС…РѕРґР° -->
+                    <StackPanel x:Name="ConfirmPanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="ConfirmTitle" Style="{StaticResource AppH2}" />
+                        <Border Background="#FF101014" CornerRadius="10" Padding="14" BorderBrush="{StaticResource AppBorder}" BorderThickness="1">
+                            <StackPanel Spacing="9">
+                                <Grid>
+                                    <TextBlock x:Name="SummaryFileLabel" Style="{StaticResource AppMutedText}" />
+                                    <TextBlock x:Name="SummaryFileValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
+                                </Grid>
+                                <Grid>
+                                    <TextBlock x:Name="SummaryPhraseLabel" Style="{StaticResource AppMutedText}" />
+                                    <TextBlock x:Name="SummaryPhraseValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
+                                </Grid>
+                                <Grid>
+                                    <TextBlock Text="PIN" Style="{StaticResource AppMutedText}" />
+                                    <TextBlock x:Name="SummaryPinValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="ConfirmError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="ConfirmButton" Style="{StaticResource AppPrimaryButton}" Click="OnConfirmAccess" />
+                    </StackPanel>
+
+                    <!-- РЎРѕР·РґР°РЅРёРµ: С„СЂР°Р·Р° -->
+                    <StackPanel x:Name="CreatePhrasePanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="CreatePhraseTitle" Style="{StaticResource AppH2}" />
+                        <TextBlock x:Name="CreatePhraseHint" Style="{StaticResource AppMutedText}" />
+                        <TextBox x:Name="CreatePhraseBox" Style="{StaticResource AppTextBox}" />
+                        <TextBlock x:Name="CreatePhraseError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="CreatePhraseNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreatePhraseNext" />
+                    </StackPanel>
+
+                    <!-- РЎРѕР·РґР°РЅРёРµ: PIN -->
+                    <StackPanel x:Name="CreatePinPanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="CreatePinTitle" Style="{StaticResource AppH2}" />
+                        <TextBlock x:Name="CreatePinHint" Style="{StaticResource AppMutedText}" />
+                        <PasswordBox x:Name="CreatePinBox" Style="{StaticResource AppPasswordBox}" MaxLength="6" PasswordChanged="OnCreatePinChanged" />
+                        <TextBlock x:Name="CreatePinError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="CreatePinNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreatePinNext" />
+                    </StackPanel>
+
+                    <!-- РЎРѕР·РґР°РЅРёРµ: РїРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ PIN -->
+                    <StackPanel x:Name="CreateConfirmPanel" Spacing="14" Visibility="Collapsed">
+                        <TextBlock x:Name="CreateConfirmTitle" Style="{StaticResource AppH2}" />
+                        <TextBlock x:Name="CreateConfirmHint" Style="{StaticResource AppMutedText}" />
+                        <PasswordBox x:Name="CreateConfirmBox" Style="{StaticResource AppPasswordBox}" MaxLength="6" PasswordChanged="OnCreateConfirmChanged" />
+                        <TextBlock x:Name="CreateConfirmError" Foreground="{StaticResource AppDanger}" FontSize="12" Visibility="Collapsed" />
+                        <Button x:Name="CreateConfirmButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreateConfirm" />
+                    </StackPanel>
+
+                    <!-- Р“РѕС‚РѕРІРѕ -->
+                    <StackPanel x:Name="DonePanel" Spacing="14" Visibility="Collapsed">
+                        <StackPanel Spacing="6" Margin="0,10,0,6">
+                            <FontIcon Glyph="&#xE8D7;" FontSize="34" Foreground="{StaticResource AppPrimary}" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="DoneTitle" Style="{StaticResource AppH2}" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="DoneLine1" Style="{StaticResource AppMutedText}" HorizontalAlignment="Center" TextAlignment="Center" />
+                            <TextBlock x:Name="DoneLine2" Style="{StaticResource AppMutedText}" HorizontalAlignment="Center" TextAlignment="Center" />
+                        </StackPanel>
+                        <Button x:Name="DownloadKeyButton" Style="{StaticResource AppPrimaryButton}" Click="OnDownloadKey" />
+                        <Button x:Name="ToMainButton" Style="{StaticResource AppSecondaryButton}" Click="OnToMain" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

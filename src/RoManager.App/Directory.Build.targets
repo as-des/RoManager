@@ -1,0 +1,36 @@
+<Project>
+  <!--
+    На этой машине нет Visual Studio Build Tools, поэтому задачи
+    Microsoft.Build.AppxPackage.* / Microsoft.Build.Packaging.Pri.Tasks.*
+    недоступны. Для unpackaged-сборки упаковочные output groups не нужны:
+    подменяем их простыми реализациями. PRI отключён в csproj.
+  -->
+  <Target Name="CopyLocalFilesOutputGroup"
+          DependsOnTargets="$(CopyLocalFilesOutputGroupDependsOn)"
+          Returns="@(CopyLocalFilesOutputGroupOutput)">
+    <ItemGroup>
+      <CopyLocalFilesOutputGroupOutput Include="@(ReferenceCopyLocalPaths)">
+        <TargetPath>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</TargetPath>
+      </CopyLocalFilesOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GetPackagingOutputs"
+          Returns="@(PackagingOutputs)"
+          DependsOnTargets="$(GetPackagingOutputsDependsOn)">
+    <ItemGroup>
+      <PackagingOutputs Include="@(CopyLocalFilesOutputGroupOutput)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Штатная генерация PRI отключена (AppxGeneratePriEnabled=false), поэтому
+    собираем resources.pri сами: makepri.exe + слияние ресурсов WinUI.
+    Без этого приложения падает в XamlControlsResources с
+    "Cannot locate resource ... themeresources.xaml".
+  -->
+  <Target Name="GenerateAppPri" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\..\tools\make-pri.ps1&quot; -OutputDir &quot;$(TargetDir).&quot;"
+          ContinueOnError="true" />
+  </Target>
+</Project>

@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>RoManager.App</RootNamespace>
+    <AssemblyName>RoManager</AssemblyName>
+    <Version>3.0.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\app.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <!-- На этой машине нет Visual Studio Build Tools, поэтому задачи PRI
+         (Microsoft.Build.Packaging.Pri.Tasks) недоступны. resources.pri
+         собирается отдельным шагом через tools/make-pri.ps1
+         (см. Directory.Build.targets → GenerateAppPri). -->
+    <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RoManager.Core\RoManager.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+    <Page Include="Theme.xaml" />
+    <Page Include="MainWindow.xaml" />
+    <Page Include="SettingsWindow.xaml" />
+    <Page Include="Views\LandingView.xaml" />
+    <Page Include="Views\WizardView.xaml" />
+    <Page Include="Views\DashboardView.xaml" />
+  </ItemGroup>
+</Project>
