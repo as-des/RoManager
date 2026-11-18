@@ -113,76 +113,72 @@
 
                 <controls:GlassSurface x:Name="ManagePanel" Style="{StaticResource AppGlassPanel}">
                     <StackPanel x:Name="ManageInner">
-                        <TextBlock x:Name="ManageTitle" Style="{StaticResource AppPanelTitle}" />
+                        <TextBlock x:Name="ManageTitle" Style="{StaticResource AppManageTitle}" />
 
-                        <!-- Сегменты как в 2.1.0: неактивные — 44 px с иконкой,
-                             активный растягивается и показывает содержимое без иконки. -->
-                        <Grid x:Name="ManageRow" ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="ManageColGame" Width="*" />
-                                <ColumnDefinition x:Name="ManageColPlayer" Width="*" />
-                                <ColumnDefinition x:Name="ManageColLauncher" Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border x:Name="GameSegment" Style="{StaticResource AppManageSegment}" Tapped="OnGameSegmentTapped">
+                        <!-- Три «шторки»: неактивные делят ширину поровну, активная
+                             занимает 3/5 и плавно раскрывает содержимое (do.html). -->
+                        <StackPanel x:Name="ManageRow" Orientation="Horizontal" Spacing="12" Height="60">
+                            <Border x:Name="GameSegment" Style="{StaticResource AppManageSegment}"
+                                    Tapped="OnGameSegmentTapped">
                                 <Grid>
-                                    <FontIcon x:Name="GameIcon" Glyph="&#xE7FC;" FontSize="18" Foreground="#FF888888"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <Grid x:Name="GameContent" VerticalAlignment="Center" Margin="10,0"
-                                          Visibility="Collapsed" Tapped="OnManageContentTapped">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox x:Name="GameInput" Grid.Column="0" Style="{StaticResource AppManageInput}"
-                                                 MinWidth="0" Margin="0,0,6,0" KeyDown="OnManageKeyDown" />
-                                        <Button x:Name="GameSubmit" Grid.Column="1" Style="{StaticResource AppManageSubmit}"
+                                    <Path x:Name="GameIcon"
+                                          Data="M4,5 H20 A2,2 0 0 1 22,7 V17 A2,2 0 0 1 20,19 H4 A2,2 0 0 1 2,17 V7 A2,2 0 0 1 4,5 Z M2,10 H22"
+                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="24" Height="24"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Grid x:Name="GameContent" Visibility="Collapsed" Opacity="0"
+                                          Tapped="OnManageContentTapped">
+                                        <TextBox x:Name="GameInput" Style="{StaticResource AppManageInput}"
+                                                 MinWidth="0" KeyDown="OnManageKeyDown" />
+                                        <Button x:Name="GameSubmit" Style="{StaticResource AppManageArrow}"
                                                 Click="OnGameSubmit">
-                                            <FontIcon Glyph="&#xE72A;" FontSize="14" />
+                                            <TextBlock Text="&#x27A4;" FontSize="15" />
                                         </Button>
                                     </Grid>
                                 </Grid>
                             </Border>
 
-                            <Border x:Name="PlayerSegment" Grid.Column="1" Style="{StaticResource AppManageSegment}"
+                            <Border x:Name="PlayerSegment" Style="{StaticResource AppManageSegment}"
                                     Tapped="OnPlayerSegmentTapped">
                                 <Grid>
-                                    <FontIcon x:Name="PlayerIcon" Glyph="&#xE77B;" FontSize="18" Foreground="#FF888888"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <Grid x:Name="PlayerContent" VerticalAlignment="Center" Margin="10,0"
-                                          Visibility="Collapsed" Tapped="OnManageContentTapped">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox x:Name="PlayerInput" Grid.Column="0" Style="{StaticResource AppManageInput}"
-                                                 MinWidth="0" Margin="0,0,6,0" KeyDown="OnManageKeyDown" />
-                                        <Button x:Name="PlayerSubmit" Grid.Column="1" Style="{StaticResource AppManageSubmit}"
+                                    <Path x:Name="PlayerIcon"
+                                          Data="M20,21 V19 A4,4 0 0 0 16,15 H8 A4,4 0 0 0 4,19 V21 M16,7 A4,4 0 1 1 8,7 A4,4 0 1 1 16,7 Z"
+                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="24" Height="24"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Grid x:Name="PlayerContent" Visibility="Collapsed" Opacity="0"
+                                          Tapped="OnManageContentTapped">
+                                        <TextBox x:Name="PlayerInput" Style="{StaticResource AppManageInput}"
+                                                 MinWidth="0" KeyDown="OnManageKeyDown" />
+                                        <Button x:Name="PlayerSubmit" Style="{StaticResource AppManageArrow}"
                                                 Click="OnPlayerSubmit">
-                                            <FontIcon Glyph="&#xE72A;" FontSize="14" />
+                                            <TextBlock Text="&#x27A4;" FontSize="15" />
                                         </Button>
                                     </Grid>
                                 </Grid>
                             </Border>
 
-                            <Border x:Name="LauncherSegment" Grid.Column="2" Style="{StaticResource AppManageSegment}"
+                            <Border x:Name="LauncherSegment" Style="{StaticResource AppManageSegment}"
                                     Tapped="OnLauncherSegmentTapped">
                                 <Grid>
-                                    <FontIcon x:Name="LauncherIcon" Glyph="&#xE768;" FontSize="18" Foreground="#FF888888"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <StackPanel x:Name="LauncherContent" Orientation="Horizontal"
-                                                Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                Visibility="Collapsed" Tapped="OnManageContentTapped">
-                                        <Button x:Name="LauncherPlay" Style="{StaticResource AppManagePlayButton}"
+                                    <Path x:Name="LauncherIcon"
+                                          Data="M5,3 L19,12 L5,21 Z"
+                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Width="24" Height="24"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Grid x:Name="LauncherContent" Visibility="Collapsed" Opacity="0"
+                                          Padding="6" Tapped="OnManageContentTapped">
+                                        <Button x:Name="LauncherPlay" Style="{StaticResource AppManageLaunch}"
                                                 Click="OnLaunch">
-                                            <FontIcon Glyph="&#xE768;" FontSize="14" />
+                                            <TextBlock x:Name="LauncherLabel" TextTrimming="CharacterEllipsis" />
                                         </Button>
-                                        <TextBlock x:Name="LauncherLabel" VerticalAlignment="Center" FontSize="13"
-                                                   Foreground="#FFCCCCCC" TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </Border>
-                        </Grid>
+                        </StackPanel>
                     </StackPanel>
                 </controls:GlassSurface>
             </StackPanel>

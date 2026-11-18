@@ -527,13 +527,20 @@
         <Setter Property="MinHeight" Value="0" />
     </Style>
 
-    <!-- Сегмент управления аккаунтом (game/player/launcher) -->
+    <!-- Управление аккаунтом: «шторки» как в do.html -->
+    <Style x:Key="AppManageTitle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#FF55555A" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Margin" Value="4,0,0,12" />
+    </Style>
+
     <Style x:Key="AppManageSegment" TargetType="Border">
-        <Setter Property="Height" Value="44" />
-        <Setter Property="Background" Value="#801A1C24" />
-        <Setter Property="BorderBrush" Value="#1AFFFFFF" />
+        <Setter Property="Height" Value="60" />
+        <Setter Property="Background" Value="#FF141416" />
+        <Setter Property="BorderBrush" Value="#FF26262A" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="0" />
     </Style>
 
@@ -541,11 +548,12 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="0" />
-        <Setter Property="Foreground" Value="{StaticResource AppText}" />
-        <Setter Property="PlaceholderForeground" Value="{StaticResource AppMuted2}" />
-        <Setter Property="Padding" Value="2,6" />
-        <Setter Property="FontSize" Value="12.5" />
-        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="#FFA0A0A5" />
+        <Setter Property="PlaceholderForeground" Value="#FF444448" />
+        <Setter Property="Padding" Value="16,0,50,0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
         <Setter Property="Template">
@@ -553,6 +561,7 @@
                 <ControlTemplate TargetType="TextBox">
                     <Grid>
                         <ScrollViewer x:Name="ContentElement" Padding="{TemplateBinding Padding}"
+                                      VerticalContentAlignment="Center"
                                       HorizontalScrollBarVisibility="Hidden" HorizontalScrollMode="Auto"
                                       VerticalScrollBarVisibility="Hidden" VerticalScrollMode="Auto"
                                       IsTabStop="False" ZoomMode="Disabled" />
@@ -561,7 +570,7 @@
                                         Margin="{TemplateBinding BorderThickness}"
                                         Padding="{TemplateBinding Padding}"
                                         IsTabStop="False" IsHitTestVisible="False"
-                                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        VerticalContentAlignment="Center"
                                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         Content="{TemplateBinding PlaceholderText}" />
                     </Grid>
@@ -570,32 +579,43 @@
         </Setter>
     </Style>
 
-    <Style x:Key="AppManageSubmit" TargetType="Button">
-        <Setter Property="Width" Value="28" />
-        <Setter Property="Height" Value="28" />
-        <Setter Property="Background" Value="{StaticResource AppPrimary}" />
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="BorderThickness" Value="0" />
+    <!-- Стрелка, приклеенная к правому краю раскрытой шторки -->
+    <Style x:Key="AppManageArrow" TargetType="Button">
+        <Setter Property="Width" Value="45" />
+        <Setter Property="Background" Value="#FF1C1C1F" />
+        <Setter Property="Foreground" Value="#FF55555A" />
+        <Setter Property="BorderBrush" Value="#FF26262A" />
+        <Setter Property="BorderThickness" Value="1,0,0,0" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="6">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CommonStates">
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="{StaticResource AppPrimaryHover}" />
+                                        <Setter Target="Root.Background" Value="#FF2A2A2E" />
+                                        <Setter Target="Presenter.Foreground" Value="#FFA0A0A5" />
                                     </VisualState.Setters>
                                 </VisualState>
-                                <VisualState x:Name="Pressed" />
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="#FF313136" />
+                                    </VisualState.Setters>
+                                </VisualState>
                                 <VisualState x:Name="Disabled" />
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <ContentPresenter Content="{TemplateBinding Content}"
+                        <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
@@ -603,9 +623,47 @@
         </Setter>
     </Style>
 
-    <Style x:Key="AppManagePlayButton" TargetType="Button" BasedOn="{StaticResource AppManageSubmit}">
-        <Setter Property="Width" Value="32" />
-        <Setter Property="Height" Value="32" />
+    <!-- Кнопка «Запустить» внутри третьей шторки -->
+    <Style x:Key="AppManageLaunch" TargetType="Button">
+        <Setter Property="Background" Value="#FF2B2B2E" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="UseSystemFocusVisuals" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="#FF3D3D42" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="#FF46464C" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Кнопка версии в нижней панели (открывает историю обновлений) -->

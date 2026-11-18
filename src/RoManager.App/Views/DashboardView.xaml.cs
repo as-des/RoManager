@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
 using RoManager.App.Controls;
 using RoManager.Core;
@@ -46,27 +47,13 @@ public sealed partial class DashboardView : UserControl
             AccountsBar.Attach(AccountsScroll);
         };
         SizeChanged += (_, _) => ApplyResponsiveLayout();
-        ConfigureSegmentHover();
-    }
 
-    void ConfigureSegmentHover()
-    {
-        var segments = new[] { (GameSegment, "game"), (PlayerSegment, "player"), (LauncherSegment, "launcher") };
-        foreach (var (segment, mode) in segments)
+        // Ширина шторок зависит от фактической ширины панели: держим пропорции
+        // 1 : 1 : 1 либо 3 : 1 : 1 при раскрытой шторке.
+        ManageRow.SizeChanged += (_, _) =>
         {
-            segment.PointerEntered += (_, _) =>
-            {
-                if (_selected.Count != 1 || _manageMode == mode) return;
-                segment.Background = SegmentBgHover;
-                segment.BorderBrush = SegmentBorderHover;
-            };
-            segment.PointerExited += (_, _) =>
-            {
-                if (_manageMode == mode) return;
-                segment.Background = SegmentBg;
-                segment.BorderBrush = SegmentBorder;
-            };
-        }
+            if (ManageRow.ActualWidth > 0) ApplyManageLayout(animate: false);
+        };
     }
 
     public void ApplyLanguage()
@@ -82,7 +69,7 @@ public sealed partial class DashboardView : UserControl
         DeleteButton.Tag = s["dash.delete"];
         RefreshButton.Tag = s["dash.refresh"];
         ManageTitle.Text = s["dash.manage"];
-        LauncherLabel.Text = s["dash.launchLauncher"];
+        LauncherLabel.Text = s["dash.launch"];
         GameInput.PlaceholderText = s["dash.serverId"];
         PlayerInput.PlaceholderText = s["dash.playerNick"];
         LogoutButton.Content = s["dash.logout"];
@@ -315,13 +302,8 @@ public sealed partial class DashboardView : UserControl
         CoreHost.PushStatus(Strings.I.F("dash.selectedMany", _selected.Count), "idle");
     }
 
-    static readonly SolidColorBrush SegmentBg = new(Color.FromArgb(0x80, 0x1A, 0x1C, 0x24));
-    static readonly SolidColorBrush SegmentBorder = new(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF));
-    static readonly SolidColorBrush SegmentBgActive = new(Color.FromArgb(0x99, 0x0F, 0x11, 0x18));
-    static readonly SolidColorBrush SegmentBorderActive = new(Accent);
-    static readonly SolidColorBrush SegmentBgHover = new(Color.FromArgb(0xA6, 0x28, 0x2B, 0x34));
-    static readonly SolidColorBrush SegmentBorderHover = new(Color.FromArgb(0x29, 0xFF, 0xFF, 0xFF));
-    static readonly SolidColorBrush SegmentIconIdle = new(Color.FromArgb(0xFF, 0x88, 0x88, 0x88));
+    static readonly SolidColorBrush ManageTitleActive = new(Color.FromArgb(0xFF, 0x55, 0x55, 0x5A));
+    static readonly SolidColorBrush ManageTitleDisabled = new(Color.FromArgb(0xFF, 0x3A, 0x3A, 0x3E));
 
     /* ---------- адаптивная сетка (как media queries 2.1.0) ---------- */
 
@@ -333,7 +315,7 @@ public sealed partial class DashboardView : UserControl
             DashBody.Padding = new Thickness(28, 24, 28, 24);
             DashBody.ColumnSpacing = 20;
             DashHeader.Padding = new Thickness(28, 16, 28, 16);
-            ColSidebar.Width = new GridLength(320);
+            ColSidebar.Width = new GridLength(360);
             Sidebar.SetValue(Grid.RowProperty, 0);
             Sidebar.SetValue(Grid.ColumnProperty, 1);
             RowAccounts.Height = new GridLength(1, GridUnitType.Star);
@@ -345,7 +327,8 @@ public sealed partial class DashboardView : UserControl
             DashBody.Padding = new Thickness(20, 20, 20, 20);
             DashBody.ColumnSpacing = 16;
             DashHeader.Padding = new Thickness(20, 13, 20, 13);
-            ColSidebar.Width = new GridLength(280);
+            // Шире прежних 280 px: раскрытая «шторка» должна вмещать поле ввода.
+            ColSidebar.Width = new GridLength(340);
             Sidebar.SetValue(Grid.RowProperty, 0);
             Sidebar.SetValue(Grid.ColumnProperty, 1);
             RowAccounts.Height = new GridLength(1, GridUnitType.Star);
@@ -377,46 +360,100 @@ public sealed partial class DashboardView : UserControl
         // В legacy гасились только дети панели, а не сама панель.
         ManageInner.Opacity = canManage ? 1 : 0.4;
         ManageInner.IsHitTestVisible = canManage;
-        ManageTitle.Foreground = canManage
-            ? new SolidColorBrush(Color.FromArgb(0xFF, 0xCC, 0xCC, 0xCC))
-            : new SolidColorBrush(Color.FromArgb(0xFF, 0x55, 0x55, 0x55));
+        ManageTitle.Foreground = canManage ? ManageTitleActive : ManageTitleDisabled;
+        if (!canManage) ClearManageInputs();
 
         ApplyManageLayout();
     }
 
-    void ApplyManageLayout()
+    void ApplyManageLayout(bool animate = true)
     {
-        bool has = _manageMode != null;
         bool game = _manageMode == "game";
         bool player = _manageMode == "player";
         bool launcher = _manageMode == "launcher";
 
-        ManageColGame.Width = has && !game ? new GridLength(44) : new GridLength(1, GridUnitType.Star);
-        ManageColPlayer.Width = has && !player ? new GridLength(44) : new GridLength(1, GridUnitType.Star);
-        ManageColLauncher.Width = has && !launcher ? new GridLength(44) : new GridLength(1, GridUnitType.Star);
+        // flex: 1 у неактивных и flex: 3 у активной (do.html).
+        double available = Math.Max(0, ManageRow.ActualWidth - 24);
+        if (available > 0)
+        {
+            double unit = available / 5.0;
+            AnimateSegmentWidth(GameSegment, game ? unit * 3 : unit, animate);
+            AnimateSegmentWidth(PlayerSegment, player ? unit * 3 : unit, animate);
+            AnimateSegmentWidth(LauncherSegment, launcher ? unit * 3 : unit, animate);
+        }
 
-        // В раскрытом сегменте иконка убирается целиком: остаются поле + кнопка
-        // (у лаунчера — кнопка запуска + подпись).
-        GameIcon.Visibility = game ? Visibility.Collapsed : Visibility.Visible;
-        PlayerIcon.Visibility = player ? Visibility.Collapsed : Visibility.Visible;
-        LauncherIcon.Visibility = launcher ? Visibility.Collapsed : Visibility.Visible;
-
-        GameContent.Visibility = game ? Visibility.Visible : Visibility.Collapsed;
-        PlayerContent.Visibility = player ? Visibility.Visible : Visibility.Collapsed;
-        LauncherContent.Visibility = launcher ? Visibility.Visible : Visibility.Collapsed;
-
-        SegmentBgTo(GameSegment, game);
-        SegmentBgTo(PlayerSegment, player);
-        SegmentBgTo(LauncherSegment, launcher);
-        GameIcon.Foreground = game ? SegmentBorderActive : SegmentIconIdle;
-        PlayerIcon.Foreground = player ? SegmentBorderActive : SegmentIconIdle;
-        LauncherIcon.Foreground = launcher ? SegmentBorderActive : SegmentIconIdle;
+        // Иконка плавно исчезает, содержимое плавно проявляется.
+        ApplySegmentState(GameIcon, GameContent, game, animate);
+        ApplySegmentState(PlayerIcon, PlayerContent, player, animate);
+        ApplySegmentState(LauncherIcon, LauncherContent, launcher, animate);
     }
 
-    static void SegmentBgTo(Border segment, bool active)
+    static void ApplySegmentState(FrameworkElement icon, FrameworkElement content, bool active, bool animate)
     {
-        segment.Background = active ? SegmentBgActive : SegmentBg;
-        segment.BorderBrush = active ? SegmentBorderActive : SegmentBorder;
+        content.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
+        if (active)
+        {
+            content.Opacity = 0;
+            FadeTo(content, 1, 300, animate);
+        }
+        else
+        {
+            content.Opacity = 0;
+        }
+
+        FadeTo(icon, active ? 0 : 1, 200, animate);
+    }
+
+    static void AnimateSegmentWidth(Border segment, double to, bool animate)
+    {
+        double from = segment.ActualWidth > 1 ? segment.ActualWidth : to;
+        if (!animate || !segment.IsLoaded || Math.Abs(from - to) < 0.5)
+        {
+            segment.Width = to;
+            return;
+        }
+
+        segment.Width = to;
+        var anim = new DoubleAnimation
+        {
+            From = from,
+            To = to,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EnableDependentAnimation = true,
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+        };
+        Storyboard.SetTarget(anim, segment);
+        Storyboard.SetTargetProperty(anim, "Width");
+        var sb = new Storyboard();
+        sb.Children.Add(anim);
+        sb.Begin();
+    }
+
+    static void FadeTo(UIElement element, double to, int milliseconds, bool animate)
+    {
+        if (!animate)
+        {
+            element.Opacity = to;
+            return;
+        }
+
+        var anim = new DoubleAnimation
+        {
+            To = to,
+            Duration = TimeSpan.FromMilliseconds(milliseconds),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+        };
+        Storyboard.SetTarget(anim, element);
+        Storyboard.SetTargetProperty(anim, "Opacity");
+        var sb = new Storyboard();
+        sb.Children.Add(anim);
+        sb.Begin();
+    }
+
+    void ClearManageInputs()
+    {
+        GameInput.Text = "";
+        PlayerInput.Text = "";
     }
 
     /* ---------- действия ---------- */
@@ -429,24 +466,31 @@ public sealed partial class DashboardView : UserControl
 
     void OnLauncherSegmentTapped(object sender, TappedRoutedEventArgs e)
     {
-        if (_selected.Count != 1) return;
-        if (_manageMode == "launcher") LaunchSelected();
-        else
-        {
-            _manageMode = "launcher";
-            ApplyManageLayout();
-        }
+        if (_selected.Count != 1 || _manageMode == "launcher") return;
+        _manageMode = "launcher";
+        ClearManageInputs();
+        ApplyManageLayout();
     }
 
     void OnManageContentTapped(object sender, TappedRoutedEventArgs e) => e.Handled = true;
 
     void ToggleManageMode(string mode)
     {
-        if (_selected.Count != 1) return;
-        _manageMode = _manageMode == mode ? null : mode;
+        if (_selected.Count != 1 || _manageMode == mode) return;
+
+        _manageMode = mode;
+        ClearManageInputs();
         ApplyManageLayout();
-        if (_manageMode == "game") GameInput.Focus(FocusState.Programmatic);
-        else if (_manageMode == "player") PlayerInput.Focus(FocusState.Programmatic);
+
+        if (mode == "game") FocusManageInput(GameInput, mode);
+        else if (mode == "player") FocusManageInput(PlayerInput, mode);
+    }
+
+    async void FocusManageInput(TextBox input, string mode)
+    {
+        // В do.html фокус ставится после завершения анимации раскрытия.
+        await Task.Delay(320);
+        if (_manageMode == mode) input.Focus(FocusState.Programmatic);
     }
 
     void OnManageKeyDown(object sender, KeyRoutedEventArgs e)

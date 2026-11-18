@@ -153,6 +153,7 @@ public sealed class Strings
         ["dash.launcher"] = ("Лаунчер", "Launcher"),
         ["dash.serverId"] = ("ID сервера", "Server ID"),
         ["dash.playerNick"] = ("Ник игрока", "Player nickname"),
+        ["dash.launch"] = ("Запустить", "Launch"),
         ["dash.launchLauncher"] = ("Запуск лаунчера", "Launch launcher"),
         ["dash.settings"] = ("Настройки", "Settings"),
         ["dash.openSettings"] = ("Открыть настройки", "Open settings"),
