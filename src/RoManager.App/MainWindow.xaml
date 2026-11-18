@@ -2,50 +2,108 @@
     x:Class="RoManager.App.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:RoManager.App.Controls"
     Title="RoManager">
 
-    <Grid x:Name="Root">
+    <Grid x:Name="Root" Background="{StaticResource AppBg}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="44" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="32" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- РЁР°РїРєР° РѕРєРЅР° -->
-        <Grid Grid.Row="0" Background="#FF0F1115" Padding="14,0" BorderBrush="{StaticResource AppBorder}" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-                <Border Width="22" Height="22" CornerRadius="6" Background="{StaticResource AppPrimary}">
-                    <TextBlock Text="R" FontSize="13" FontWeight="Bold" Foreground="White"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <TextBlock x:Name="HeaderTitle" Style="{StaticResource AppHeaderTitle}" Text="RoManager" />
-                <Border Background="#FF1C1C20" CornerRadius="6" Padding="6,2" VerticalAlignment="Center">
-                    <TextBlock x:Name="HeaderVersion" Style="{StaticResource AppCaption}" Text="3.0" />
-                </Border>
-            </StackPanel>
+        <!-- Фон-шейдер и затемнение растянуты на всю клиентскую область,
+             включая нижнюю строку статуса, как в 2.1.0. -->
+        <Image x:Name="Backdrop" Grid.RowSpan="2" Stretch="Fill" IsHitTestVisible="False" />
+        <Border x:Name="Scrim" Grid.RowSpan="2" Background="#4D080A10" IsHitTestVisible="False" />
 
-            <Button x:Name="HeaderSettings"
-                    Style="{StaticResource AppGhostButton}"
-                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Click="OnOpenSettings">
-                <StackPanel Orientation="Horizontal" Spacing="7">
-                    <FontIcon Glyph="&#xE713;" FontSize="14" />
-                    <TextBlock x:Name="HeaderSettingsText" VerticalAlignment="Center" />
-                </StackPanel>
-            </Button>
+        <!-- Рабочая область: landing → мастер → dashboard -->
+        <Grid Grid.Row="0">
+            <ContentControl x:Name="ContentHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+
+            <!-- Плашки уведомлений над содержимым -->
+            <controls:NotificationStack x:Name="Notices" />
+
+            <!-- Шестерёнка в правом верхнем углу, как в 2.1.0 -->
+            <StackPanel x:Name="AuthTopBar" Orientation="Horizontal" Spacing="10"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,18,0">
+                <Button x:Name="HeaderSettings" Style="{StaticResource AppOverlayButton}" Click="OnOpenSettings">
+                    <FontIcon Glyph="&#xE713;" FontSize="17" />
+                </Button>
+            </StackPanel>
         </Grid>
 
-        <!-- Р­РєСЂР°РЅС‹: landing в†’ РјР°СЃС‚РµСЂ в†’ dashboard -->
-        <ContentControl x:Name="ContentHost" Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+        <!-- Строка состояния: прозрачное стекло поверх фона (как в 2.1.0) -->
+        <controls:GlassSurface x:Name="StatusBar" Grid.Row="1" Height="36" Visibility="Collapsed"
+                               Background="{StaticResource AppStatusBar}"
+                               BorderBrush="#12FFFFFF" BorderThickness="0,1,0,0"
+                               CornerRadius="0" Padding="28,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        <!-- РЎС‚СЂРѕРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ -->
-        <Grid Grid.Row="2" Background="#FF0F1115" Padding="14,0" BorderBrush="{StaticResource AppBorder}" BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="{StaticResource AppMuted}" />
-                <TextBlock x:Name="StatusText" Style="{StaticResource AppMutedText}" VerticalAlignment="Center" />
-            </StackPanel>
-            <TextBlock x:Name="StatusRight" Style="{StaticResource AppCaption}" HorizontalAlignment="Right"
-                       VerticalAlignment="Center" Text="WinUI 3" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" MinWidth="0">
+                    <Ellipse x:Name="StatusDot" Width="6" Height="6" Fill="#FF555555" />
+                    <TextBlock x:Name="StatusText" Foreground="#FF777777" FontSize="12.5"
+                               VerticalAlignment="Center" TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+
+                <Button x:Name="VersionButton" Grid.Column="1" Style="{StaticResource AppVersionChip}"
+                        VerticalAlignment="Center" Margin="14,0,0,0" Click="OnOpenChangelog">
+                    <TextBlock x:Name="StatusRight" Foreground="#FF8B93A5" FontSize="11.5" />
+                </Button>
+            </Grid>
+        </controls:GlassSurface>
+
+        <!-- История обновлений: полноэкранный оверлей поверх клиентской области -->
+        <Grid x:Name="ChangelogOverlay" Grid.RowSpan="2" Background="#99000000" Visibility="Collapsed"
+              Tapped="OnChangelogBackdropTapped">
+            <Grid x:Name="ChangelogRoot" Tapped="OnChangelogModalTapped">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#F012151E" Offset="0" />
+                        <GradientStop Color="#F00A0C12" Offset="1" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Padding="32,18,22,15" BorderBrush="#17FFFFFF" BorderThickness="0,0,0,1">
+                    <StackPanel Spacing="3" VerticalAlignment="Center">
+                        <TextBlock x:Name="ChangelogTitle" Foreground="White" FontSize="17"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="RoManager" Foreground="#FF7D8595" FontSize="11"
+                                   CharacterSpacing="90" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <Button Style="{StaticResource AppChangelogBack}" Click="OnCloseChangelog">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon Glyph="&#xE72B;" FontSize="14" />
+                                <TextBlock x:Name="ChangelogBackText" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="8" />
+                    </Grid.ColumnDefinitions>
+                    <ScrollViewer x:Name="ChangelogScroll" Grid.Column="0" VerticalScrollBarVisibility="Hidden"
+                                  Padding="0,0,8,0">
+                        <StackPanel x:Name="ChangelogBody" Padding="32,26,32,40" />
+                    </ScrollViewer>
+                    <controls:ThinScrollBar x:Name="ChangelogBar" Grid.Column="1" ThumbBrush="#24FFFFFF"
+                                            Margin="0,10,0,10" />
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

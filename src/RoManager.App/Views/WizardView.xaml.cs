@@ -49,9 +49,31 @@ public sealed partial class WizardView : UserControl
         PinBox.Password = "";
         CreatePinBox.Password = "";
         CreateConfirmBox.Password = "";
+        AccessPinDots.SetCount(0);
+        CreatePinDots.SetCount(0);
+        CreateConfirmDots.SetCount(0);
         HideErrors();
 
         SetStep(_creating ? Step.CreatePhrase : Step.File);
+
+#if DEBUG
+        // ROM_TEST_WIZARD_STEP=2|3|4 — открыть нужный шаг для снимков UI.
+        var testStep = Environment.GetEnvironmentVariable("ROM_TEST_WIZARD_STEP");
+        if (!string.IsNullOrEmpty(testStep) && !_creating)
+        {
+            _phrase = "11 11";
+            _pin = "111111";
+            _keyName = "rom-key.json";
+            SetStep(testStep switch
+            {
+                "2" => Step.Phrase,
+                "3" => Step.Pin,
+                "4" => Step.Confirm,
+                _ => Step.File,
+            });
+            if (testStep == "3") AccessPinDots.SetCount(0);
+        }
+#endif
     }
 
     public void ApplyLanguage()
@@ -119,7 +141,7 @@ public sealed partial class WizardView : UserControl
         CreatePinPanel.Visibility = Visible(step == Step.CreatePin);
         CreateConfirmPanel.Visibility = Visible(step == Step.CreateConfirmPin);
         DonePanel.Visibility = Visible(step == Step.Done);
-        BackButton.Visibility = Visible(step != Step.Done);
+        BackButton.Visibility = Visibility.Visible;
 
         UpdateStepLabel();
     }
@@ -136,12 +158,16 @@ public sealed partial class WizardView : UserControl
             Step.Confirm or Step.Done => (4, 0),
             _ => (1, 0),
         };
-        StepLabel.Text = Strings.I.F("wizard.step", number);
+        StepLabel.Text = Strings.I.F("wizard.step", number).ToUpperInvariant();
 
         var primary = (Brush)Application.Current.Resources["AppPrimary"];
-        var dim = (Brush)Application.Current.Resources["AppBorder"];
+        var dim = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x33, 0x33, 0x33));
         foreach (var (dot, index) in new[] { (Dot1, 1), (Dot2, 2), (Dot3, 3), (Dot4, 4) })
-            dot.Fill = index <= number ? primary : dim;
+        {
+            bool active = index == number;
+            dot.Width = active ? 20 : 6;
+            dot.Background = index <= number ? primary : dim;
+        }
 
         if (_step == Step.Confirm) RefreshSummary();
     }
@@ -169,6 +195,9 @@ public sealed partial class WizardView : UserControl
             case Step.CreateConfirmPin:
                 SetStep(Step.CreatePin);
                 break;
+            case Step.Done:
+                CancelRequested?.Invoke();
+                break;
         }
     }
 
@@ -178,11 +207,14 @@ public sealed partial class WizardView : UserControl
     {
         e.AcceptedOperation = DataPackageOperation.Copy;
         e.DragUIOverride.Caption = Strings.I["wizard.dropHint"];
+        DropRect.Stroke = (Brush)Application.Current.Resources["AppPrimary"];
+        DropZone.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x0F, 0x3B, 0x82, 0xF6));
     }
 
     void OnDropDragLeave(object sender, DragEventArgs e)
     {
-        DropZone.Opacity = 1.0;
+        DropRect.Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x33, 0x33, 0x33));
+        DropZone.Background = null;
     }
 
     async void OnDrop(object sender, DragEventArgs e)
@@ -211,9 +243,16 @@ public sealed partial class WizardView : UserControl
     {
         try
         {
-            var picker = new FileOpenPicker { SuggestedStartLocation = PickerLocationId.Desktop };
+            // Пикер открывается только у активного окна-владельца.
+            var picker = new FileOpenPicker
+            {
+                SuggestedStartLocation = PickerLocationId.Desktop,
+                ViewMode = PickerViewMode.List,
+            };
             WinRT.Interop.InitializeWithWindow.Initialize(picker, MainWindow.Handle);
             picker.FileTypeFilter.Add(".json");
+            picker.FileTypeFilter.Add("*");
+            await Task.Yield();
             var file = await picker.PickSingleFileAsync();
             if (file != null) await LoadKeyFile(file);
         }
@@ -292,18 +331,21 @@ public sealed partial class WizardView : UserControl
     void OnPinChanged(object sender, RoutedEventArgs e)
     {
         FilterDigits(PinBox);
+        AccessPinDots.SetCount(PinBox.Password.Length);
         PinError.Visibility = Visibility.Collapsed;
     }
 
     void OnCreatePinChanged(object sender, RoutedEventArgs e)
     {
         FilterDigits(CreatePinBox);
+        CreatePinDots.SetCount(CreatePinBox.Password.Length);
         CreatePinError.Visibility = Visibility.Collapsed;
     }
 
     void OnCreateConfirmChanged(object sender, RoutedEventArgs e)
     {
         FilterDigits(CreateConfirmBox);
+        CreateConfirmDots.SetCount(CreateConfirmBox.Password.Length);
         CreateConfirmError.Visibility = Visibility.Collapsed;
     }
 

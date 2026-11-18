@@ -16,10 +16,8 @@ public sealed partial class LandingView : UserControl
     public void ApplyLanguage()
     {
         var s = Strings.I;
-        Subtitle.Text = s["landing.subtitle"];
         HaveAccessButton.Content = s["landing.haveAccess"];
         NoAccessButton.Content = s["landing.noAccess"];
-        Hint.Text = s["landing.hint"];
     }
 
     void OnHaveAccess(object sender, RoutedEventArgs e) => StartRequested?.Invoke(true);

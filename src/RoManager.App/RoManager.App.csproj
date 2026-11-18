@@ -5,7 +5,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>RoManager.App</RootNamespace>
     <AssemblyName>RoManager</AssemblyName>
-    <Version>3.0.0</Version>
+    <Version>1.0.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\app.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
+    <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>

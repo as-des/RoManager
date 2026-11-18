@@ -1,19 +1,29 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using RoManager.Core;
 using Windows.Graphics;
+using Windows.UI;
 
 namespace RoManager.App;
 
 /**
- * Полное окно настроек: три вкладки как в 2.1.0.
- * До авторизации доступны только интерфейсные настройки, Roblox-разделы
- * показываются, но выключены с пояснением «Доступно после входа».
+ * Полное окно настроек: три вкладки как в 2.1.0, но на стилях приложения
+ * (свои чекбоксы, поля, табы и кнопки вместо системных WinUI-контролов).
+ * До авторизации доступны интерфейс и фон; Roblox-разделы показаны,
+ * но выключены с пояснением «Доступно после входа».
  */
 public sealed partial class SettingsWindow : Window
 {
-    bool _languageLoading;
+    static readonly Regex Hex = new("^#[0-9a-fA-F]{6}$");
+    static readonly SolidColorBrush TabActiveBg = new(Color.FromArgb(0xFF, 0x1A, 0x1D, 0x24));
+    static readonly SolidColorBrush TabActiveFg = new(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
+    static readonly SolidColorBrush TabIdleFg = new(Color.FromArgb(0xFF, 0xAA, 0xAA, 0xAA));
+
     bool _unlocked;
 
     public SettingsWindow()
@@ -22,90 +32,109 @@ public sealed partial class SettingsWindow : Window
         Title = Strings.I["settings.title"];
         if (AppWindow is { } appWindow)
         {
-            appWindow.Resize(new SizeInt32(600, 760));
+            appWindow.Resize(new SizeInt32(536, 679));
             appWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "app.ico"));
         }
         WindowChrome.ApplyDark(this);
+        SettingsBar.Attach(SettingsScroll);
 
-        BuildLanguageItems();
+        LoadShaderSettings();
         LoadSettings();
         ApplyLanguage();
         RefreshLockState();
+        SetTab("general");
+    }
+
+    /* ---------- вкладки ---------- */
+
+    void OnTabGeneral(object sender, RoutedEventArgs e) => SetTab("general");
+    void OnTabDeveloper(object sender, RoutedEventArgs e) => SetTab("developer");
+    void OnTabMisc(object sender, RoutedEventArgs e) => SetTab("misc");
+
+    void SetTab(string tab)
+    {
+        GeneralPane.Visibility = tab == "general" ? Visibility.Visible : Visibility.Collapsed;
+        DeveloperPane.Visibility = tab == "developer" ? Visibility.Visible : Visibility.Collapsed;
+        MiscPane.Visibility = tab == "misc" ? Visibility.Visible : Visibility.Collapsed;
+
+        StyleTab(GeneralTab, tab == "general");
+        StyleTab(DeveloperTab, tab == "developer");
+        StyleTab(MiscTab, tab == "misc");
+    }
+
+    static void StyleTab(Button button, bool active)
+    {
+        button.Background = active ? TabActiveBg : null;
+        button.Foreground = active ? TabActiveFg : TabIdleFg;
     }
 
     /* ---------- язык ---------- */
-
-    void BuildLanguageItems()
-    {
-        _languageLoading = true;
-        LanguageBox.Items.Clear();
-        LanguageBox.Items.Add(new ComboBoxItem { Content = "Русский", Tag = "ru" });
-        LanguageBox.Items.Add(new ComboBoxItem { Content = "English", Tag = "en" });
-        LanguageBox.SelectedIndex = Loc.IsEnglish ? 1 : 0;
-        _languageLoading = false;
-    }
-
-    void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_languageLoading) return;
-        if (LanguageBox.SelectedItem is not ComboBoxItem item || item.Tag is not string lang) return;
-        if (lang == Loc.Language) return;
-
-        Loc.Set(lang);
-        UiEvents.RaiseLanguageChanged();
-        ApplyLanguage();
-    }
 
     public void ApplyLanguage()
     {
         var s = Strings.I;
         Title = s["settings.title"];
 
-        GeneralTab.Header = s["settings.tabs.general"];
-        DeveloperTab.Header = s["settings.tabs.developer"];
-        MiscTab.Header = s["settings.tabs.misc"];
+        GeneralTab.Content = s["settings.tabs.general"];
+        DeveloperTab.Content = s["settings.tabs.developer"];
+        MiscTab.Content = s["settings.tabs.misc"];
 
-        InterfaceTitle.Text = s["settings.interface"];
+        InterfaceTitle.Text = s["settings.interface"].ToUpperInvariant();
         LanguageLabel.Text = s["settings.language"];
+
+        BackgroundTitle.Text = s["settings.background"].ToUpperInvariant();
+        ShaderEnabledCheck.Content = s["settings.animatedBg"];
+        WaveColorsLabel.Text = s["settings.waveColors"];
+        Wave1Label.Text = s["settings.wave1"];
+        Wave2Label.Text = s["settings.wave2"];
+        Wave3Label.Text = s["settings.wave3"];
+        SpeedLabel.Text = s["settings.speed"];
+        SpeedHint.Text = s.F("settings.speedHint", ShaderConfig.SpeedMin.ToString("0.00"), ShaderConfig.SpeedMax.ToString("0.00"));
+
         LockBannerText.Text = s["settings.locked"];
 
-        SessionTitle.Text = s["settings.session"];
-        AutoCookieLabel.Text = s["settings.autoCookie"];
+        SessionTitle.Text = s["settings.session"].ToUpperInvariant();
+        AutoCookieCheck.Content = s["settings.autoCookie"];
         RefreshLabel.Text = s["settings.refreshInterval"];
         DelayLabel.Text = s["settings.launchDelay"];
-        ClosePrevLabel.Text = s["settings.closePrev"];
+        ClosePrevCheck.Content = s["settings.closePrev"];
 
-        MultiTitle.Text = s["settings.multiTitle"];
-        MultiLabel.Text = s["settings.multiLabel"];
+        MultiTitle.Text = s["settings.multiTitle"].ToUpperInvariant();
+        MultiCheck.Content = s["settings.multiLabel"];
         MultiHint.Text = s["settings.multiHint"];
 
-        PresenceTitle.Text = s["settings.presence"];
-        ShowPresenceLabel.Text = s["settings.showPresence"];
+        PresenceTitle.Text = s["settings.presence"].ToUpperInvariant();
+        PresenceCheck.Content = s["settings.showPresence"];
         PresenceRateLabel.Text = s["settings.updateSec"];
 
-        FpsTitle.Text = s["settings.presence"] + " · FPS";
-        UnlockFpsLabel.Text = s["settings.unlockFps"];
+        FpsTitle.Text = "FPS";
+        UnlockFpsCheck.Content = s["settings.unlockFps"];
         MaxFpsLabel.Text = s["settings.maxFps"];
 
-        BrowserTitle.Text = s["settings.browser"];
-        BundledLabel.Text = s["settings.bundled"];
+        BrowserTitle.Text = s["settings.browser"].ToUpperInvariant();
+        BundledCheck.Content = s["settings.bundled"];
         BundledHint.Text = s["settings.bundledHint"];
         AppliedHint.Text = s["settings.appliedHint"];
 
-        DebugTitle.Text = s["settings.debug"];
-        DevLogLabel.Text = s["settings.devLog"];
+        DebugTitle.Text = s["settings.debug"].ToUpperInvariant();
+        DevLogCheck.Content = s["settings.devLog"];
         DevLogHint.Text = s["settings.devLogHint"];
 
-        AboutTitle.Text = s["settings.about"];
+        AboutTitle.Text = s["settings.about"].ToUpperInvariant();
         VersionLabel.Text = s["settings.version"];
         DataFolderLabel.Text = s["settings.dataFolder"];
         VersionValue.Text = Assembly.GetExecutingAssembly().GetName().Version is { } v
             ? $"{v.Major}.{v.Minor}.{v.Build}"
-            : "3.0";
+            : "1.0.0";
         DataFolderValue.Text = AppContext.BaseDirectory;
 
         SaveButton.Content = s["common.save"];
+        CancelButton.Content = s["common.cancel"];
         SaveStatus.Text = "";
+
+        LangSwitch.ApplyLanguage();
+        SetTab(GeneralPane.Visibility == Visibility.Visible ? "general" :
+               DeveloperPane.Visibility == Visibility.Visible ? "developer" : "misc");
     }
 
     /* ---------- состояние доступа ---------- */
@@ -115,25 +144,15 @@ public sealed partial class SettingsWindow : Window
         _unlocked = CoreHost.Session?.Ready == true;
 
         LockBanner.Visibility = _unlocked ? Visibility.Collapsed : Visibility.Visible;
-        SessionSection.IsEnabled = _unlocked;
-        MultiSection.IsEnabled = _unlocked;
-        PresenceSection.IsEnabled = _unlocked;
-        FpsSection.IsEnabled = _unlocked;
-        BrowserSection.IsEnabled = _unlocked;
-        DevLogToggle.IsEnabled = _unlocked;
-        SaveButton.IsEnabled = _unlocked;
 
-        // Выключенные разделы дополнительно приглушаем: системный disabled-вид
-        // на тёмной теме слишком похож на обычный.
-        SessionSection.Opacity = _unlocked ? 1 : 0.45;
-        MultiSection.Opacity = _unlocked ? 1 : 0.45;
-        PresenceSection.Opacity = _unlocked ? 1 : 0.45;
-        FpsSection.Opacity = _unlocked ? 1 : 0.45;
-        BrowserSection.Opacity = _unlocked ? 1 : 0.45;
-        DevLogToggle.Opacity = _unlocked ? 1 : 0.45;
+        // Настройки интерфейса и фона доступны всегда; Roblox-разделы — после входа.
+        foreach (var section in new UIElement[] { SessionSection, MultiSection, PresenceSection, FpsSection, BrowserSection, DebugSection })
+        {
+            section.Opacity = _unlocked ? 1 : 0.45;
+            section.IsHitTestVisible = _unlocked;
+        }
+        SaveButton.IsEnabled = true;
     }
-
-    /* ---------- значения ---------- */
 
     /** Сессия открылась/закрылась, пока окно настроек уже было открыто. */
     public void RefreshSession()
@@ -142,22 +161,99 @@ public sealed partial class SettingsWindow : Window
         RefreshLockState();
     }
 
+    /* ---------- фон ---------- */
+
+    void LoadShaderSettings()
+    {
+        var sh = ShaderConfig.Current;
+        ShaderEnabledCheck.IsChecked = sh.Enabled;
+        Color1Box.Text = sh.Color1;
+        Color2Box.Text = sh.Color2;
+        Color3Box.Text = sh.Color3;
+        SpeedSlider.Value = sh.Speed;
+        SpeedValue.Text = sh.Speed.ToString("0.00") + "×";
+        UpdateSwatches();
+    }
+
+    void OnColorChanged(object sender, TextChangedEventArgs e) => UpdateSwatches();
+
+    bool _syncingColor;
+
+    void UpdateSwatches()
+    {
+        Color1SwatchFill.Background = Swatch(Color1Box.Text);
+        Color2SwatchFill.Background = Swatch(Color2Box.Text);
+        Color3SwatchFill.Background = Swatch(Color3Box.Text);
+    }
+
+    static Brush Swatch(string hex) =>
+        Hex.IsMatch(hex ?? "") ? new SolidColorBrush(ColorFromHex(hex)) : new SolidColorBrush(Color.FromArgb(0xFF, 0x33, 0x33, 0x33));
+
+    /* ---------- палитра цветов ---------- */
+
+    void OnPickColor1(object sender, RoutedEventArgs e) => ShowPicker(Color1Swatch);
+    void OnPickColor2(object sender, RoutedEventArgs e) => ShowPicker(Color2Swatch);
+    void OnPickColor3(object sender, RoutedEventArgs e) => ShowPicker(Color3Swatch);
+
+    static void ShowPicker(Button button)
+    {
+        // Flyout живёт на кнопке; показываем явно, чтобы клик срабатывал
+        // независимо от кастомного шаблона кнопки.
+        if (button.Flyout is Flyout flyout && !flyout.IsOpen)
+            flyout.ShowAt(button);
+    }
+
+    void OnColor1FlyoutOpened(object sender, object e) => SyncPicker(Color1Picker, Color1Box);
+    void OnColor2FlyoutOpened(object sender, object e) => SyncPicker(Color2Picker, Color2Box);
+    void OnColor3FlyoutOpened(object sender, object e) => SyncPicker(Color3Picker, Color3Box);
+
+    void OnColor1PickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
+        PickerChanged(Color1Box, args.NewColor);
+    void OnColor2PickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
+        PickerChanged(Color2Box, args.NewColor);
+    void OnColor3PickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
+        PickerChanged(Color3Box, args.NewColor);
+
+    void SyncPicker(ColorPicker picker, TextBox box)
+    {
+        if (!Hex.IsMatch(box.Text ?? "")) return;
+        _syncingColor = true;
+        picker.Color = ColorFromHex(box.Text);
+        _syncingColor = false;
+    }
+
+    void PickerChanged(TextBox box, Color color)
+    {
+        if (_syncingColor) return;
+        var hex = $"#{color.R:x2}{color.G:x2}{color.B:x2}";
+        if (!string.Equals(box.Text, hex, StringComparison.OrdinalIgnoreCase))
+            box.Text = hex;
+    }
+
+    void OnSpeedChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (SpeedValue == null) return;
+        SpeedValue.Text = SpeedSlider.Value.ToString("0.00") + "×";
+    }
+
+    /* ---------- значения ---------- */
+
     void LoadSettings()
     {
         try
         {
             var s = Vault.Settings;
-            AutoCookieToggle.IsOn = s.AutoCookieRefresh;
-            RefreshBox.Value = s.AutoRecheckMin;
-            DelayBox.Value = s.JoinDelayMs;
-            ClosePrevToggle.IsOn = s.AutoCloseLast;
-            MultiToggle.IsOn = s.MultiInstance;
-            PresenceToggle.IsOn = s.SharePresence;
-            PresenceRateBox.Value = s.PresenceRateSec;
-            UnlockFpsToggle.IsOn = s.UnlockFps;
-            MaxFpsBox.Value = s.MaxFps;
-            BundledToggle.IsOn = s.UseBundledChrome;
-            DevLogToggle.IsOn = s.DevLogMode;
+            AutoCookieCheck.IsChecked = s.AutoCookieRefresh;
+            RefreshBox.Text = s.AutoRecheckMin.ToString();
+            DelayBox.Text = s.JoinDelayMs.ToString();
+            ClosePrevCheck.IsChecked = s.AutoCloseLast;
+            MultiCheck.IsChecked = s.MultiInstance;
+            PresenceCheck.IsChecked = s.SharePresence;
+            PresenceRateBox.Text = s.PresenceRateSec.ToString();
+            UnlockFpsCheck.IsChecked = s.UnlockFps;
+            MaxFpsBox.Text = s.MaxFps.ToString();
+            BundledCheck.IsChecked = s.UseBundledChrome;
+            DevLogCheck.IsChecked = s.DevLogMode;
         }
         catch (Exception ex)
         {
@@ -165,38 +261,60 @@ public sealed partial class SettingsWindow : Window
         }
     }
 
-    static int Int(NumberBox box, int fallback)
+    static int IntFromText(TextBox box, int fallback)
     {
-        var value = box.Value;
-        if (double.IsNaN(value)) return fallback;
-        return (int)Math.Round(value);
+        var text = (box.Text ?? "").Trim();
+        return int.TryParse(text, out var value) ? value : fallback;
     }
 
     async void OnSave(object sender, RoutedEventArgs e)
     {
-        if (!_unlocked) return;
+        if (!Hex.IsMatch(Color1Box.Text) || !Hex.IsMatch(Color2Box.Text) || !Hex.IsMatch(Color3Box.Text))
+        {
+            SaveStatus.Text = Strings.I["settings.badColor"];
+            return;
+        }
 
         try
         {
-            var s = Vault.Settings;
-            s.AutoCookieRefresh = AutoCookieToggle.IsOn;
-            s.AutoRecheckMin = Math.Clamp(Int(RefreshBox, s.AutoRecheckMin), 1, 240);
-            s.JoinDelayMs = Math.Clamp(Int(DelayBox, s.JoinDelayMs), 0, 60000);
-            s.AutoCloseLast = ClosePrevToggle.IsOn;
-            s.MultiInstance = MultiToggle.IsOn;
-            s.SharePresence = PresenceToggle.IsOn;
-            s.PresenceRateSec = Math.Clamp(Int(PresenceRateBox, s.PresenceRateSec), 10, 600);
-            s.UnlockFps = UnlockFpsToggle.IsOn;
-            s.MaxFps = Math.Clamp(Int(MaxFpsBox, s.MaxFps), 30, 1000);
-            s.UseBundledChrome = BundledToggle.IsOn;
-            s.DevLogMode = DevLogToggle.IsOn;
+            if (_unlocked)
+            {
+                var s = Vault.Settings;
+                s.AutoCookieRefresh = AutoCookieCheck.IsChecked == true;
+                s.AutoRecheckMin = Math.Clamp(IntFromText(RefreshBox, s.AutoRecheckMin), 1, 240);
+                s.JoinDelayMs = Math.Clamp(IntFromText(DelayBox, s.JoinDelayMs), 0, 60000);
+                s.AutoCloseLast = ClosePrevCheck.IsChecked == true;
+                s.MultiInstance = MultiCheck.IsChecked == true;
+                s.SharePresence = PresenceCheck.IsChecked == true;
+                s.PresenceRateSec = Math.Clamp(IntFromText(PresenceRateBox, s.PresenceRateSec), 10, 600);
+                s.UnlockFps = UnlockFpsCheck.IsChecked == true;
+                s.MaxFps = Math.Clamp(IntFromText(MaxFpsBox, s.MaxFps), 30, 1000);
+                s.UseBundledChrome = BundledCheck.IsChecked == true;
+                s.DevLogMode = DevLogCheck.IsChecked == true;
 
-            Vault.Save();
-            await Task.Run(() => Roblox.ApplyMultiInstance());
+                Vault.Save();
+                await Task.Run(() => Roblox.ApplyMultiInstance());
+            }
+
+            // Фон хранится отдельно (shader.json) и доступен до входа.
+            ShaderConfig.Save(new ShaderSettings
+            {
+                Enabled = ShaderEnabledCheck.IsChecked == true,
+                Color1 = Color1Box.Text,
+                Color2 = Color2Box.Text,
+                Color3 = Color3Box.Text,
+                Speed = SpeedSlider.Value,
+            });
 
             SaveStatus.Text = Strings.I["status.settingsSaved"];
             CoreHost.PushStatus(Strings.I["status.settingsSaved"], "success");
             UiEvents.RaiseSettingsSaved();
+
+            // Как в 2.1.0: окно закрывается через 600 мс после сохранения.
+            var timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(600);
+            timer.Tick += (_, _) => { timer.Stop(); Close(); };
+            timer.Start();
         }
         catch (Exception ex)
         {
@@ -205,4 +323,12 @@ public sealed partial class SettingsWindow : Window
             CoreHost.PushStatus(Strings.I["err.unexpected"] + ex.Message, "danger");
         }
     }
+
+    void OnCancel(object sender, RoutedEventArgs e) => Close();
+
+    static Color ColorFromHex(string hex) => Color.FromArgb(
+        0xFF,
+        Convert.ToByte(hex.Substring(1, 2), 16),
+        Convert.ToByte(hex.Substring(3, 2), 16),
+        Convert.ToByte(hex.Substring(5, 2), 16));
 }

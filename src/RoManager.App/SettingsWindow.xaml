@@ -2,153 +2,239 @@
     x:Class="RoManager.App.SettingsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:RoManager.App.Controls"
     Title="Settings">
 
     <Grid Background="{StaticResource AppBg}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabView x:Name="Tabs" Grid.Row="0" Margin="10,6,10,0"
-                 TabWidthMode="Equal" CanReorderTabs="False" IsAddTabButtonVisible="False">
-            <TabViewItem x:Name="GeneralTab" IsClosable="False">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Padding="2,6,10,18" Spacing="2" MaxWidth="620" HorizontalAlignment="Left">
-                        <TextBlock x:Name="InterfaceTitle" Style="{StaticResource AppSectionTitle}" Margin="0,4,0,8" />
-                        <Grid>
-                            <TextBlock x:Name="LanguageLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                            <ComboBox x:Name="LanguageBox" HorizontalAlignment="Right" MinWidth="150"
-                                      SelectionChanged="OnLanguageChanged" />
-                        </Grid>
+        <!-- Табы -->
+        <Border Grid.Row="0" Padding="16,12" BorderBrush="#12FFFFFF" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button x:Name="GeneralTab" Style="{StaticResource AppTabButton}" Click="OnTabGeneral" />
+                <Button x:Name="DeveloperTab" Style="{StaticResource AppTabButton}" Click="OnTabDeveloper" />
+                <Button x:Name="MiscTab" Style="{StaticResource AppTabButton}" Click="OnTabMisc" />
+            </StackPanel>
+        </Border>
 
-                        <Border x:Name="LockBanner" Background="#FF1A1A10" BorderBrush="#FF3A3418"
-                                BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,14,0,0"
-                                Visibility="Collapsed">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{StaticResource AppWarning}" />
-                                <TextBlock x:Name="LockBannerText" Style="{StaticResource AppMutedText}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+            </Grid.ColumnDefinitions>
+            <ScrollViewer x:Name="SettingsScroll" Grid.Column="0" VerticalScrollBarVisibility="Hidden">
+                <Grid Padding="20,18,14,24">
 
-                        <TextBlock x:Name="SessionTitle" Style="{StaticResource AppSectionTitle}" />
-                        <ContentControl x:Name="SessionSection" HorizontalContentAlignment="Stretch"><StackPanel Spacing="14">
-                            <Grid>
-                                <StackPanel>
-                                    <TextBlock x:Name="AutoCookieLabel" Style="{StaticResource AppRowTitle}" />
-                                </StackPanel>
-                                <ToggleSwitch x:Name="AutoCookieToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                            <Grid>
-                                <TextBlock x:Name="RefreshLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <NumberBox x:Name="RefreshBox" Minimum="1" Maximum="240" SpinButtonPlacementMode="Compact"
-                                           HorizontalAlignment="Right" MinWidth="130" />
-                            </Grid>
-                            <Grid>
-                                <TextBlock x:Name="DelayLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <NumberBox x:Name="DelayBox" Minimum="0" Maximum="60000" SmallChange="250" LargeChange="1000"
-                                           SpinButtonPlacementMode="Compact" HorizontalAlignment="Right" MinWidth="130" />
-                            </Grid>
-                            <Grid>
-                                <TextBlock x:Name="ClosePrevLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="ClosePrevToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                        </StackPanel></ContentControl>
+                <!-- Общие -->
+                <StackPanel x:Name="GeneralPane" MaxWidth="620" HorizontalAlignment="Left" Spacing="0">
 
-                        <TextBlock x:Name="MultiTitle" Style="{StaticResource AppSectionTitle}" />
-                        <ContentControl x:Name="MultiSection" HorizontalContentAlignment="Stretch"><StackPanel Spacing="8">
-                            <Grid>
-                                <TextBlock x:Name="MultiLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="MultiToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                            <TextBlock x:Name="MultiHint" Style="{StaticResource AppRowHint}" />
-                        </StackPanel></ContentControl>
+                    <TextBlock x:Name="InterfaceTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,10" />
 
-                        <TextBlock x:Name="PresenceTitle" Style="{StaticResource AppSectionTitle}" />
-                        <ContentControl x:Name="PresenceSection" HorizontalContentAlignment="Stretch"><StackPanel Spacing="14">
-                            <Grid>
-                                <TextBlock x:Name="ShowPresenceLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="PresenceToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                            <Grid>
-                                <TextBlock x:Name="PresenceRateLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <NumberBox x:Name="PresenceRateBox" Minimum="10" Maximum="600" SmallChange="5"
-                                           SpinButtonPlacementMode="Compact" HorizontalAlignment="Right" MinWidth="130" />
-                            </Grid>
-                        </StackPanel></ContentControl>
+                    <Grid Margin="0,0,0,14">
+                        <TextBlock x:Name="LanguageLabel" Style="{StaticResource AppRowTitle}" />
+                        <controls:LanguageSwitch x:Name="LangSwitch" HorizontalAlignment="Right" />
+                    </Grid>
 
-                        <TextBlock x:Name="FpsTitle" Style="{StaticResource AppSectionTitle}" />
-                        <ContentControl x:Name="FpsSection" HorizontalContentAlignment="Stretch"><StackPanel Spacing="14">
-                            <Grid>
-                                <TextBlock x:Name="UnlockFpsLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="UnlockFpsToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                            <Grid>
-                                <TextBlock x:Name="MaxFpsLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center" />
-                                <NumberBox x:Name="MaxFpsBox" Minimum="30" Maximum="1000" SmallChange="10"
-                                           SpinButtonPlacementMode="Compact" HorizontalAlignment="Right" MinWidth="130" />
-                            </Grid>
-                        </StackPanel></ContentControl>
-
-                        <TextBlock x:Name="BrowserTitle" Style="{StaticResource AppSectionTitle}" />
-                        <ContentControl x:Name="BrowserSection" HorizontalContentAlignment="Stretch"><StackPanel Spacing="8">
-                            <Grid>
-                                <TextBlock x:Name="BundledLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center"
-                                           TextWrapping="Wrap" Margin="0,0,16,0" />
-                                <ToggleSwitch x:Name="BundledToggle" HorizontalAlignment="Right" MinWidth="0"
-                                              OnContent="" OffContent="" />
-                            </Grid>
-                            <TextBlock x:Name="BundledHint" Style="{StaticResource AppRowHint}" />
-                        </StackPanel></ContentControl>
-
-                        <TextBlock x:Name="AppliedHint" Style="{StaticResource AppRowHint}" Margin="0,20,0,0" />
-                    </StackPanel>
-                </ScrollViewer>
-            </TabViewItem>
-
-            <TabViewItem x:Name="DeveloperTab" IsClosable="False">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Padding="2,6,10,18" Spacing="8" MaxWidth="620" HorizontalAlignment="Left">
-                        <TextBlock x:Name="DebugTitle" Style="{StaticResource AppSectionTitle}" Margin="0,4,0,8" />
-                        <Grid>
-                            <TextBlock x:Name="DevLogLabel" Style="{StaticResource AppRowTitle}" VerticalAlignment="Center"
-                                       TextWrapping="Wrap" Margin="0,0,16,0" />
-                            <ToggleSwitch x:Name="DevLogToggle" HorizontalAlignment="Right" MinWidth="0"
-                                          OnContent="" OffContent="" />
-                        </Grid>
-                        <TextBlock x:Name="DevLogHint" Style="{StaticResource AppRowHint}" />
-                    </StackPanel>
-                </ScrollViewer>
-            </TabViewItem>
-
-            <TabViewItem x:Name="MiscTab" IsClosable="False">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Padding="2,6,10,18" Spacing="10" MaxWidth="620" HorizontalAlignment="Left">
-                        <TextBlock x:Name="AboutTitle" Style="{StaticResource AppSectionTitle}" Margin="0,4,0,8" />
-                        <Grid>
-                            <TextBlock x:Name="VersionLabel" Style="{StaticResource AppMutedText}" />
-                            <TextBlock x:Name="VersionValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
-                        </Grid>
-                        <StackPanel Spacing="4">
-                            <TextBlock x:Name="DataFolderLabel" Style="{StaticResource AppMutedText}" />
-                            <TextBlock x:Name="DataFolderValue" Style="{StaticResource AppRowHint}" IsTextSelectionEnabled="True" />
+                    <Border x:Name="LockBanner" Background="#FF1A1A10" BorderBrush="#FF3A3418"
+                            BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,4,0,4"
+                            Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{StaticResource AppWarning}" />
+                            <TextBlock x:Name="LockBannerText" Style="{StaticResource AppMutedText}" VerticalAlignment="Center" />
                         </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabViewItem>
-        </TabView>
+                    </Border>
 
-        <Grid Grid.Row="1" Padding="16,10" Background="#FF0F1115"
-              BorderBrush="{StaticResource AppBorder}" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="SaveStatus" Style="{StaticResource AppMutedText}" VerticalAlignment="Center" />
-            <Button x:Name="SaveButton" Style="{StaticResource AppPrimaryButton}" HorizontalAlignment="Right"
-                    Padding="18,8" MinHeight="34" MinWidth="170" HorizontalContentAlignment="Center"
-                    Click="OnSave" />
+                    <TextBlock x:Name="SessionTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+                    <ContentControl x:Name="SessionSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="12">
+                            <CheckBox x:Name="AutoCookieCheck" Style="{StaticResource AppCheckBox}" />
+                            <Grid>
+                                <TextBlock x:Name="RefreshLabel" Style="{StaticResource AppRowTitle}" />
+                                <TextBox x:Name="RefreshBox" Style="{StaticResource AppSmallTextBox}" InputScope="Number" />
+                            </Grid>
+                            <Grid>
+                                <TextBlock x:Name="DelayLabel" Style="{StaticResource AppRowTitle}" />
+                                <TextBox x:Name="DelayBox" Style="{StaticResource AppSmallTextBox}" InputScope="Number" />
+                            </Grid>
+                            <CheckBox x:Name="ClosePrevCheck" Style="{StaticResource AppCheckBox}" />
+                        </StackPanel>
+                    </ContentControl>
+
+                    <TextBlock x:Name="MultiTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+                    <ContentControl x:Name="MultiSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="8">
+                            <CheckBox x:Name="MultiCheck" Style="{StaticResource AppCheckBox}" />
+                            <TextBlock x:Name="MultiHint" Style="{StaticResource AppRowHint}" />
+                        </StackPanel>
+                    </ContentControl>
+
+                    <TextBlock x:Name="AppliedHint" Style="{StaticResource AppRowHint}" Margin="0,20,0,0" />
+                </StackPanel>
+
+                <!-- Разработчик -->
+                <StackPanel x:Name="DeveloperPane" MaxWidth="620" HorizontalAlignment="Left" Visibility="Collapsed">
+                    <TextBlock x:Name="DebugTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,12" />
+                    <ContentControl x:Name="DebugSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="8">
+                            <CheckBox x:Name="DevLogCheck" Style="{StaticResource AppCheckBox}" />
+                            <TextBlock x:Name="DevLogHint" Style="{StaticResource AppRowHint}" />
+                        </StackPanel>
+                    </ContentControl>
+                </StackPanel>
+
+                <!-- Разное -->
+                <StackPanel x:Name="MiscPane" MaxWidth="620" HorizontalAlignment="Left" Visibility="Collapsed">
+                    <TextBlock x:Name="PresenceTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,12" />
+                    <ContentControl x:Name="PresenceSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="12">
+                            <CheckBox x:Name="PresenceCheck" Style="{StaticResource AppCheckBox}" />
+                            <Grid>
+                                <TextBlock x:Name="PresenceRateLabel" Style="{StaticResource AppRowTitle}" />
+                                <TextBox x:Name="PresenceRateBox" Style="{StaticResource AppSmallTextBox}" InputScope="Number" />
+                            </Grid>
+                        </StackPanel>
+                    </ContentControl>
+
+                    <TextBlock x:Name="FpsTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+                    <ContentControl x:Name="FpsSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="12">
+                            <CheckBox x:Name="UnlockFpsCheck" Style="{StaticResource AppCheckBox}" />
+                            <Grid>
+                                <TextBlock x:Name="MaxFpsLabel" Style="{StaticResource AppRowTitle}" />
+                                <TextBox x:Name="MaxFpsBox" Style="{StaticResource AppSmallTextBox}" InputScope="Number" />
+                            </Grid>
+                        </StackPanel>
+                    </ContentControl>
+
+                    <TextBlock x:Name="BrowserTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+                    <ContentControl x:Name="BrowserSection" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="8">
+                            <CheckBox x:Name="BundledCheck" Style="{StaticResource AppCheckBox}" />
+                            <TextBlock x:Name="BundledHint" Style="{StaticResource AppRowHint}" />
+                        </StackPanel>
+                    </ContentControl>
+
+                    <TextBlock x:Name="BackgroundTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+
+                    <CheckBox x:Name="ShaderEnabledCheck" Style="{StaticResource AppCheckBox}" Margin="0,0,0,6" />
+
+                    <TextBlock x:Name="WaveColorsLabel" Style="{StaticResource AppRowTitle}" Margin="0,10,0,8" />
+
+                    <Grid ColumnSpacing="8" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="Wave1Label" Style="{StaticResource AppRowTitle}" />
+                        <TextBox x:Name="Color1Box" Grid.Column="1" Style="{StaticResource AppSmallTextBox}"
+                                 Width="110" TextAlignment="Left" TextChanged="OnColorChanged" />
+                        <Button x:Name="Color1Swatch" Grid.Column="2" Style="{StaticResource AppColorSwatchButton}"
+                                Click="OnPickColor1">
+                            <Border x:Name="Color1SwatchFill" Width="22" Height="22" CornerRadius="5"
+                                    BorderBrush="#55FFFFFF" BorderThickness="1" />
+                            <Button.Flyout>
+                                <Flyout Placement="Top" Opened="OnColor1FlyoutOpened">
+                                    <ColorPicker x:Name="Color1Picker" RequestedTheme="Dark" IsAlphaEnabled="False"
+                                                 IsAlphaSliderVisible="False" IsAlphaTextInputVisible="False"
+                                                 IsColorChannelTextInputVisible="True" IsHexInputVisible="True"
+                                                 MinWidth="300" ColorChanged="OnColor1PickerChanged" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+
+                    <Grid ColumnSpacing="8" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="Wave2Label" Style="{StaticResource AppRowTitle}" />
+                        <TextBox x:Name="Color2Box" Grid.Column="1" Style="{StaticResource AppSmallTextBox}"
+                                 Width="110" TextAlignment="Left" TextChanged="OnColorChanged" />
+                        <Button x:Name="Color2Swatch" Grid.Column="2" Style="{StaticResource AppColorSwatchButton}"
+                                Click="OnPickColor2">
+                            <Border x:Name="Color2SwatchFill" Width="22" Height="22" CornerRadius="5"
+                                    BorderBrush="#55FFFFFF" BorderThickness="1" />
+                            <Button.Flyout>
+                                <Flyout Placement="Top" Opened="OnColor2FlyoutOpened">
+                                    <ColorPicker x:Name="Color2Picker" RequestedTheme="Dark" IsAlphaEnabled="False"
+                                                 IsAlphaSliderVisible="False" IsAlphaTextInputVisible="False"
+                                                 IsColorChannelTextInputVisible="True" IsHexInputVisible="True"
+                                                 MinWidth="300" ColorChanged="OnColor2PickerChanged" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+
+                    <Grid ColumnSpacing="8" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="Wave3Label" Style="{StaticResource AppRowTitle}" />
+                        <TextBox x:Name="Color3Box" Grid.Column="1" Style="{StaticResource AppSmallTextBox}"
+                                 Width="110" TextAlignment="Left" TextChanged="OnColorChanged" />
+                        <Button x:Name="Color3Swatch" Grid.Column="2" Style="{StaticResource AppColorSwatchButton}"
+                                Click="OnPickColor3">
+                            <Border x:Name="Color3SwatchFill" Width="22" Height="22" CornerRadius="5"
+                                    BorderBrush="#55FFFFFF" BorderThickness="1" />
+                            <Button.Flyout>
+                                <Flyout Placement="Top" Opened="OnColor3FlyoutOpened">
+                                    <ColorPicker x:Name="Color3Picker" RequestedTheme="Dark" IsAlphaEnabled="False"
+                                                 IsAlphaSliderVisible="False" IsAlphaTextInputVisible="False"
+                                                 IsColorChannelTextInputVisible="True" IsHexInputVisible="True"
+                                                 MinWidth="300" ColorChanged="OnColor3PickerChanged" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,6">
+                        <TextBlock x:Name="SpeedLabel" Style="{StaticResource AppRowTitle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                            <Slider x:Name="SpeedSlider" Width="170" Minimum="0.5" Maximum="2"
+                                    StepFrequency="0.05" ValueChanged="OnSpeedChanged" VerticalAlignment="Center" />
+                            <TextBlock x:Name="SpeedValue" Style="{StaticResource AppBody}" Width="46"
+                                       TextAlignment="Right" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="SpeedHint" Style="{StaticResource AppRowHint}" Margin="0,0,0,4" />
+
+                    <TextBlock x:Name="AboutTitle" Style="{StaticResource AppSectionTitle}" Margin="0,24,0,12" />
+                    <Grid Margin="0,0,0,14">
+                        <TextBlock x:Name="VersionLabel" Style="{StaticResource AppMutedText}" />
+                        <TextBlock x:Name="VersionValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
+                    </Grid>
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Name="DataFolderLabel" Style="{StaticResource AppMutedText}" />
+                        <TextBlock x:Name="DataFolderValue" Style="{StaticResource AppRowHint}"
+                                   IsTextSelectionEnabled="True" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+            </ScrollViewer>
+            <controls:ThinScrollBar x:Name="SettingsBar" Grid.Column="1" ThumbBrush="#40FFFFFF" Margin="0,8,0,8" />
         </Grid>
+
+        <!-- Нижняя панель: компактные Save/Cancel слева, как в 2.1.0 -->
+        <Border Grid.Row="2" Background="{StaticResource AppStatusBar}" BorderBrush="#12FFFFFF"
+                BorderThickness="0,1,0,0" Padding="20,12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="SaveButton" Style="{StaticResource AppPrimaryButton}"
+                        Padding="18,8" MinWidth="112" Click="OnSave" />
+                <Button x:Name="CancelButton" Style="{StaticResource AppSecondaryButton}"
+                        Padding="16,8" MinWidth="96" Click="OnCancel" />
+                <TextBlock x:Name="SaveStatus" Style="{StaticResource AppMutedText}"
+                           VerticalAlignment="Center" Margin="8,0,0,0"
+                           TextTrimming="CharacterEllipsis" MaxWidth="240" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
