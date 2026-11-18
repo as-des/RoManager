@@ -22,7 +22,7 @@
     <SolidColorBrush x:Key="AppInputBorder" Color="#FF2A2A2A" />
     <SolidColorBrush x:Key="AppSecondaryBg" Color="#8C1A1C24" />
     <SolidColorBrush x:Key="AppSecondaryHover" Color="#B3282B34" />
-    <SolidColorBrush x:Key="AppStatusBar" Color="#8C0A0C12" />
+    <SolidColorBrush x:Key="AppStatusBar" Color="#D90A0C12" />
     <SolidColorBrush x:Key="AppWinBg" Color="#FF1E1E1E" />
     <SolidColorBrush x:Key="AppWhiteA12" Color="#1FFFFFFF" />
     <SolidColorBrush x:Key="AppWhiteA4" Color="#0AFFFFFF" />
@@ -174,6 +174,15 @@
         <Setter Property="Width" Value="380" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Нижняя панель статуса: тёмная плашка поверх размытого фона -->
+    <Style x:Key="AppGlassStatus" TargetType="controls:GlassSurface" BasedOn="{StaticResource AppGlassBase}">
+        <Setter Property="Background" Value="{StaticResource AppStatusBar}" />
+        <Setter Property="BorderBrush" Value="#24FFFFFF" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="28,0" />
     </Style>
 
     <!-- Плашка уведомления поверх размытого фона -->
@@ -527,20 +536,20 @@
         <Setter Property="MinHeight" Value="0" />
     </Style>
 
-    <!-- Управление аккаунтом: «шторки» как в do.html -->
+    <!-- Управление аккаунтом: «шторки» по do.html в палитре приложения -->
     <Style x:Key="AppManageTitle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="#FF55555A" />
+        <Setter Property="Foreground" Value="{StaticResource AppMuted}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Margin" Value="4,0,0,12" />
+        <Setter Property="Margin" Value="4,0,0,10" />
     </Style>
 
     <Style x:Key="AppManageSegment" TargetType="Border">
-        <Setter Property="Height" Value="60" />
-        <Setter Property="Background" Value="#FF141416" />
-        <Setter Property="BorderBrush" Value="#FF26262A" />
+        <Setter Property="Height" Value="52" />
+        <Setter Property="Background" Value="{StaticResource AppSecondaryBg}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AppWhiteA12}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="0" />
     </Style>
 
@@ -548,11 +557,11 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="0" />
-        <Setter Property="Foreground" Value="#FFA0A0A5" />
-        <Setter Property="PlaceholderForeground" Value="#FF444448" />
-        <Setter Property="Padding" Value="16,0,50,0" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{StaticResource AppText}" />
+        <Setter Property="PlaceholderForeground" Value="{StaticResource AppMuted2}" />
+        <Setter Property="Padding" Value="14,0,46,0" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
@@ -581,16 +590,18 @@
 
     <!-- Стрелка, приклеенная к правому краю раскрытой шторки -->
     <Style x:Key="AppManageArrow" TargetType="Button">
-        <Setter Property="Width" Value="45" />
-        <Setter Property="Background" Value="#FF1C1C1F" />
-        <Setter Property="Foreground" Value="#FF55555A" />
-        <Setter Property="BorderBrush" Value="#FF26262A" />
+        <Setter Property="Width" Value="42" />
+        <Setter Property="Background" Value="#8C141822" />
+        <Setter Property="Foreground" Value="{StaticResource AppMuted}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AppWhiteA12}" />
         <Setter Property="BorderThickness" Value="1,0,0,0" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="0" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -602,13 +613,13 @@
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF2A2A2E" />
-                                        <Setter Target="Presenter.Foreground" Value="#FFA0A0A5" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppSecondaryHover}" />
+                                        <Setter Target="Presenter.Foreground" Value="#FFC2C8D4" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF313136" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppSecondaryBg}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled" />
@@ -625,17 +636,19 @@
 
     <!-- Кнопка «Запустить» внутри третьей шторки -->
     <Style x:Key="AppManageLaunch" TargetType="Button">
-        <Setter Property="Background" Value="#FF2B2B2E" />
+        <Setter Property="Background" Value="{StaticResource AppPrimary}" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="MinHeight" Value="0" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13.5" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="0" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -646,12 +659,12 @@
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF3D3D42" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppPrimaryHover}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF46464C" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppPrimaryHover}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled" />

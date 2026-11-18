@@ -34,9 +34,7 @@
 
         <!-- Строка состояния: прозрачное стекло поверх фона (как в 2.1.0) -->
         <controls:GlassSurface x:Name="StatusBar" Grid.Row="1" Height="36" Visibility="Collapsed"
-                               Background="{StaticResource AppStatusBar}"
-                               BorderBrush="#12FFFFFF" BorderThickness="0,1,0,0"
-                               CornerRadius="0" Padding="28,0">
+                               Style="{StaticResource AppGlassStatus}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

@@ -48,11 +48,15 @@ public sealed partial class DashboardView : UserControl
         };
         SizeChanged += (_, _) => ApplyResponsiveLayout();
 
-        // Ширина шторок зависит от фактической ширины панели: держим пропорции
-        // 1 : 1 : 1 либо 3 : 1 : 1 при раскрытой шторке.
-        ManageRow.SizeChanged += (_, _) =>
+        // Ширину строки задаём от панели явно: так Grid со звёздными
+        // колонками всегда заполняет её целиком, независимо от контента.
+        ManagePanel.SizeChanged += (_, _) =>
         {
-            if (ManageRow.ActualWidth > 0) ApplyManageLayout(animate: false);
+            if (ManagePanel.ActualWidth > 0)
+            {
+                StopManageWidthTimer();
+                ApplyManageLayout(animate: false);
+            }
         };
     }
 
@@ -302,8 +306,12 @@ public sealed partial class DashboardView : UserControl
         CoreHost.PushStatus(Strings.I.F("dash.selectedMany", _selected.Count), "idle");
     }
 
-    static readonly SolidColorBrush ManageTitleActive = new(Color.FromArgb(0xFF, 0x55, 0x55, 0x5A));
-    static readonly SolidColorBrush ManageTitleDisabled = new(Color.FromArgb(0xFF, 0x3A, 0x3A, 0x3E));
+    static readonly SolidColorBrush ManageTitleActive = new(Color.FromArgb(0xFF, 0x88, 0x88, 0x88));
+    static readonly SolidColorBrush ManageTitleDisabled = new(Color.FromArgb(0xFF, 0x55, 0x55, 0x55));
+    static readonly SolidColorBrush SegmentBg = new(Color.FromArgb(0x8C, 0x1A, 0x1C, 0x24));
+    static readonly SolidColorBrush SegmentBorder = new(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
+    static readonly SolidColorBrush SegmentBgActive = new(Color.FromArgb(0xB3, 0x0F, 0x11, 0x18));
+    static readonly SolidColorBrush SegmentBorderActive = new(Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6));
 
     /* ---------- адаптивная сетка (как media queries 2.1.0) ---------- */
 
@@ -363,7 +371,9 @@ public sealed partial class DashboardView : UserControl
         ManageTitle.Foreground = canManage ? ManageTitleActive : ManageTitleDisabled;
         if (!canManage) ClearManageInputs();
 
-        ApplyManageLayout();
+        // Смена выделения в списке не должна анимировать ширину шторок —
+        // анимация только при явном клике по сегменту.
+        ApplyManageLayout(animate: false);
     }
 
     void ApplyManageLayout(bool animate = true)
@@ -372,20 +382,32 @@ public sealed partial class DashboardView : UserControl
         bool player = _manageMode == "player";
         bool launcher = _manageMode == "launcher";
 
+        double rowWidth = ManagePanel.ActualWidth - ManagePanel.Padding.Left - ManagePanel.Padding.Right;
+        if (rowWidth > 0 && (double.IsNaN(ManageRow.Width) || Math.Abs(ManageRow.Width - rowWidth) > 0.5))
+            ManageRow.Width = rowWidth;
+
         // flex: 1 у неактивных и flex: 3 у активной (do.html).
-        double available = Math.Max(0, ManageRow.ActualWidth - 24);
-        if (available > 0)
+        if (animate) AnimateManageColumns(game, player, launcher);
+        else
         {
-            double unit = available / 5.0;
-            AnimateSegmentWidth(GameSegment, game ? unit * 3 : unit, animate);
-            AnimateSegmentWidth(PlayerSegment, player ? unit * 3 : unit, animate);
-            AnimateSegmentWidth(LauncherSegment, launcher ? unit * 3 : unit, animate);
+            StopManageWidthTimer();
+            SetManageColumns(game, player, launcher);
         }
+
+        SegmentBgTo(GameSegment, game);
+        SegmentBgTo(PlayerSegment, player);
+        SegmentBgTo(LauncherSegment, launcher);
 
         // Иконка плавно исчезает, содержимое плавно проявляется.
         ApplySegmentState(GameIcon, GameContent, game, animate);
         ApplySegmentState(PlayerIcon, PlayerContent, player, animate);
         ApplySegmentState(LauncherIcon, LauncherContent, launcher, animate);
+    }
+
+    static void SegmentBgTo(Border segment, bool active)
+    {
+        segment.Background = active ? SegmentBgActive : SegmentBg;
+        segment.BorderBrush = active ? SegmentBorderActive : SegmentBorder;
     }
 
     static void ApplySegmentState(FrameworkElement icon, FrameworkElement content, bool active, bool animate)
@@ -404,29 +426,60 @@ public sealed partial class DashboardView : UserControl
         FadeTo(icon, active ? 0 : 1, 200, animate);
     }
 
-    static void AnimateSegmentWidth(Border segment, double to, bool animate)
+    DispatcherTimer _manageWidthTimer;
+
+    void AnimateManageColumns(bool game, bool player, bool launcher)
     {
-        double from = segment.ActualWidth > 1 ? segment.ActualWidth : to;
-        if (!animate || !segment.IsLoaded || Math.Abs(from - to) < 0.5)
+        double available = (double.IsNaN(ManageRow.Width) ? ManageRow.ActualWidth : ManageRow.Width) - 24;
+        if (available <= 0 || !ManageRow.IsLoaded)
         {
-            segment.Width = to;
+            StopManageWidthTimer();
+            SetManageColumns(game, player, launcher);
             return;
         }
 
-        segment.Width = to;
-        var anim = new DoubleAnimation
+        double unit = available / 5.0;
+        var to = new[] { game ? unit * 3 : unit, player ? unit * 3 : unit, launcher ? unit * 3 : unit };
+        var from = new[] { GameSegment.ActualWidth, PlayerSegment.ActualWidth, LauncherSegment.ActualWidth };
+        if (from[0] < 1 || from[1] < 1 || from[2] < 1)
         {
-            From = from,
-            To = to,
-            Duration = TimeSpan.FromMilliseconds(300),
-            EnableDependentAnimation = true,
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+            StopManageWidthTimer();
+            SetManageColumns(game, player, launcher);
+            return;
+        }
+
+        StopManageWidthTimer();
+        var started = DateTime.UtcNow;
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        _manageWidthTimer = timer;
+        timer.Tick += (_, _) =>
+        {
+            double t = Math.Clamp((DateTime.UtcNow - started).TotalMilliseconds / 300.0, 0, 1);
+            // cubic-bezier(0.25, 0.8, 0.25, 1) ≈ EaseOutCubic.
+            double e = 1 - Math.Pow(1 - t, 3);
+            ManageColGame.Width = new GridLength(from[0] + (to[0] - from[0]) * e);
+            ManageColPlayer.Width = new GridLength(from[1] + (to[1] - from[1]) * e);
+            ManageColLauncher.Width = new GridLength(from[2] + (to[2] - from[2]) * e);
+            if (t >= 1)
+            {
+                StopManageWidthTimer();
+                SetManageColumns(game, player, launcher);
+            }
         };
-        Storyboard.SetTarget(anim, segment);
-        Storyboard.SetTargetProperty(anim, "Width");
-        var sb = new Storyboard();
-        sb.Children.Add(anim);
-        sb.Begin();
+        timer.Start();
+    }
+
+    void StopManageWidthTimer()
+    {
+        _manageWidthTimer?.Stop();
+        _manageWidthTimer = null;
+    }
+
+    void SetManageColumns(bool game, bool player, bool launcher)
+    {
+        ManageColGame.Width = new GridLength(game ? 3 : 1, GridUnitType.Star);
+        ManageColPlayer.Width = new GridLength(player ? 3 : 1, GridUnitType.Star);
+        ManageColLauncher.Width = new GridLength(launcher ? 3 : 1, GridUnitType.Star);
     }
 
     static void FadeTo(UIElement element, double to, int milliseconds, bool animate)

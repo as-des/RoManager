@@ -112,20 +112,27 @@
                 </controls:GlassSurface>
 
                 <controls:GlassSurface x:Name="ManagePanel" Style="{StaticResource AppGlassPanel}">
-                    <StackPanel x:Name="ManageInner">
+                    <StackPanel x:Name="ManageInner" HorizontalAlignment="Stretch">
                         <TextBlock x:Name="ManageTitle" Style="{StaticResource AppManageTitle}" />
 
                         <!-- Три «шторки»: неактивные делят ширину поровну, активная
-                             занимает 3/5 и плавно раскрывает содержимое (do.html). -->
-                        <StackPanel x:Name="ManageRow" Orientation="Horizontal" Spacing="12" Height="60">
+                             занимает 3/5. Колонки Grid гарантированно заполняют
+                             панель целиком и пересчитываются при ресайзе. -->
+                        <Grid x:Name="ManageRow" Height="52" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition x:Name="ManageColGame" Width="1*" />
+                                <ColumnDefinition x:Name="ManageColPlayer" Width="1*" />
+                                <ColumnDefinition x:Name="ManageColLauncher" Width="1*" />
+                            </Grid.ColumnDefinitions>
+
                             <Border x:Name="GameSegment" Style="{StaticResource AppManageSegment}"
                                     Tapped="OnGameSegmentTapped">
                                 <Grid>
                                     <Path x:Name="GameIcon"
                                           Data="M4,5 H20 A2,2 0 0 1 22,7 V17 A2,2 0 0 1 20,19 H4 A2,2 0 0 1 2,17 V7 A2,2 0 0 1 4,5 Z M2,10 H22"
-                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          Stroke="#FF888888" StrokeThickness="1.5" Stretch="Uniform"
                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                          Width="24" Height="24"
+                                          Width="20" Height="20"
                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     <Grid x:Name="GameContent" Visibility="Collapsed" Opacity="0"
                                           Tapped="OnManageContentTapped">
@@ -133,20 +140,20 @@
                                                  MinWidth="0" KeyDown="OnManageKeyDown" />
                                         <Button x:Name="GameSubmit" Style="{StaticResource AppManageArrow}"
                                                 Click="OnGameSubmit">
-                                            <TextBlock Text="&#x27A4;" FontSize="15" />
+                                            <TextBlock Text="&#x27A4;" FontSize="14" />
                                         </Button>
                                     </Grid>
                                 </Grid>
                             </Border>
 
-                            <Border x:Name="PlayerSegment" Style="{StaticResource AppManageSegment}"
+                            <Border x:Name="PlayerSegment" Grid.Column="1" Style="{StaticResource AppManageSegment}"
                                     Tapped="OnPlayerSegmentTapped">
                                 <Grid>
                                     <Path x:Name="PlayerIcon"
                                           Data="M20,21 V19 A4,4 0 0 0 16,15 H8 A4,4 0 0 0 4,19 V21 M16,7 A4,4 0 1 1 8,7 A4,4 0 1 1 16,7 Z"
-                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          Stroke="#FF888888" StrokeThickness="1.5" Stretch="Uniform"
                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                          Width="24" Height="24"
+                                          Width="20" Height="20"
                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     <Grid x:Name="PlayerContent" Visibility="Collapsed" Opacity="0"
                                           Tapped="OnManageContentTapped">
@@ -154,23 +161,23 @@
                                                  MinWidth="0" KeyDown="OnManageKeyDown" />
                                         <Button x:Name="PlayerSubmit" Style="{StaticResource AppManageArrow}"
                                                 Click="OnPlayerSubmit">
-                                            <TextBlock Text="&#x27A4;" FontSize="15" />
+                                            <TextBlock Text="&#x27A4;" FontSize="14" />
                                         </Button>
                                     </Grid>
                                 </Grid>
                             </Border>
 
-                            <Border x:Name="LauncherSegment" Style="{StaticResource AppManageSegment}"
+                            <Border x:Name="LauncherSegment" Grid.Column="2" Style="{StaticResource AppManageSegment}"
                                     Tapped="OnLauncherSegmentTapped">
                                 <Grid>
                                     <Path x:Name="LauncherIcon"
                                           Data="M5,3 L19,12 L5,21 Z"
-                                          Stroke="#FF55555A" StrokeThickness="1.5"
+                                          Stroke="#FF888888" StrokeThickness="1.5" Stretch="Uniform"
                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                          Width="24" Height="24"
+                                          Width="20" Height="20"
                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     <Grid x:Name="LauncherContent" Visibility="Collapsed" Opacity="0"
-                                          Padding="6" Tapped="OnManageContentTapped">
+                                          Padding="5" Tapped="OnManageContentTapped">
                                         <Button x:Name="LauncherPlay" Style="{StaticResource AppManageLaunch}"
                                                 Click="OnLaunch">
                                             <TextBlock x:Name="LauncherLabel" TextTrimming="CharacterEllipsis" />
@@ -178,7 +185,7 @@
                                     </Grid>
                                 </Grid>
                             </Border>
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </controls:GlassSurface>
             </StackPanel>
