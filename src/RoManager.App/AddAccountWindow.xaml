@@ -16,7 +16,19 @@
             </Button>
 
             <!-- Разделитель: браузер / ручная вставка cookie -->
-            <Border Height="1" Background="#26FFFFFF" Margin="0,16" />
+            <Grid Margin="0,14" ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Height="1" Background="#26FFFFFF" VerticalAlignment="Center" />
+                <TextBlock x:Name="OrText" Grid.Column="1"
+                           Style="{StaticResource AppMutedText}"
+                           FontSize="11" CharacterSpacing="100"
+                           VerticalAlignment="Center" />
+                <Border Grid.Column="2" Height="1" Background="#26FFFFFF" VerticalAlignment="Center" />
+            </Grid>
 
             <StackPanel Spacing="10">
                 <PasswordBox x:Name="CookieBox" Style="{StaticResource AppPasswordBox}" />

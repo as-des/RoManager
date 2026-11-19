@@ -88,6 +88,14 @@ public sealed partial class DashboardView : UserControl
         Reload();
     }
 
+    /** Закрывает окно добавления аккаунта (вызывается при закрытии главного окна). */
+    public void CloseDialogs()
+    {
+        try { _addWindow?.Close(); } catch { }
+        _addWindow = null;
+        _dialogOpen = false;
+    }
+
     /* ---------- таблица ---------- */
 
     public void Reload()

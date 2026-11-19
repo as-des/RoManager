@@ -39,6 +39,8 @@ public sealed partial class SettingsWindow : Window
             appWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "app.ico"));
         }
         WindowChrome.ApplyDark(this);
+        // Настройки принадлежат главному окну: закрываются вместе с ним.
+        WindowChrome.SetOwner(this, App.Window);
         SettingsBar.Attach(SettingsScroll);
 
         LoadShaderSettings();

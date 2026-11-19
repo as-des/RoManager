@@ -32,6 +32,7 @@ public static class ChangelogData
                 "В «О программе» появились описание, ссылка на GitHub, версия, лицензия MIT, папка данных и проверка обновлений.",
                 "Переключатель языка и тексты настроек обновляются сразу, без повторного открытия окна.",
                 "Добавление аккаунта открывается отдельным окном, а не слоем поверх дашборда.",
+                "Окно добавления аккаунта отделено от блока cookie линией с подписью «ИЛИ», а окна добавления и настроек закрываются вместе с главным окном.",
                 "Для C#-ветки нумерация версий начата заново с 1.0.0.",
             },
             new[]
@@ -50,6 +51,7 @@ public static class ChangelogData
                 "The About section now shows a description, GitHub link, version, MIT licence, data folder and an update check.",
                 "The language switch and settings texts update immediately, without reopening the window.",
                 "Adding an account now opens in its own window instead of a layer over the dashboard.",
+                "The browser button and the cookie block are split by an \"OR\" divider, and the add-account and settings windows now close together with the main window.",
                 "Version numbering restarted at 1.0.0 for the C# branch.",
             }),
         new("2.1.0", "13 ноября 2026", "November 13, 2026",

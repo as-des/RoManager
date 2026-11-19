@@ -194,6 +194,7 @@ public sealed class Strings
         ["add.hint"] = ("Войти через браузер Roblox или вставить cookie вручную.",
                         "Sign in through the Roblox browser or paste a cookie manually."),
         ["add.browser"] = ("Войти через браузер", "Sign in via browser"),
+        ["add.or"] = ("ИЛИ", "OR"),
         ["add.cookie"] = (".ROBLOSECURITY cookie (необязательно)", ".ROBLOSECURITY cookie (optional)"),
         ["add.byCookie"] = ("Добавить по cookie", "Add by cookie"),
         ["add.openingBrowser"] = ("Открываю браузер Roblox для входа…", "Opening the Roblox browser for sign-in…"),

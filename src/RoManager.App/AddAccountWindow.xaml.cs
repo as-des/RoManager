@@ -28,11 +28,14 @@ public sealed partial class AddAccountWindow : Window
         var s = Strings.I;
         Title = s["add.title"];
         BrowserText.Text = s["add.browser"];
+        OrText.Text = s["add.or"];
         CookieBox.PlaceholderText = s["add.cookie"];
         CookieButton.Content = s["add.byCookie"];
         CancelButton.Content = s["common.cancel"];
 
         WindowChrome.ApplyDark(this);
+        // Окно принадлежит главному: оно не уходит под него и закрывается вместе с ним.
+        WindowChrome.SetOwner(this, App.Window);
 
         if (AppWindow is { } window)
         {
@@ -63,6 +66,7 @@ public sealed partial class AddAccountWindow : Window
         var s = Strings.I;
         Title = s["add.title"];
         BrowserText.Text = s["add.browser"];
+        OrText.Text = s["add.or"];
         CookieBox.PlaceholderText = s["add.cookie"];
         CookieButton.Content = s["add.byCookie"];
         CancelButton.Content = s["common.cancel"];

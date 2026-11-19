@@ -28,6 +28,27 @@ static class WindowChrome
     [DllImport("dwmapi.dll", PreserveSig = true)]
     static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
+    /* ---------- владение окнами ---------- */
+
+    const int GwlpHwndParent = -8;
+
+    /**
+     * Делает окно owned-окном главного (как диалог): оно всегда выше него
+     * и уничтожается вместе с ним. Без этого WinUI-окна живут отдельно.
+     */
+    public static void SetOwner(Window window, Window owner)
+    {
+        if (window == null || owner == null) return;
+        try
+        {
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            var ownerHwnd = WinRT.Interop.WindowNative.GetWindowHandle(owner);
+            if (hwnd != IntPtr.Zero && ownerHwnd != IntPtr.Zero && hwnd != ownerHwnd)
+                SetWindowLongPtr(hwnd, GwlpHwndParent, ownerHwnd);
+        }
+        catch { /* владение — необязательная косметика */ }
+    }
+
     /* ---------- минимальный размер окна ---------- */
 
     const int WmGetMinMaxInfo = 0x0024;

@@ -39,6 +39,14 @@ public sealed partial class MainWindow : Window
         ApplyLanguage();
         ShowLanding();
 
+        // Owned-окна уничтожаются вместе с владельцем, но подстрахуемся:
+        // иначе окно настроек/добавления может пережить главное окно.
+        Closed += (_, _) =>
+        {
+            try { _settings?.Close(); } catch { }
+            try { _dashboard?.CloseDialogs(); } catch { }
+        };
+
         // Esc закрывает историю обновлений.
         Root.KeyDown += (_, e) =>
         {
