@@ -129,6 +129,18 @@ public sealed class Strings
         ["settings.version"] = ("Версия", "Version"),
         ["settings.license"] = ("Лицензия", "License"),
         ["settings.dataFolder"] = ("Папка данных", "Data folder"),
+        ["settings.aboutDesc"] = (
+            "RoManager — менеджер аккаунтов Roblox: хранение под шифрованным ключом, запуск игры, обновление cookies и управление профилями. Переписан на C# и WinUI 3 с сохранением интерфейса 2.1.0.",
+            "RoManager is a Roblox account manager: encrypted storage, game launching, cookie refresh and profile management. Rewritten in C# and WinUI 3 while keeping the 2.1.0 interface."),
+        ["settings.github"] = ("GitHub", "GitHub"),
+        ["settings.checkUpdates"] = ("Проверить обновления", "Check for updates"),
+        ["settings.updateChecking"] = ("Проверяю последний релиз…", "Checking the latest release…"),
+        ["settings.updateUpToDate"] = ("Установлена последняя версия.", "You are running the latest version."),
+        ["settings.updateAvailable"] = ("Доступна версия {0}.", "Version {0} is available."),
+        ["settings.updateNoReleases"] = (
+            "Релизов на GitHub пока нет — проверка недоступна.",
+            "There are no GitHub releases yet, so the check is unavailable."),
+        ["settings.updateFailed"] = ("Не удалось проверить обновления.", "Could not check for updates."),
         ["settings.changelog"] = ("История обновлений", "Changelog"),
         ["changelog.title"] = ("История обновлений", "Changelog"),
 

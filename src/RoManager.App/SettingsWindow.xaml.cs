@@ -1,4 +1,7 @@
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -43,7 +46,14 @@ public sealed partial class SettingsWindow : Window
         ApplyLanguage();
         RefreshLockState();
         SetTab("general");
+
+        // Переключатель языка в самих настройках должен перерисовываться
+        // сразу, а не только после повторного открытия окна.
+        UiEvents.LanguageChanged += OnLanguageChanged;
+        Closed += (_, _) => UiEvents.LanguageChanged -= OnLanguageChanged;
     }
+
+    void OnLanguageChanged() => DispatcherQueue.TryEnqueue(ApplyLanguage);
 
     /* ---------- вкладки ---------- */
 
@@ -121,6 +131,9 @@ public sealed partial class SettingsWindow : Window
         DevLogHint.Text = s["settings.devLogHint"];
 
         AboutTitle.Text = s["settings.about"].ToUpperInvariant();
+        AboutDescription.Text = s["settings.aboutDesc"];
+        GitHubButtonText.Text = s["settings.github"];
+        CheckUpdatesText.Text = s["settings.checkUpdates"];
         VersionLabel.Text = s["settings.version"];
         LicenseLabel.Text = s["settings.license"];
         LicenseValue.Text = "MIT";
@@ -137,6 +150,79 @@ public sealed partial class SettingsWindow : Window
         LangSwitch.ApplyLanguage();
         SetTab(GeneralPane.Visibility == Visibility.Visible ? "general" :
                DeveloperPane.Visibility == Visibility.Visible ? "developer" : "misc");
+    }
+
+    /* ---------- «О программе» ---------- */
+
+    const string RepoUrl = "https://github.com/redolfos2/RoManager";
+    const string ReleasesApi = "https://api.github.com/repos/redolfos2/RoManager/releases/latest";
+
+    static readonly HttpClient Http = CreateHttp();
+
+    static HttpClient CreateHttp()
+    {
+        var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("RoManager/1.0");
+        http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+        return http;
+    }
+
+    async void OnOpenGitHub(object sender, RoutedEventArgs e)
+    {
+        try { await Windows.System.Launcher.LaunchUriAsync(new Uri(RepoUrl)); }
+        catch (Exception ex) { App.Dump("OpenGitHub", ex); }
+    }
+
+    async void OnCheckUpdates(object sender, RoutedEventArgs e)
+    {
+        var s = Strings.I;
+        CheckUpdatesButton.IsEnabled = false;
+        UpdateStatus.Text = s["settings.updateChecking"];
+
+        try
+        {
+            using var response = await Http.GetAsync(ReleasesApi);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                UpdateStatus.Text = s["settings.updateNoReleases"];
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            string tag = doc.RootElement.TryGetProperty("tag_name", out var value) ? value.GetString() : null;
+
+            var remote = ParseVersion(tag);
+            var local = ParseVersion(CurrentVersion());
+            if (remote != null && local != null && remote > local)
+                UpdateStatus.Text = s.F("settings.updateAvailable", tag);
+            else
+                UpdateStatus.Text = s["settings.updateUpToDate"];
+        }
+        catch (Exception ex)
+        {
+            App.Dump("CheckUpdates", ex);
+            UpdateStatus.Text = s["settings.updateFailed"];
+        }
+        finally
+        {
+            CheckUpdatesButton.IsEnabled = true;
+        }
+    }
+
+    static string CurrentVersion() =>
+        Assembly.GetExecutingAssembly().GetName().Version is { } v
+            ? $"{v.Major}.{v.Minor}.{v.Build}"
+            : "1.0.0";
+
+    /** "v1.2.3-beta" → Version(1,2,3). */
+    static Version ParseVersion(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var trimmed = text.Trim().TrimStart('v', 'V');
+        int cut = trimmed.IndexOfAny(new[] { '-', '+', ' ' });
+        if (cut > 0) trimmed = trimmed[..cut];
+        return Version.TryParse(trimmed, out var version) ? version : null;
     }
 
     /* ---------- состояние доступа ---------- */

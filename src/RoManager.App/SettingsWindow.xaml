@@ -208,6 +208,8 @@
                     <TextBlock x:Name="SpeedHint" Style="{StaticResource AppRowHint}" Margin="0,0,0,4" />
 
                     <TextBlock x:Name="AboutTitle" Style="{StaticResource AppSectionTitle}" Margin="0,24,0,12" />
+                    <TextBlock x:Name="AboutDescription" Style="{StaticResource AppRowHint}"
+                               TextWrapping="Wrap" Margin="0,0,0,14" />
                     <Grid Margin="0,0,0,14">
                         <TextBlock x:Name="VersionLabel" Style="{StaticResource AppMutedText}" />
                         <TextBlock x:Name="VersionValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
@@ -216,11 +218,29 @@
                         <TextBlock x:Name="LicenseLabel" Style="{StaticResource AppMutedText}" />
                         <TextBlock x:Name="LicenseValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
                     </Grid>
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="4" Margin="0,0,0,16">
                         <TextBlock x:Name="DataFolderLabel" Style="{StaticResource AppMutedText}" />
                         <TextBlock x:Name="DataFolderValue" Style="{StaticResource AppRowHint}"
                                    IsTextSelectionEnabled="True" TextWrapping="Wrap" />
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button x:Name="GitHubButton" Style="{StaticResource AppSecondaryButton}"
+                                Padding="14,8" Click="OnOpenGitHub">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8A5;" FontSize="16" />
+                                <TextBlock x:Name="GitHubButtonText" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="CheckUpdatesButton" Style="{StaticResource AppSecondaryButton}"
+                                Padding="14,8" Click="OnCheckUpdates">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE895;" FontSize="16" />
+                                <TextBlock x:Name="CheckUpdatesText" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock x:Name="UpdateStatus" Style="{StaticResource AppRowHint}"
+                               TextWrapping="Wrap" Margin="0,10,0,0" />
                 </StackPanel>
             </Grid>
             </ScrollViewer>

@@ -32,7 +32,8 @@ public sealed partial class DashboardView : UserControl
 
     static readonly Color Accent = Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6);
     static readonly SolidColorBrush RowDivider = new(Color.FromArgb(0xFF, 0x1A, 0x1A, 0x1A));
-    static readonly SolidColorBrush RowHover = new(Color.FromArgb(0x0A, 0xFF, 0xFF, 0xFF));
+    /** Подсветка строки под курсором: та же волна, что у выделения, но серая. */
+    static readonly Brush RowHover = WaveBrush(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF));
     static readonly SolidColorBrush MutedBrush = new(Color.FromArgb(0xFF, 0x88, 0x88, 0x88));
     static readonly SolidColorBrush TextBrush = new(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
     static readonly SolidColorBrush SubtleBrush = new(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF));
@@ -100,7 +101,11 @@ public sealed partial class DashboardView : UserControl
 
         var alive = accounts.Select(a => a.Id).ToHashSet();
         _selected.RemoveWhere(id => !alive.Contains(id));
-        if (_selected.Count != 1) _manageMode = null;
+        if (_selected.Count != 1)
+        {
+            if (_manageMode != null) _animateManageCollapse = true;
+            _manageMode = null;
+        }
 
         AccountList.Children.Clear();
         AccountsTitle.Text = $"{Strings.I["dash.accounts"]} ({accounts.Count})";
@@ -241,18 +246,28 @@ public sealed partial class DashboardView : UserControl
         return row;
     }
 
-    static LinearGradientBrush SelectionBrush() => new()
+    static LinearGradientBrush SelectionBrush() => WaveBrush(Color.FromArgb(0x33, 0x3B, 0x82, 0xF6));
+
+    /**
+     * Горизонтальная «волна» с прозрачными краями — как выделение в 2.1.0.
+     * Цвет задаёт вызывающий: синий для выбора, белый/серый для hover.
+     */
+    static LinearGradientBrush WaveBrush(Color color)
     {
-        StartPoint = new Point(0, 0.5),
-        EndPoint = new Point(1, 0.5),
-        GradientStops =
+        byte a = color.A;
+        return new LinearGradientBrush
         {
-            new GradientStop { Color = Color.FromArgb(0x00, 0x3B, 0x82, 0xF6), Offset = 0 },
-            new GradientStop { Color = Color.FromArgb(0x33, 0x3B, 0x82, 0xF6), Offset = 0.15 },
-            new GradientStop { Color = Color.FromArgb(0x33, 0x3B, 0x82, 0xF6), Offset = 0.85 },
-            new GradientStop { Color = Color.FromArgb(0x00, 0x3B, 0x82, 0xF6), Offset = 1 },
-        },
-    };
+            StartPoint = new Point(0, 0.5),
+            EndPoint = new Point(1, 0.5),
+            GradientStops =
+            {
+                new GradientStop { Color = Color.FromArgb(0, color.R, color.G, color.B), Offset = 0 },
+                new GradientStop { Color = Color.FromArgb(a, color.R, color.G, color.B), Offset = 0.15 },
+                new GradientStop { Color = Color.FromArgb(a, color.R, color.G, color.B), Offset = 0.85 },
+                new GradientStop { Color = Color.FromArgb(0, color.R, color.G, color.B), Offset = 1 },
+            },
+        };
+    }
 
     /** Клик по пустому месту панели аккаунтов = сброс выделения. */
     void OnAccountsPanelTapped(object sender, TappedRoutedEventArgs e)
@@ -302,7 +317,13 @@ public sealed partial class DashboardView : UserControl
             _lastIndex = index;
         }
 
-        if (_selected.Count != 1) _manageMode = null;
+        if (_selected.Count != 1)
+        {
+            // Любой сброс выбора (чекбокс, Ctrl+клик, клик по пустой области)
+            // сворачивает раскрытую шторку плавно, а не рывком.
+            if (_manageMode != null) _animateManageCollapse = true;
+            _manageMode = null;
+        }
         UpdateStatusText();
         Reload();
     }
@@ -390,17 +411,18 @@ public sealed partial class DashboardView : UserControl
         bool canManage = _selected.Count == 1;
         if (!canManage) _manageMode = null;
 
+        // Смена выделения в списке не должна анимировать ширину шторок —
+        // анимация только при явном клике по сегменту или при сбросе
+        // выделения (клик по пустой области, чекбокс, Ctrl+клик).
+        bool animate = _animateManageCollapse && !canManage;
+        _animateManageCollapse = false;
+
         // В legacy гасились только дети панели, а не сама панель.
-        ManageInner.Opacity = canManage ? 1 : 0.4;
+        FadeTo(ManageInner, canManage ? 1 : 0.4, 300, animate);
         ManageInner.IsHitTestVisible = canManage;
         ManageTitle.Foreground = canManage ? ManageTitleActive : ManageTitleDisabled;
         if (!canManage) ClearManageInputs();
 
-        // Смена выделения в списке не должна анимировать ширину шторок —
-        // анимация только при явном клике по сегменту или при сбросе
-        // выделения кликом по пустой области.
-        bool animate = _animateManageCollapse && !canManage;
-        _animateManageCollapse = false;
         ApplyManageLayout(animate: animate);
     }
 
