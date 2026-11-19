@@ -31,6 +31,7 @@ public static class ChangelogData
                 "Шторки управления аккаунтом плавно сворачиваются при сбросе выбора, а не рывком.",
                 "В «О программе» появились описание, ссылка на GitHub, версия, лицензия MIT, папка данных и проверка обновлений.",
                 "Переключатель языка и тексты настроек обновляются сразу, без повторного открытия окна.",
+                "Добавление аккаунта открывается отдельным окном, а не слоем поверх дашборда.",
                 "Для C#-ветки нумерация версий начата заново с 1.0.0.",
             },
             new[]
@@ -48,6 +49,7 @@ public static class ChangelogData
                 "Account drawers now collapse smoothly when the selection is cleared instead of snapping back.",
                 "The About section now shows a description, GitHub link, version, MIT licence, data folder and an update check.",
                 "The language switch and settings texts update immediately, without reopening the window.",
+                "Adding an account now opens in its own window instead of a layer over the dashboard.",
                 "Version numbering restarted at 1.0.0 for the C# branch.",
             }),
         new("2.1.0", "13 ноября 2026", "November 13, 2026",

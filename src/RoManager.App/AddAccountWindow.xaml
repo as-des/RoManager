@@ -1,0 +1,45 @@
+<Window
+    x:Class="RoManager.App.AddAccountWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Add account">
+
+    <Grid Background="{StaticResource AppBg}" Padding="24">
+        <StackPanel>
+            <TextBlock x:Name="TitleText"
+                       Style="{StaticResource AppBody}"
+                       FontSize="17"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,6" />
+            <TextBlock x:Name="HintText"
+                       Style="{StaticResource AppMutedText}"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,14" />
+
+            <Button x:Name="BrowserButton" Style="{StaticResource AppPrimaryButton}"
+                    Height="44" Click="OnBrowser">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                    <FontIcon Glyph="&#xE774;" FontSize="15" />
+                    <TextBlock x:Name="BrowserText" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <Border Height="10" />
+
+            <PasswordBox x:Name="CookieBox" Style="{StaticResource AppPasswordBox}" />
+
+            <Border Height="8" />
+
+            <Button x:Name="CookieButton" Style="{StaticResource AppSecondaryButton}"
+                    Height="40" Click="OnCookie" />
+
+            <Button x:Name="CancelButton" Style="{StaticResource AppGhostButton}"
+                    Content="Cancel" Margin="0,10,0,0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Padding="12,10,12,10"
+                    FontSize="14"
+                    Click="OnCancel" />
+        </StackPanel>
+    </Grid>
+</Window>

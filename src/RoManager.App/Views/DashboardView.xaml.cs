@@ -26,6 +26,7 @@ public sealed partial class DashboardView : UserControl
     string _manageMode; // game | player
     bool _dialogOpen;
     bool _animateManageCollapse;
+    AddAccountWindow _addWindow;
 
     public event Action LogoutRequested;
     public event Action SettingsRequested;
@@ -83,6 +84,7 @@ public sealed partial class DashboardView : UserControl
         ToolTipService.SetToolTip(RefreshButton, s["dash.refresh"]);
         ToolTipService.SetToolTip(DeleteButton, s["dash.delete"]);
         ToolTipService.SetToolTip(DashboardSettingsButton, s["landing.settings"]);
+        _addWindow?.ApplyLanguage();
         Reload();
     }
 
@@ -736,85 +738,26 @@ public sealed partial class DashboardView : UserControl
     {
         if (_dialogOpen) return;
         _dialogOpen = true;
-        var s = Strings.I;
 
-        var panel = new StackPanel();
-
-        panel.Children.Add(new TextBlock
+        // Форма добавления — отдельное окно, а не слой поверх дашборда.
+        var dialog = new AddAccountWindow();
+        _addWindow = dialog;
+        dialog.BrowserRequested = () =>
         {
-            Text = s["add.title"],
-            Foreground = (Brush)Application.Current.Resources["AppText"],
-            FontSize = 17,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Margin = new Thickness(0, 0, 0, 6),
-        });
-        panel.Children.Add(new TextBlock
-        {
-            Text = s["add.hint"],
-            Style = (Style)Application.Current.Resources["AppMutedText"],
-            Margin = new Thickness(0, 0, 0, 14),
-        });
-
-        var browser = new Button
-        {
-            Style = (Style)Application.Current.Resources["AppPrimaryButton"],
-            Content = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                Children =
-                {
-                    new FontIcon { Glyph = "\uE774", FontSize = 15 },
-                    new TextBlock { Text = s["add.browser"], VerticalAlignment = VerticalAlignment.Center },
-                },
-            },
-        };
-        browser.Click += (_, _) =>
-        {
-            CloseModal();
+            dialog.Close();
             _ = AddViaBrowser();
         };
-        panel.Children.Add(browser);
-
-        var gap1 = new Border { Height = 10 };
-        panel.Children.Add(gap1);
-
-        var cookie = new PasswordBox
+        dialog.CookieRequested = value =>
         {
-            Style = (Style)Application.Current.Resources["AppPasswordBox"],
-            PlaceholderText = s["add.cookie"],
-        };
-        panel.Children.Add(cookie);
-
-        panel.Children.Add(new Border { Height = 8 });
-
-        var byCookie = new Button
-        {
-            Style = (Style)Application.Current.Resources["AppSecondaryButton"],
-            Content = s["add.byCookie"],
-        };
-        byCookie.Click += (_, _) =>
-        {
-            var value = cookie.Password;
-            CloseModal();
+            dialog.Close();
             _ = AddByCookie(value);
         };
-        panel.Children.Add(byCookie);
-
-        var cancel = new Button
+        dialog.Closed += (_, _) =>
         {
-            Style = (Style)Application.Current.Resources["AppGhostButton"],
-            Content = s["common.cancel"],
-            Margin = new Thickness(0, 10, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            Padding = new Thickness(12, 10, 12, 10),
-            FontSize = 14,
+            _addWindow = null;
+            _dialogOpen = false;
         };
-        cancel.Click += (_, _) => CloseModal();
-        panel.Children.Add(cancel);
-
-        ShowModal(panel, 440);
+        dialog.Activate();
     }
 
     void ShowModal(UIElement content, double width = 380)
