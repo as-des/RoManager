@@ -4,40 +4,32 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Add account">
 
-    <Grid Background="{StaticResource AppBg}" Padding="24">
-        <StackPanel>
-            <TextBlock x:Name="TitleText"
-                       Style="{StaticResource AppBody}"
-                       FontSize="17"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,6" />
-            <TextBlock x:Name="HintText"
-                       Style="{StaticResource AppMutedText}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,14" />
-
+    <Grid Background="{StaticResource AppBg}" Padding="22,20,22,18">
+        <StackPanel VerticalAlignment="Center">
+            <!-- Основной путь: вход через браузер -->
             <Button x:Name="BrowserButton" Style="{StaticResource AppPrimaryButton}"
-                    Height="44" Click="OnBrowser">
+                    Height="46" Click="OnBrowser">
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                     <FontIcon Glyph="&#xE774;" FontSize="15" />
                     <TextBlock x:Name="BrowserText" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
 
-            <Border Height="10" />
+            <!-- Разделитель: браузер / ручная вставка cookie -->
+            <Border Height="1" Background="#26FFFFFF" Margin="0,16" />
 
-            <PasswordBox x:Name="CookieBox" Style="{StaticResource AppPasswordBox}" />
+            <StackPanel Spacing="10">
+                <PasswordBox x:Name="CookieBox" Style="{StaticResource AppPasswordBox}" />
 
-            <Border Height="8" />
-
-            <Button x:Name="CookieButton" Style="{StaticResource AppSecondaryButton}"
-                    Height="40" Click="OnCookie" />
+                <Button x:Name="CookieButton" Style="{StaticResource AppSecondaryButton}"
+                        Padding="18,11" MinHeight="42" Click="OnCookie" />
+            </StackPanel>
 
             <Button x:Name="CancelButton" Style="{StaticResource AppGhostButton}"
-                    Content="Cancel" Margin="0,10,0,0"
+                    Content="Cancel" Margin="0,8,0,0"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
-                    Padding="12,10,12,10"
+                    Padding="12,9,12,9"
                     FontSize="14"
                     Click="OnCancel" />
         </StackPanel>

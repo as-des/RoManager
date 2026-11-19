@@ -16,7 +16,7 @@ namespace RoManager.App;
 public sealed partial class AddAccountWindow : Window
 {
     const int Width = 460;
-    const int Height = 424;
+    const int Height = 296;
 
     public Action BrowserRequested { get; set; }
     public Action<string> CookieRequested { get; set; }
@@ -27,8 +27,6 @@ public sealed partial class AddAccountWindow : Window
 
         var s = Strings.I;
         Title = s["add.title"];
-        TitleText.Text = s["add.title"];
-        HintText.Text = s["add.hint"];
         BrowserText.Text = s["add.browser"];
         CookieBox.PlaceholderText = s["add.cookie"];
         CookieButton.Content = s["add.byCookie"];
@@ -64,8 +62,6 @@ public sealed partial class AddAccountWindow : Window
     {
         var s = Strings.I;
         Title = s["add.title"];
-        TitleText.Text = s["add.title"];
-        HintText.Text = s["add.hint"];
         BrowserText.Text = s["add.browser"];
         CookieBox.PlaceholderText = s["add.cookie"];
         CookieButton.Content = s["add.byCookie"];
