@@ -478,20 +478,20 @@ public sealed partial class DashboardView : UserControl
 
     DispatcherTimer _manageWidthTimer;
 
+    /**
+     * Текущие «flex-grow» шторок: 1 у свёрнутой, 3 у раскрытой.
+     * Анимируем именно эти коэффициенты, как CSS-transition flex в демо:
+     * Grid сам пересчитывает ширины, поэтому обратная анимация —
+     * честный реверс (активная 3→1, остальные 1→1, но растут долей).
+     */
+    readonly double[] _manageGrow = { 1, 1, 1 };
+
     void AnimateManageColumns(bool game, bool player, bool launcher)
     {
-        double available = (double.IsNaN(ManageRow.Width) ? ManageRow.ActualWidth : ManageRow.Width) - 24;
-        if (available <= 0 || !ManageRow.IsLoaded)
-        {
-            StopManageWidthTimer();
-            SetManageColumns(game, player, launcher);
-            return;
-        }
+        var to = new[] { game ? 3.0 : 1.0, player ? 3.0 : 1.0, launcher ? 3.0 : 1.0 };
+        var from = new[] { _manageGrow[0], _manageGrow[1], _manageGrow[2] };
 
-        double unit = available / 5.0;
-        var to = new[] { game ? unit * 3 : unit, player ? unit * 3 : unit, launcher ? unit * 3 : unit };
-        var from = new[] { GameSegment.ActualWidth, PlayerSegment.ActualWidth, LauncherSegment.ActualWidth };
-        if (from[0] < 1 || from[1] < 1 || from[2] < 1)
+        if (!ManageRow.IsLoaded)
         {
             StopManageWidthTimer();
             SetManageColumns(game, player, launcher);
@@ -507,9 +507,9 @@ public sealed partial class DashboardView : UserControl
             double t = Math.Clamp((DateTime.UtcNow - started).TotalMilliseconds / 300.0, 0, 1);
             // cubic-bezier(0.25, 0.8, 0.25, 1) ≈ EaseOutCubic.
             double e = 1 - Math.Pow(1 - t, 3);
-            ManageColGame.Width = new GridLength(from[0] + (to[0] - from[0]) * e);
-            ManageColPlayer.Width = new GridLength(from[1] + (to[1] - from[1]) * e);
-            ManageColLauncher.Width = new GridLength(from[2] + (to[2] - from[2]) * e);
+            for (int i = 0; i < 3; i++)
+                SetManageGrow(i, from[i] + (to[i] - from[i]) * e);
+
             if (t >= 1)
             {
                 StopManageWidthTimer();
@@ -517,6 +517,18 @@ public sealed partial class DashboardView : UserControl
             }
         };
         timer.Start();
+    }
+
+    void SetManageGrow(int index, double grow)
+    {
+        _manageGrow[index] = grow;
+        var width = new GridLength(grow, GridUnitType.Star);
+        switch (index)
+        {
+            case 0: ManageColGame.Width = width; break;
+            case 1: ManageColPlayer.Width = width; break;
+            default: ManageColLauncher.Width = width; break;
+        }
     }
 
     void StopManageWidthTimer()
@@ -527,9 +539,9 @@ public sealed partial class DashboardView : UserControl
 
     void SetManageColumns(bool game, bool player, bool launcher)
     {
-        ManageColGame.Width = new GridLength(game ? 3 : 1, GridUnitType.Star);
-        ManageColPlayer.Width = new GridLength(player ? 3 : 1, GridUnitType.Star);
-        ManageColLauncher.Width = new GridLength(launcher ? 3 : 1, GridUnitType.Star);
+        SetManageGrow(0, game ? 3 : 1);
+        SetManageGrow(1, player ? 3 : 1);
+        SetManageGrow(2, launcher ? 3 : 1);
     }
 
     static void FadeTo(UIElement element, double to, int milliseconds, bool animate)
