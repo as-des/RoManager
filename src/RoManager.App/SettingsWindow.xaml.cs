@@ -122,6 +122,8 @@ public sealed partial class SettingsWindow : Window
 
         AboutTitle.Text = s["settings.about"].ToUpperInvariant();
         VersionLabel.Text = s["settings.version"];
+        LicenseLabel.Text = s["settings.license"];
+        LicenseValue.Text = "MIT";
         DataFolderLabel.Text = s["settings.dataFolder"];
         VersionValue.Text = Assembly.GetExecutingAssembly().GetName().Version is { } v
             ? $"{v.Major}.{v.Minor}.{v.Build}"
@@ -304,6 +306,8 @@ public sealed partial class SettingsWindow : Window
                 Color2 = Color2Box.Text,
                 Color3 = Color3Box.Text,
                 Speed = SpeedSlider.Value,
+                // Рендерер задаётся вручную в shader.json — не сбрасываем его.
+                Renderer = ShaderConfig.Current.Renderer,
             });
 
             SaveStatus.Text = Strings.I["status.settingsSaved"];

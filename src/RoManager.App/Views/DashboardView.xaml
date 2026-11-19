@@ -35,7 +35,8 @@
             </Grid.RowDefinitions>
 
             <!-- Аккаунты -->
-            <controls:GlassSurface x:Name="AccountsPanel" Grid.Row="0" Grid.Column="0" Style="{StaticResource AppGlassPanel}">
+            <controls:GlassSurface x:Name="AccountsPanel" Grid.Row="0" Grid.Column="0" Style="{StaticResource AppGlassPanel}"
+                                   Tapped="OnAccountsPanelTapped">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

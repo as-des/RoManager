@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -9,27 +11,27 @@ using RoManager.Core;
 namespace RoManager.App.Controls;
 
 /**
- * Анимированный фон — точный CPU-порт GLSL из ShaderBackground.tsx (2.1.0).
+ * Анимированный фон — fallback-версия на CPU.
  *
- * В оригинале WebGL рисовал кадр в 1/3 разрешения каждый animation frame:
- * три аддитивные органические волны (simplex noise + подтёки) и виньетка.
- * Здесь та же математика считается на CPU в низком разрешении и выводится
- * через WriteableBitmap, поэтому картинка живая и совпадает по палитре/движению.
+ * Основной рендер теперь GPU (см. BackgroundGpu.cs). Этот класс остаётся
+ * на случай, если видеокарта/драйвер не принимают шейдер (RDP, старые
+ * адаптеры) или в shader.json указано "renderer": "cpu".
  *
- * Настройки берутся из shader.json: enabled, color1..color3, speed.
+ * В CPU-версии та же математика, что в GLSL из ShaderBackground.tsx (2.1.0),
+ * но с фиксированным шагом времени и предвычислениями: exp/виньетка не
+ * считаются на каждый пиксель, pow заменён таблицей.
  */
 public static class BackgroundShader
 {
-    // Ограничение стоимости кадра: ~48k пикселей независимо от размера окна.
-    // Фон мягкий и растягивается на весь экран, поэтому потерь не видно,
-    // а нагрузка на CPU падает примерно вдвое.
-    const double MaxRenderPixels = 48_000;
+    // Ограничение стоимости кадра: ~36k пикселей независимо от размера окна.
+    const double MaxRenderPixels = 36_000;
     const double BaseScale = 3.5;
-    const int FrameIntervalMs = 80;
+    const int FrameIntervalMs = 33;
 
     static readonly ParallelOptions RenderOptions = new()
     {
-        MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount - 1),
+        // CPU-фолбэк не должен занимать все ядра: 2–4 потока хватает.
+        MaxDegreeOfParallelism = Math.Clamp(Environment.ProcessorCount / 2, 2, 4),
     };
 
     struct Wave
@@ -51,14 +53,16 @@ public static class BackgroundShader
     };
 
     static Image _target;
-    static WriteableBitmap _bitmap;
-    static DispatcherTimer _timer;
+    static CanvasAnimatedControl _gpu;
+    static DispatcherQueueTimer _timer;
     static byte[] _buffer;
+    static float[] _vignette;
     static int _w, _h;
     static int _busy;
+    static bool _useGpu;
+    static bool _cpuAttached;
 
     static readonly Stopwatch _clock = Stopwatch.StartNew();
-    static double _lastTick;
     static float _time;
     static bool _active = true;
     static ShaderSettings _settings = ShaderConfig.Current;
@@ -66,20 +70,35 @@ public static class BackgroundShader
 
     public static bool IsAttached => _target != null;
 
-    public static void Attach(Image target)
+    /** Основной GPU-рендер, с автоматическим откатом на CPU при сбое. */
+    public static void Attach(Image target, CanvasAnimatedControl gpu)
     {
         if (_target != null || target == null) return;
         _target = target;
+        _gpu = gpu;
         _settings = ShaderConfig.Current;
+        _colors = BuildColors(_settings);
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(FrameIntervalMs) };
-        _timer.Tick += (_, _) => Tick();
-        _lastTick = _clock.Elapsed.TotalSeconds;
+        bool gpuOk = gpu != null && ShaderConfig.Current.Renderer != "cpu" && BackgroundGpu.Attach(gpu);
+        if (gpuOk)
+        {
+            _useGpu = true;
+            BackgroundGpu.OnFailed += () => _target?.DispatcherQueue.TryEnqueue(FallbackToCpu);
+            gpu.Visibility = _settings.Enabled && _active ? Visibility.Visible : Visibility.Collapsed;
+            target.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            AttachCpu();
+        }
 
         target.SizeChanged += (_, _) =>
         {
-            Resize();
-            Schedule(force: true);
+            if (!_useGpu)
+            {
+                Resize();
+                Schedule(force: true);
+            }
         };
         ShaderConfig.Changed += () =>
         {
@@ -88,15 +107,41 @@ public static class BackgroundShader
             ApplyEnabled();
         };
 
-        Resize();
         ApplyEnabled();
     }
 
-    /** Окно свернули/потеряло фокус — не тратим CPU на невидимый фон. */
+    static void FallbackToCpu()
+    {
+        if (!_useGpu) return;
+        CoreHost.Log("shader: GPU недоступен, переключение на CPU-рендер");
+        _useGpu = false;
+        if (_gpu != null) _gpu.Visibility = Visibility.Collapsed;
+        BackgroundGpu.Detach();
+        AttachCpu();
+        ApplyEnabled();
+    }
+
+    static void AttachCpu()
+    {
+        if (_cpuAttached || _target == null) return;
+        _cpuAttached = true;
+        Resize();
+
+        var queue = _target.DispatcherQueue;
+        if (queue == null) return;
+
+        _timer = queue.CreateTimer();
+        _timer.Interval = TimeSpan.FromMilliseconds(FrameIntervalMs);
+        _timer.IsRepeating = true;
+        _timer.Tick += (_, _) => Tick();
+    }
+
+    /** Окно свернули/потеряло фокус — не тратим ресурсы на невидимый фон. */
     public static void SetActive(bool active)
     {
         if (_active == active) return;
         _active = active;
+        BackgroundGpu.SetActive(active);
         ApplyEnabled();
     }
 
@@ -104,15 +149,20 @@ public static class BackgroundShader
     {
         if (_target == null) return;
         bool on = _settings.Enabled && _active;
-        _target.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
 
+        if (_useGpu)
+        {
+            BackgroundGpu.SetVisible(on);
+            return;
+        }
+
+        _target.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
         if (on)
         {
-            _lastTick = _clock.Elapsed.TotalSeconds;
-            if (!_timer.IsEnabled) _timer.Start();
+            if (_timer != null && !_timer.IsRunning) _timer.Start();
             Schedule(force: true);
         }
-        else if (_timer.IsEnabled)
+        else if (_timer != null && _timer.IsRunning)
         {
             _timer.Stop();
         }
@@ -147,42 +197,63 @@ public static class BackgroundShader
         _w = w;
         _h = h;
         _buffer = new byte[w * h * 4];
-        _bitmap = new WriteableBitmap(w, h);
-        _target.Source = _bitmap;
+        _vignette = BuildVignette(w, h);
+        _target.Source = new WriteableBitmap(w, h);
+    }
+
+    /** Виньетка от времени не зависит — считаем один раз на размер. */
+    static float[] BuildVignette(int w, int h)
+    {
+        var result = new float[w * h];
+        float aspect = (float)w / h;
+        float centerY = 0.5f / aspect;
+
+        for (int y = 0; y < h; y++)
+        {
+            float sy = 1f - (y + 0.5f) / h;
+            float dy = sy - centerY;
+            for (int x = 0; x < w; x++)
+            {
+                float sx = (x + 0.5f) / w * aspect;
+                float dx = sx - 0.5f;
+                float dist = MathF.Sqrt(dx * dx + dy * dy);
+                float vignette = 1f - Smoothstep(0.5f, 1f, dist);
+                result[y * w + x] = 0.7f + 0.3f * vignette;
+            }
+        }
+        return result;
     }
 
     /* ---------- кадры ---------- */
 
     static void Tick()
     {
-        if (_target == null || !_settings.Enabled || !_active) return;
-        if (_bitmap == null) Resize();
+        if (_target == null || !_settings.Enabled || !_active || _useGpu) return;
 
-        double now = _clock.Elapsed.TotalSeconds;
-        double dt = Math.Clamp(now - _lastTick, 0, 0.1);
-        _lastTick = now;
-        _time += (float)(dt * Math.Max(0.01, _settings.Speed));
-
+        // Фиксированный шаг: движение не зависит от джиттера таймера.
+        _time += (FrameIntervalMs / 1000f) * (float)Math.Max(0.01, _settings.Speed);
         Schedule(force: false);
     }
 
     static void Schedule(bool force)
     {
-        if (_target == null || _bitmap == null || _buffer == null) return;
+        if (_target == null || _buffer == null || _useGpu) return;
         if (!_settings.Enabled || !_active) return;
         if (!force && Interlocked.CompareExchange(ref _busy, 1, 0) != 0) return;
         if (force) Interlocked.Exchange(ref _busy, 1);
 
         int w = _w, h = _h;
         var buffer = _buffer;
+        var vignette = _vignette;
         float time = _time;
         var colors = _colors;
+        var bitmap = _target.Source as WriteableBitmap;
 
         _ = Task.Run(() =>
         {
             try
             {
-                RenderFrame(buffer, w, h, time, colors);
+                RenderFrame(buffer, vignette, w, h, time, colors);
             }
             catch (Exception ex)
             {
@@ -193,12 +264,13 @@ public static class BackgroundShader
             {
                 try
                 {
-                    if (_bitmap != null && _w == w && _h == h && ReferenceEquals(buffer, _buffer))
+                    if (bitmap != null && _w == w && _h == h && ReferenceEquals(buffer, _buffer)
+                        && ReferenceEquals(bitmap, _target?.Source))
                     {
-                        using var stream = _bitmap.PixelBuffer.AsStream();
+                        using var stream = bitmap.PixelBuffer.AsStream();
                         stream.Position = 0;
                         stream.Write(buffer, 0, buffer.Length);
-                        _bitmap.Invalidate();
+                        bitmap.Invalidate();
                     }
                 }
                 catch (Exception ex)
@@ -216,10 +288,9 @@ public static class BackgroundShader
     static Vector3 ToVector((byte r, byte g, byte b) c) =>
         new(c.r / 255f, c.g / 255f, c.b / 255f);
 
-    static void RenderFrame(byte[] px, int w, int h, float time, Vector3[] colors)
+    static void RenderFrame(byte[] px, float[] vignette, int w, int h, float time, Vector3[] colors)
     {
         float aspect = (float)w / h;
-        float centerY = 0.5f / aspect;
         var c1 = colors[0];
         var c2 = colors[1];
         var c3 = colors[2];
@@ -229,15 +300,22 @@ public static class BackgroundShader
             // gl_FragCoord.y в GLSL отсчитывается снизу — в BMP-строках y сверху, поэтому инвертируем.
             float sy = 1f - (y + 0.5f) / h;
             int row = y * w * 4;
-            float dy = sy - centerY;
+
+            // exp(-sty*fade) зависит только от строки и волны.
+            float e1a = MathF.Exp(-sy * Waves[0].Fade);
+            float e1b = MathF.Exp(-sy * Waves[0].Fade * 0.5f);
+            float e2a = MathF.Exp(-sy * Waves[1].Fade);
+            float e2b = MathF.Exp(-sy * Waves[1].Fade * 0.5f);
+            float e3a = MathF.Exp(-sy * Waves[2].Fade);
+            float e3b = MathF.Exp(-sy * Waves[2].Fade * 0.5f);
 
             for (int x = 0; x < w; x++)
             {
                 float sx = (x + 0.5f) / w * aspect;
 
-                float v1 = OrganicWave(sx, sy, time, Waves[0]);
-                float v2 = OrganicWave(sx, sy, time, Waves[1]);
-                float v3 = OrganicWave(sx, sy, time, Waves[2]);
+                float v1 = OrganicWave(sx, sy, time, Waves[0], e1a, e1b);
+                float v2 = OrganicWave(sx, sy, time, Waves[1], e2a, e2b);
+                float v3 = OrganicWave(sx, sy, time, Waves[2], e3a, e3b);
 
                 float r = c1.X * v1 * Waves[0].Weight
                         + c2.X * v2 * Waves[1].Weight
@@ -249,11 +327,7 @@ public static class BackgroundShader
                         + c2.Z * v2 * Waves[1].Weight
                         + c3.Z * v3 * Waves[2].Weight;
 
-                // Виньетка: distance(st, vec2(0.5, 0.5 * (h / w))), mix(0.7, 1.0, vignette).
-                float dx = sx - 0.5f;
-                float dist = MathF.Sqrt(dx * dx + dy * dy);
-                float vignette = 1f - Smoothstep(0.5f, 1f, dist);
-                float mul = 0.7f + 0.3f * vignette;
+                float mul = vignette[y * w + x];
 
                 int p = row + x * 4;
                 px[p + 0] = ToByte(b * mul);      // B
@@ -266,7 +340,7 @@ public static class BackgroundShader
 
     static byte ToByte(float v) => (byte)Math.Clamp((int)(v * 255f + 0.5f), 0, 255);
 
-    static float OrganicWave(float stx, float sty, float time, in Wave w)
+    static float OrganicWave(float stx, float sty, float time, in Wave w, float fadeA, float fadeB)
     {
         float morph = Snoise(stx * 1.5f, sty * 0.3f - time * 0.08f) * w.Morph;
         float ripple = Snoise(stx * 12f, sty * 3f - time * 0.3f) * w.Ripple;
@@ -281,12 +355,46 @@ public static class BackgroundShader
         float rawLine = MathF.Sin(distortedX * w.Freq + time * w.Speed + dripLiftY);
 
         float softness = Lerp(w.Thickness, w.Thickness * 0.5f, dripMask * 0.7f);
-        float intensity = MathF.Pow(MathF.Abs(rawLine), softness);
+        float intensity = FastPow(MathF.Abs(rawLine), softness);
 
-        float fade = MathF.Exp(-sty * w.Fade);
-        fade += dripMask * w.Drip * 0.15f * MathF.Exp(-sty * w.Fade * 0.5f);
+        float fade = fadeA + dripMask * w.Drip * 0.15f * fadeB;
 
         return intensity * Math.Clamp(fade, 0f, 1f);
+    }
+
+    /* ---------- таблица pow(|sin|, softness) ---------- */
+
+    const int PowXSteps = 512;
+    const int PowSoftSteps = 96;
+    const float PowSoftMin = 2.5f;
+    const float PowSoftSpan = 10f;   // 2.5 .. 12.5
+
+    static readonly float[] PowLut = BuildPowLut();
+
+    static float[] BuildPowLut()
+    {
+        var lut = new float[PowSoftSteps * PowXSteps];
+        for (int s = 0; s < PowSoftSteps; s++)
+        {
+            float softness = PowSoftMin + PowSoftSpan * s / (PowSoftSteps - 1);
+            for (int x = 0; x < PowXSteps; x++)
+            {
+                float v = (float)x / (PowXSteps - 1);
+                lut[s * PowXSteps + x] = MathF.Pow(v, softness);
+            }
+        }
+        return lut;
+    }
+
+    static float FastPow(float x, float softness)
+    {
+        if (x <= 0f) return 0f;
+        if (x >= 1f) return 1f;
+
+        int xi = (int)(x * (PowXSteps - 1));
+        float si = (softness - PowSoftMin) * (PowSoftSteps - 1) / PowSoftSpan;
+        int s = Math.Clamp((int)(si + 0.5f), 0, PowSoftSteps - 1);
+        return PowLut[s * PowXSteps + xi];
     }
 
     static float Lerp(float a, float b, float t) => a + (b - a) * t;

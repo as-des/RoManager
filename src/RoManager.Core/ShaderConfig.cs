@@ -14,6 +14,11 @@ public sealed class ShaderSettings
     public string Color2 { get; set; } = "#c7abff";
     public string Color3 { get; set; } = "#7863b3";
     public double Speed { get; set; } = 1.0;
+    /**
+     * auto — GPU (Win2D/HLSL), при сбое CPU-порт;
+     * gpu  — только GPU; cpu — только CPU (например, на RDP/старых драйверах).
+     */
+    public string Renderer { get; set; } = "auto";
 }
 
 public static class ShaderConfig
@@ -47,6 +52,7 @@ public static class ShaderConfig
                     if (parsed.Color3 != null) s.Color3 = parsed.Color3;
                     s.Enabled = parsed.Enabled;
                     s.Speed = parsed.Speed;
+                    if (parsed.Renderer != null) s.Renderer = parsed.Renderer;
                 }
             }
         }
@@ -79,6 +85,12 @@ public static class ShaderConfig
         s.Color3 = Hex.IsMatch(s.Color3 ?? "") ? s.Color3.ToLowerInvariant() : "#7863b3";
         if (!double.IsFinite(s.Speed)) s.Speed = 1.0;
         s.Speed = Math.Clamp(s.Speed, SpeedMin, SpeedMax);
+        s.Renderer = (s.Renderer ?? "").Trim().ToLowerInvariant() switch
+        {
+            "cpu" => "cpu",
+            "gpu" => "gpu",
+            _ => "auto",
+        };
     }
 
     public static (byte r, byte g, byte b) Rgb(string hex)

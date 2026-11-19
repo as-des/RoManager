@@ -36,12 +36,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml" />
-    <Page Include="Theme.xaml" />
+    <ApplicationDefinition Include="App.xaml" />    <Page Include="Theme.xaml" />
     <Page Include="MainWindow.xaml" />
     <Page Include="SettingsWindow.xaml" />
     <Page Include="Views\LandingView.xaml" />
     <Page Include="Views\WizardView.xaml" />
     <Page Include="Views\DashboardView.xaml" />
+  </ItemGroup>
+
+  <!-- Иконка окна: WinUI не берёт её из ресурсов сборки, нужен файл рядом с exe. -->
+  <ItemGroup>
+    <Content Include="..\..\app.ico" Link="app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

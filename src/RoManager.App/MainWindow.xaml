@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:RoManager.App.Controls"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
     Title="RoManager">
 
     <Grid x:Name="Root" Background="{StaticResource AppBg}">
@@ -12,8 +13,12 @@
         </Grid.RowDefinitions>
 
         <!-- Фон-шейдер и затемнение растянуты на всю клиентскую область,
-             включая нижнюю строку статуса, как в 2.1.0. -->
+             включая нижнюю строку статуса, как в 2.1.0. GPU-рендер (HLSL через
+             Win2D), CPU-версия остаётся запасной и включается при сбое. -->
         <Image x:Name="Backdrop" Grid.RowSpan="2" Stretch="Fill" IsHitTestVisible="False" />
+        <canvas:CanvasAnimatedControl x:Name="BackdropGpu" Grid.RowSpan="2"
+                                      IsHitTestVisible="False" Visibility="Collapsed"
+                                      ClearColor="Transparent" />
         <Border x:Name="Scrim" Grid.RowSpan="2" Background="#4D080A10" IsHitTestVisible="False" />
 
         <!-- Рабочая область: landing → мастер → dashboard -->

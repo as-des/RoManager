@@ -25,6 +25,7 @@ public sealed partial class DashboardView : UserControl
     int _lastIndex = -1;
     string _manageMode; // game | player
     bool _dialogOpen;
+    bool _animateManageCollapse;
 
     public event Action LogoutRequested;
     public event Action SettingsRequested;
@@ -228,7 +229,13 @@ public sealed partial class DashboardView : UserControl
             Child = grid,
             Tag = account.Id,
         };
-        row.Tapped += (s, e) => OnRowTapped(account.Id, index);
+        row.Tapped += (s, e) =>
+        {
+            // Клик по строке не должен доходить до панели: иначе он сразу
+            // сбросил бы выделение обработчиком пустой области.
+            e.Handled = true;
+            OnRowTapped(account.Id, index);
+        };
         row.PointerEntered += (s, e) => { if (!_selected.Contains(account.Id)) row.Background = RowHover; };
         row.PointerExited += (s, e) => { if (!_selected.Contains(account.Id)) row.Background = new SolidColorBrush(Colors.Transparent); };
         return row;
@@ -247,9 +254,27 @@ public sealed partial class DashboardView : UserControl
         },
     };
 
-    void OnRowTapped(long id, int index)
+    /** Клик по пустому месту панели аккаунтов = сброс выделения. */
+    void OnAccountsPanelTapped(object sender, TappedRoutedEventArgs e)
     {
-        bool additive = IsCtrlDown();
+        if (_selected.Count == 0) return;
+
+        _selected.Clear();
+        _lastIndex = -1;
+
+        // Раскрытая шторка уходит вместе с выделением — плавно.
+        if (_manageMode != null)
+        {
+            _manageMode = null;
+            _animateManageCollapse = true;
+        }
+
+        UpdateStatusText();
+        Reload();
+    }
+
+    void OnRowTapped(long id, int index)
+    {        bool additive = IsCtrlDown();
         bool range = IsShiftDown();
 
         if (additive)
@@ -372,8 +397,11 @@ public sealed partial class DashboardView : UserControl
         if (!canManage) ClearManageInputs();
 
         // Смена выделения в списке не должна анимировать ширину шторок —
-        // анимация только при явном клике по сегменту.
-        ApplyManageLayout(animate: false);
+        // анимация только при явном клике по сегменту или при сбросе
+        // выделения кликом по пустой области.
+        bool animate = _animateManageCollapse && !canManage;
+        _animateManageCollapse = false;
+        ApplyManageLayout(animate: animate);
     }
 
     void ApplyManageLayout(bool animate = true)

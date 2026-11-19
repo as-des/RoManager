@@ -30,6 +30,9 @@ public partial class App : Application
         try
         {
             Loc.Load();
+            // Настройки фона (цвета, скорость, renderer) читаются до окна:
+            // без этого shader.json применялся только после открытия настроек.
+            ShaderConfig.Load();
             // Ядро не создаёт сессию само: это делает UI-слой при старте (как MainFrame в 2.1.0).
             CoreHost.Session = new VaultSession();
             Window = new MainWindow();

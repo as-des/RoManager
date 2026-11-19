@@ -127,6 +127,7 @@ public sealed class Strings
         ["settings.locked"] = ("Доступно после входа", "Available after sign-in"),
         ["settings.about"] = ("О приложении", "About"),
         ["settings.version"] = ("Версия", "Version"),
+        ["settings.license"] = ("Лицензия", "License"),
         ["settings.dataFolder"] = ("Папка данных", "Data folder"),
         ["settings.changelog"] = ("История обновлений", "Changelog"),
         ["changelog.title"] = ("История обновлений", "Changelog"),

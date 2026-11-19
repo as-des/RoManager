@@ -212,6 +212,10 @@
                         <TextBlock x:Name="VersionLabel" Style="{StaticResource AppMutedText}" />
                         <TextBlock x:Name="VersionValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
                     </Grid>
+                    <Grid Margin="0,0,0,14">
+                        <TextBlock x:Name="LicenseLabel" Style="{StaticResource AppMutedText}" />
+                        <TextBlock x:Name="LicenseValue" Style="{StaticResource AppBody}" HorizontalAlignment="Right" />
+                    </Grid>
                     <StackPanel Spacing="4">
                         <TextBlock x:Name="DataFolderLabel" Style="{StaticResource AppMutedText}" />
                         <TextBlock x:Name="DataFolderValue" Style="{StaticResource AppRowHint}"

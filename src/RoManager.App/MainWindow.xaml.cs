@@ -30,10 +30,12 @@ public sealed partial class MainWindow : Window
         if (AppWindow is { } appWindow)
         {
             appWindow.Resize(new SizeInt32(1000, 680));
-            appWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "app.ico"));
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+            if (File.Exists(iconPath)) appWindow.SetIcon(iconPath);
         }
 
         WindowChrome.ApplyDark(this);
+        WindowChrome.SetMinSize(this, 860, 560);
         ApplyLanguage();
         ShowLanding();
 
@@ -49,10 +51,10 @@ public sealed partial class MainWindow : Window
 
         ChangelogBar.Attach(ChangelogScroll);
 
-        // Анимированный фон: CPU-порт GLSL из 2.1.0 (shader.json).
+        // Анимированный фон: GPU (HLSL) с откатом на CPU-порт GLSL из 2.1.0.
         Backdrop.Loaded += (_, _) =>
         {
-            BackgroundShader.Attach(Backdrop);
+            BackgroundShader.Attach(Backdrop, BackdropGpu);
             Scrim.Visibility = ShaderConfig.Current.Enabled ? Visibility.Visible : Visibility.Collapsed;
         };
         ShaderConfig.Changed += () => DispatcherQueue.TryEnqueue(() =>
