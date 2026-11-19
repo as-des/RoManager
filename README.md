@@ -1,6 +1,5 @@
 <!-- Заголовок с иконкой -->
 <h1 align="center">
-  <img src="https://i.ibb.co/ccKYSc6S/icon.png" alt="RoManager Icon" width="64" height="64" style="vertical-align: middle; margin-right: 12px;">
   RoManager
 </h1>
 
@@ -19,9 +18,6 @@
 </p>
 
 <!-- Скриншот программы -->
-<p align="center">
-  <img src="https://i.ibb.co/XkySs2Kp/screenshot.png" alt="Скриншот RoManager" width="800" style="border-radius: 12px;">
-</p>
 
 ---
 
@@ -49,21 +45,7 @@
 
 ## 🛠️ Установка
 
-1. Скачайте последнюю версию из раздела [Releases](https://github.com/ВАШ_НИК/ВАШ_РЕПОЗИТОРИЙ/releases).
+1. Скачайте последнюю версию из раздела [Releases].
 2. Распакуйте архив в удобную папку.
 3. Запустите `RoManager.exe` (или соответствующий файл для вашей ОС).
 
-### Сборка из исходников
-
-```bash
-# Клонируйте репозиторий
-git clone https://github.com/ВАШ_НИК/ВАШ_РЕПОЗИТОРИЙ.git
-
-# Перейдите в папку
-cd RoManager
-
-# Установите зависимости
-npm install
-
-# Запустите
-npm start
