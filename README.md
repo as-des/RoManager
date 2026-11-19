@@ -1,5 +1,8 @@
-<!-- Заголовок и описание -->
-<h1 align="center">🎮 RoManager</h1>
+<!-- Заголовок с иконкой -->
+<h1 align="center">
+  <img src="https://drive.google.com/uc?export=view&id=1WNdJuX75c-5gDsDUHWp7jymrDRP8mfWt" alt="RoManager Icon" width="64" height="64" style="vertical-align: middle; margin-right: 10px;">
+  RoManager
+</h1>
 
 <p align="center">
   <b>RoManager</b> — это удобный и мощный менеджер аккаунтов для Roblox.
@@ -15,9 +18,9 @@
   <img src="https://img.shields.io/badge/status-active-success?style=for-the-badge" alt="Status">
 </p>
 
-<!-- Скриншот программы (замените ссылку на свой) -->
+<!-- Скриншот программы -->
 <p align="center">
-  <img src="https://via.placeholder.com/800x450.png?text=Скриншот+RoManager" alt="Скриншот RoManager" width="800" style="border-radius: 12px;">
+  <img src="https://drive.google.com/uc?export=view&id=1VUS_xKh0wzpjLoOn3qVGBITatDBXqt-E" alt="Скриншот RoManager" width="800" style="border-radius: 12px;">
 </p>
 
 ---
