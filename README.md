@@ -12,7 +12,6 @@
 <!-- Бейджи (плашки статуса) -->
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge" alt="Version">
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=for-the-badge" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
   <img src="https://img.shields.io/badge/status-active-success?style=for-the-badge" alt="Status">
 </p>
@@ -38,8 +37,7 @@
 | :--- | :--- |
 |  **Мультиаккаунт** | Добавляйте неограниченное количество аккаунтов. |
 |  **Шифрование** | Все данные хранятся в зашифрованном виде. |
-|  **Кроссплатформенность** | Работает на Windows, Linux и macOS. |
-|  **Темная тема** | Встроенная поддержка темной темы для комфортной работы. |
+
 
 ---
 
