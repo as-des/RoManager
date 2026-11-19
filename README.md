@@ -1,6 +1,6 @@
 <!-- Заголовок с иконкой -->
 <h1 align="center">
-  <img src="icon.png" alt="RoManager Icon" width="64" height="64" style="vertical-align: middle; margin-right: 12px;">
+  <img src="https://i.ibb.co/ccKYSc6S/icon.png" alt="RoManager Icon" width="64" height="64" style="vertical-align: middle; margin-right: 12px;">
   RoManager
 </h1>
 
@@ -20,10 +20,8 @@
 
 <!-- Скриншот программы -->
 <p align="center">
-  <img src="screenshot.png" alt="Скриншот RoManager" width="800" style="border-radius: 12px;">
+  <img src="https://i.ibb.co/XkySs2Kp/screenshot.png" alt="Скриншот RoManager" width="800" style="border-radius: 12px;">
 </p>
-
-
 
 ---
 
