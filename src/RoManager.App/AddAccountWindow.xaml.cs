@@ -16,7 +16,7 @@ namespace RoManager.App;
 public sealed partial class AddAccountWindow : Window
 {
     const int Width = 460;
-    const int Height = 296;
+    const int Height = 312;
 
     public Action BrowserRequested { get; set; }
     public Action<string> CookieRequested { get; set; }
