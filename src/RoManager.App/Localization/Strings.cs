@@ -77,6 +77,8 @@ public sealed class Strings
                                         "Key created, but the FILE WAS NOT SAVED — click “Download key file”!"),
         ["status.sessionLocked"] = ("Сессия не открыта", "Session is not unlocked"),
         ["status.settingsSaved"] = ("Настройки сохранены", "Settings saved"),
+        ["status.sessionForgotten"] = ("Сохранённая сессия удалена", "Saved session removed"),
+        ["session.restoring"] = ("Открываю сохранённую сессию…", "Restoring the saved session…"),
 
         // настройки
         ["settings.title"] = ("Настройки — RoManager", "Settings — RoManager"),
@@ -87,6 +89,14 @@ public sealed class Strings
         ["settings.language"] = ("Язык интерфейса", "Interface language"),
         ["settings.animatedBg"] = ("Анимированный фон", "Animated background"),
         ["settings.session"] = ("Сессия и аккаунты", "Session & accounts"),
+        ["settings.managerSession"] = ("Вход в менеджер", "Manager sign-in"),
+        ["settings.saveSession"] = ("Запоминать сессию (ключевой файл, фраза и PIN)",
+                                    "Remember the session (key file, phrase and PIN)"),
+        ["settings.sessionDays"] = ("Хранить сессию (дней)", "Keep the session (days)"),
+        ["settings.sessionHint"] = (
+            "Ключевой файл .json и код авторизации сохраняются рядом с программой в manager-session.json. Секреты шифруются для текущего пользователя Windows; по истечении срока сессия удаляется и приложение снова попросит вход.",
+            "The key .json file and the sign-in code are stored next to the app in manager-session.json. Secrets are encrypted for the current Windows user; once the period ends the session is removed and the app asks you to sign in again."),
+        ["settings.forgetSession"] = ("Забыть сохранённую сессию", "Forget the saved session"),
         ["settings.autoCookie"] = ("Автоматически обновлять cookie", "Refresh cookies automatically"),
         ["settings.refreshInterval"] = ("Интервал обновления (мин)", "Refresh interval (min)"),
         ["settings.launchDelay"] = ("Задержка запуска, мс", "Launch delay, ms"),
@@ -188,6 +198,8 @@ public sealed class Strings
         ["dash.deleteMany"] = ("Аккаунты: {0}", "Accounts: {0}"),
         ["dash.deleted"] = ("Аккаунтов удалено: {0}", "Accounts deleted: {0}"),
         ["dash.deleteHeading"] = ("Удалить аккаунты?", "Delete accounts?"),
+        ["dash.favorite"] = ("Добавить в избранное", "Add to favourites"),
+        ["dash.unfavorite"] = ("Убрать из избранного", "Remove from favourites"),
 
         // добавление аккаунта
         ["add.title"] = ("Добавить аккаунт", "Add account"),

@@ -112,6 +112,41 @@ public sealed partial class MainWindow : Window
             });
         }
 #endif
+
+        // Автовход: сохранённая сессия открывается без ручного ввода ключа.
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROM_TEST_UNLOCK_KEY")))
+            DispatcherQueue.TryEnqueue(async () => await RestoreSavedSession());
+    }
+
+    /** Открыть хранилище сохранённой сессией (ключевой файл + фраза + PIN). */
+    async Task RestoreSavedSession()
+    {
+        if (!SessionStore.HasCredentials) return;
+        if (!SessionStore.TryRestore(out var key, out var phrase, out var pin)) return;
+
+        SetStatus(Strings.I["session.restoring"], "busy");
+        try
+        {
+            var (ok, msg) = await Task.Run(() => Vault.TryUnlock(key, phrase, pin));
+            if (!ok)
+            {
+                SessionStore.ClearCredentials();
+                SetStatus(msg, "danger");
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                Roblox.RestartTimers();
+                Roblox.ApplyMultiInstance();
+            });
+            OnSignedIn();
+        }
+        catch (Exception ex)
+        {
+            App.Dump("RestoreSession", ex);
+            SetStatus(Strings.I["err.unexpected"] + ex.Message, "danger");
+        }
     }
 
     public void ApplyLanguage()
@@ -132,7 +167,7 @@ public sealed partial class MainWindow : Window
     static string Version()
     {
         var v = Assembly.GetExecutingAssembly().GetName().Version;
-        return v == null ? "1.0.0" : $"{v.Major}.{v.Minor}.{v.Build}";
+        return v == null ? "0.2.0" : $"{v.Major}.{v.Minor}.{v.Build}";
     }
 
     /* ---------- навигация ---------- */
@@ -180,6 +215,9 @@ public sealed partial class MainWindow : Window
     void OnLogout()
     {
         try { CoreHost.Session?.Clear(); } catch { }
+        // Выход из менеджера забывает сохранённую сессию, иначе следующий
+        // запуск снова открыл бы её автоматически.
+        SessionStore.ClearCredentials();
         ShowLanding();
         SetStatus(Strings.I["status.sessionClosed"], "idle");
         _settings?.RefreshSession();

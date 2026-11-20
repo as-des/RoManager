@@ -400,6 +400,9 @@ public sealed partial class WizardView : UserControl
             Roblox.ApplyMultiInstance();
         });
 
+        // Если включено «запоминать сессию» — сохраняем ключ и код входа.
+        SessionStore.SaveSession(_keyContent, _phrase, _pin, _keyName);
+
         ConfirmButton.IsEnabled = true;
         Completed?.Invoke();
     }
@@ -462,6 +465,8 @@ public sealed partial class WizardView : UserControl
             return;
         }
         await Task.Run(() => Vault.Save());
+
+        SessionStore.SaveSession(content, _phrase, _pin, "rom-key.json");
 
         _generatedKey = content;
         CoreHost.PushStatus(saved ? Strings.I["status.keyCreated"] : Strings.I["status.keyCreatedUnsaved"],

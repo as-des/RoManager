@@ -48,6 +48,19 @@
                         </StackPanel>
                     </Border>
 
+                    <TextBlock x:Name="ManagerSessionTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
+                    <StackPanel Spacing="10">
+                        <CheckBox x:Name="SaveSessionCheck" Style="{StaticResource AppCheckBox}"
+                                  Checked="OnSaveSessionToggled" Unchecked="OnSaveSessionToggled" />
+                        <Grid>
+                            <TextBlock x:Name="SessionDaysLabel" Style="{StaticResource AppRowTitle}" />
+                            <TextBox x:Name="SessionDaysBox" Style="{StaticResource AppSmallTextBox}" InputScope="Number" />
+                        </Grid>
+                        <TextBlock x:Name="SessionHint" Style="{StaticResource AppRowHint}" TextWrapping="Wrap" />
+                        <Button x:Name="ForgetSessionButton" Style="{StaticResource AppSecondaryButton}"
+                                Padding="14,8" HorizontalAlignment="Left" Click="OnForgetSession" />
+                    </StackPanel>
+
                     <TextBlock x:Name="SessionTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
                     <ContentControl x:Name="SessionSection" HorizontalContentAlignment="Stretch">
                         <StackPanel Spacing="12">

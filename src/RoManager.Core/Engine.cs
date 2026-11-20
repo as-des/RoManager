@@ -288,7 +288,11 @@ static class Vault
             try
             {
                 if (File.Exists(FilePath) && _repo.Accounts.Count > 0)
+                {
+                    MakeWritable(FilePath);
+                    MakeWritable(FilePath + ".bak");
                     File.Copy(FilePath, FilePath + ".bak", true);
+                }
             }
             catch { }
             var payload = Jsons.S(_repo);
@@ -323,9 +327,23 @@ static class Vault
             }
             var tmp = FilePath + ".tmp";
             File.WriteAllText(tmp, Jsons.S(obj));
+            MakeWritable(FilePath);
             File.Move(tmp, FilePath, true);
         }
         catch (Exception ex) { CoreHost.PushStatus(Loc.T("Ошибка сохранения: ", "Save error: ") + ex.Message, "danger"); }
+    }
+
+    /** Хранилище могли восстановить из бэкапа с атрибутом «только чтение». */
+    static void MakeWritable(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return;
+            var attrs = File.GetAttributes(path);
+            if ((attrs & FileAttributes.ReadOnly) != 0)
+                File.SetAttributes(path, attrs & ~FileAttributes.ReadOnly);
+        }
+        catch { }
     }
 
     public static List<AccountInfo> All() => _repo.Accounts;
@@ -383,6 +401,8 @@ public class AccountInfo
     public string LastGameName = "";
     /* клиент запущен менеджером прямо сейчас (не сохраняется) */
     [System.Text.Json.Serialization.JsonIgnore] public bool LaunchTracked;
+    /** Избранный аккаунт: строка подсвечивается золотом. */
+    public bool Favorite;
 }
 
 /* --------------------------------------------------------- ROBLOX API */

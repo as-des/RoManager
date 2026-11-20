@@ -94,6 +94,13 @@ public sealed partial class SettingsWindow : Window
         InterfaceTitle.Text = s["settings.interface"].ToUpperInvariant();
         LanguageLabel.Text = s["settings.language"];
 
+        ManagerSessionTitle.Text = s["settings.managerSession"].ToUpperInvariant();
+        SaveSessionCheck.Content = s["settings.saveSession"];
+        SessionDaysLabel.Text = s["settings.sessionDays"];
+        SessionHint.Text = s["settings.sessionHint"];
+        ForgetSessionButton.Content = s["settings.forgetSession"];
+        UpdateSessionControls();
+
         BackgroundTitle.Text = s["settings.background"].ToUpperInvariant();
         ShaderEnabledCheck.Content = s["settings.animatedBg"];
         WaveColorsLabel.Text = s["settings.waveColors"];
@@ -142,7 +149,7 @@ public sealed partial class SettingsWindow : Window
         DataFolderLabel.Text = s["settings.dataFolder"];
         VersionValue.Text = Assembly.GetExecutingAssembly().GetName().Version is { } v
             ? $"{v.Major}.{v.Minor}.{v.Build}"
-            : "1.0.0";
+            : "0.2.0";
         DataFolderValue.Text = AppContext.BaseDirectory;
 
         SaveButton.Content = s["common.save"];
@@ -215,7 +222,7 @@ public sealed partial class SettingsWindow : Window
     static string CurrentVersion() =>
         Assembly.GetExecutingAssembly().GetName().Version is { } v
             ? $"{v.Major}.{v.Minor}.{v.Build}"
-            : "1.0.0";
+            : "0.2.0";
 
     /** "v1.2.3-beta" → Version(1,2,3). */
     static Version ParseVersion(string text)
@@ -332,6 +339,11 @@ public sealed partial class SettingsWindow : Window
     {
         try
         {
+            var session = SessionStore.Current;
+            SaveSessionCheck.IsChecked = session.Enabled;
+            SessionDaysBox.Text = session.Days.ToString();
+            UpdateSessionControls();
+
             var s = Vault.Settings;
             AutoCookieCheck.IsChecked = s.AutoCookieRefresh;
             RefreshBox.Text = s.AutoRecheckMin.ToString();
@@ -357,6 +369,29 @@ public sealed partial class SettingsWindow : Window
         return int.TryParse(text, out var value) ? value : fallback;
     }
 
+    /* ---------- сохранение сессии ---------- */
+
+    void OnSaveSessionToggled(object sender, RoutedEventArgs e) => UpdateSessionControls();
+
+    void UpdateSessionControls()
+    {
+        if (SessionDaysBox == null || ForgetSessionButton == null) return;
+        bool enabled = SaveSessionCheck.IsChecked == true;
+        SessionDaysBox.IsEnabled = enabled;
+        SessionDaysBox.Opacity = enabled ? 1 : 0.45;
+        SessionDaysLabel.Opacity = enabled ? 1 : 0.45;
+        ForgetSessionButton.Visibility = SessionStore.HasCredentials
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    void OnForgetSession(object sender, RoutedEventArgs e)
+    {
+        SessionStore.ClearCredentials();
+        UpdateSessionControls();
+        SaveStatus.Text = Strings.I["status.sessionForgotten"];
+        CoreHost.PushStatus(Strings.I["status.sessionForgotten"], "success");
+    }
+
     async void OnSave(object sender, RoutedEventArgs e)
     {
         if (!Hex.IsMatch(Color1Box.Text) || !Hex.IsMatch(Color2Box.Text) || !Hex.IsMatch(Color3Box.Text))
@@ -367,6 +402,19 @@ public sealed partial class SettingsWindow : Window
 
         try
         {
+            // «Запоминать сессию» хранится отдельно от хранилища: настройку
+            // нужно видеть до входа, когда сейв ещё зашифрован.
+            bool remember = SaveSessionCheck.IsChecked == true;
+            int days = Math.Clamp(IntFromText(SessionDaysBox, SessionStore.Current.Days),
+                SessionStore.MinDays, SessionStore.MaxDays);
+            SessionStore.Configure(remember, days);
+            if (!remember)
+                SessionStore.ClearCredentials();
+            else if (_unlocked && CoreHost.Session is { } session)
+                SessionStore.SaveSession(Vault.GetKeyFileContent(), session.Phrase, session.Pin,
+                    SessionStore.Current.KeyFileName);
+            UpdateSessionControls();
+
             if (_unlocked)
             {
                 var s = Vault.Settings;

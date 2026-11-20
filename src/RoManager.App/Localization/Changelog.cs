@@ -15,7 +15,20 @@ public static class ChangelogData
 {
     public static readonly ChangelogEntry[] Entries =
     {
-        new("1.0.0", "18 ноября 2026", "November 18, 2026",
+        new("0.02", "20 ноября 2026", "November 20, 2026",
+            new[]
+            {
+                "Появилось сохранение сессии менеджера: ключевой файл .json и код авторизации (фраза и PIN) хранятся в manager-session.json, и следующий запуск открывает хранилище автоматически.",
+                "В настройках можно отключить сохранение сессии, задать срок хранения в днях и забыть сохранённые данные. Секреты шифруются для текущего пользователя Windows (DPAPI).",
+                "У аккаунтов появилось избранное: звезда в последнем столбце, а избранные строки подсвечиваются золотом.",
+            },
+            new[]
+            {
+                "The manager can now remember the session: the key .json file and the sign-in code (phrase and PIN) are stored in manager-session.json, so the next launch unlocks the vault automatically.",
+                "Settings let you turn session saving off, choose how many days to keep it and forget the saved data. Secrets are encrypted for the current Windows user (DPAPI).",
+                "Accounts now have favourites: a star in the last column, with favourite rows highlighted in gold.",
+            }),
+        new("0.01", "18 ноября 2026", "November 18, 2026",
             new[]
             {
                 "Приложение переписано с WebView2 + React на C# и WinUI 3: тот же интерфейс, но нативная отрисовка.",
@@ -33,7 +46,6 @@ public static class ChangelogData
                 "Переключатель языка и тексты настроек обновляются сразу, без повторного открытия окна.",
                 "Добавление аккаунта открывается отдельным окном, а не слоем поверх дашборда.",
                 "Окно добавления аккаунта отделено от блока cookie линией с подписью «ИЛИ», а окна добавления и настроек закрываются вместе с главным окном.",
-                "Для C#-ветки нумерация версий начата заново с 1.0.0.",
             },
             new[]
             {
@@ -52,9 +64,8 @@ public static class ChangelogData
                 "The language switch and settings texts update immediately, without reopening the window.",
                 "Adding an account now opens in its own window instead of a layer over the dashboard.",
                 "The browser button and the cookie block are split by an \"OR\" divider, and the add-account and settings windows now close together with the main window.",
-                "Version numbering restarted at 1.0.0 for the C# branch.",
             }),
-        new("2.1.0", "13 ноября 2026", "November 13, 2026",
+        new("pre-0.02", "13 ноября 2026", "November 13, 2026",
             new[]
             {
                 "Главное окно и окно настроек получили нативную рамку Windows: системный заголовок, кнопки и плавный ресайз.",
@@ -79,7 +90,7 @@ public static class ChangelogData
                 "Hardened WebView2: DevTools and external navigation disabled in release builds, CSP and path traversal protection added.",
                 "Portable win-x64 build with SHA-256 checksums, CI and a release workflow.",
             }),
-        new("2.0.0", "7 ноября 2026", "November 7, 2026",
+        new("pre-0.01", "7 ноября 2026", "November 7, 2026",
             new[]
             {
                 "Новый интерфейс на React + TypeScript (Vite) по исходному макету.",

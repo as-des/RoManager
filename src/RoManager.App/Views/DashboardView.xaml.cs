@@ -151,6 +151,7 @@ public sealed partial class DashboardView : UserControl
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(25, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(25, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
 
         // Чекбокс
         var box = new Border
@@ -235,12 +236,41 @@ public sealed partial class DashboardView : UserControl
         Grid.SetColumn(data, 4);
         grid.Children.Add(data);
 
+        // Избранное: звезда в последнем столбце.
+        var star = new Border
+        {
+            Width = 26,
+            Height = 26,
+            CornerRadius = new CornerRadius(6),
+            Background = new SolidColorBrush(Colors.Transparent),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+            Child = new FontIcon
+            {
+                Glyph = account.Favorite ? "\uE735" : "\uE734",
+                FontSize = 16,
+                Foreground = account.Favorite ? FavoriteGold : MutedBrush,
+            },
+        };
+        ToolTipService.SetToolTip(star, Strings.I[account.Favorite ? "dash.unfavorite" : "dash.favorite"]);
+        star.Tapped += (s, e) =>
+        {
+            e.Handled = true;
+            account.Favorite = !account.Favorite;
+            Vault.Save();
+            Reload();
+        };
+        Grid.SetColumn(star, 5);
+        grid.Children.Add(star);
+
         var row = new Border
         {
             Padding = new Thickness(12, 13, 10, 13),
             BorderBrush = RowDivider,
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Background = selected ? SelectionBrush() : new SolidColorBrush(Colors.Transparent),
+            Background = selected ? SelectionBrush()
+                : account.Favorite ? FavoriteBrush()
+                : new SolidColorBrush(Colors.Transparent),
             Child = grid,
             Tag = account.Id,
         };
@@ -252,9 +282,18 @@ public sealed partial class DashboardView : UserControl
             OnRowTapped(account.Id, index);
         };
         row.PointerEntered += (s, e) => { if (!_selected.Contains(account.Id)) row.Background = RowHover; };
-        row.PointerExited += (s, e) => { if (!_selected.Contains(account.Id)) row.Background = new SolidColorBrush(Colors.Transparent); };
+        row.PointerExited += (s, e) =>
+        {
+            if (_selected.Contains(account.Id)) return;
+            row.Background = account.Favorite ? FavoriteBrush() : new SolidColorBrush(Colors.Transparent);
+        };
         return row;
     }
+
+    static readonly SolidColorBrush FavoriteGold = new(Color.FromArgb(0xFF, 0xE8, 0xC4, 0x6A));
+
+    /** Лёгкая золотая волна для избранных аккаунтов. */
+    static LinearGradientBrush FavoriteBrush() => WaveBrush(Color.FromArgb(0x2E, 0xE0, 0xBA, 0x5E));
 
     static LinearGradientBrush SelectionBrush() => WaveBrush(Color.FromArgb(0x33, 0x3B, 0x82, 0xF6));
 

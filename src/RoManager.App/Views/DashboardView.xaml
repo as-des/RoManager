@@ -54,6 +54,7 @@
                             <ColumnDefinition Width="16*" />
                             <ColumnDefinition Width="25*" />
                             <ColumnDefinition Width="25*" />
+                            <ColumnDefinition Width="34" />
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="ColAccount" Grid.Column="1" Style="{StaticResource AppCaption}"
                                    Margin="0,0,10,12" />
@@ -63,6 +64,10 @@
                                    Margin="0,0,10,12" />
                         <TextBlock x:Name="ColData" Grid.Column="4" Style="{StaticResource AppCaption}"
                                    Margin="0,0,10,12" />
+                        <FontIcon Grid.Column="5" Glyph="&#xE734;" FontSize="13"
+                                  Foreground="{StaticResource AppMuted}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Margin="0,0,0,12" />
                     </Grid>
 
                     <Grid Grid.Row="2">
