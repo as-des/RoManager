@@ -1,7 +1,7 @@
 # RoManager — заметки проекта
 
 **Дата старта:** 28.10.2026
-**Автор:** GLM (агент OpenCode) + mkyub
+**Автор:** GLM (агент OpenCode) + as-des (asdes)
 
 ## Что это
 Собственный менеджер аккаунтов Roblox. НЕ форк оригинального Roblox Account Manager (ic3w0lf22) —
