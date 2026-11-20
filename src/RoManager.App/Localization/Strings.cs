@@ -181,6 +181,8 @@ public sealed class Strings
         ["dash.settings"] = ("Настройки", "Settings"),
         ["dash.openSettings"] = ("Открыть настройки", "Open settings"),
         ["dash.empty"] = ("В хранилище пока нет аккаунтов.", "There are no accounts in the vault yet."),
+        ["dash.search"] = ("Поиск по аккаунтам", "Search accounts"),
+        ["dash.notFound"] = ("Аккаунты не найдены.", "No accounts found."),
         ["dash.selectedOne"] = ("Выбран аккаунт {0}", "Selected account {0}"),
         ["dash.selectedMany"] = ("Выбрано аккаунтов: {0}", "Selected accounts: {0}"),
         ["dash.launchingLauncher"] = ("Запуск лаунчера для {0}…", "Launching the launcher for {0}…"),

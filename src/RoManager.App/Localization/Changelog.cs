@@ -21,12 +21,20 @@ public static class ChangelogData
                 "Появилось сохранение сессии менеджера: ключевой файл .json и код авторизации (фраза и PIN) хранятся в manager-session.json, и следующий запуск открывает хранилище автоматически.",
                 "В настройках можно отключить сохранение сессии, задать срок хранения в днях и забыть сохранённые данные. Секреты шифруются для текущего пользователя Windows (DPAPI).",
                 "У аккаунтов появилось избранное: звезда в последнем столбце, а избранные строки подсвечиваются золотом.",
+                "Избранные аккаунты поднимаются в начало списка.",
+                "Таблица сортируется по столбцам: имя, статус, последний запуск и данные; повторный клик меняет направление.",
+                "Добавлен поиск по имени аккаунта.",
+                "Заголовки столбцов выровнены со строками таблицы.",
             },
             new[]
             {
                 "The manager can now remember the session: the key .json file and the sign-in code (phrase and PIN) are stored in manager-session.json, so the next launch unlocks the vault automatically.",
                 "Settings let you turn session saving off, choose how many days to keep it and forget the saved data. Secrets are encrypted for the current Windows user (DPAPI).",
                 "Accounts now have favourites: a star in the last column, with favourite rows highlighted in gold.",
+                "Favourite accounts are moved to the top of the list.",
+                "The table can be sorted by column: name, status, last launch and data; click again to reverse the order.",
+                "Added a search box for account names.",
+                "Column headers are now aligned with the table rows.",
             }),
         new("0.01", "18 ноября 2026", "November 18, 2026",
             new[]

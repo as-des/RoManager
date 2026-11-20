@@ -28,6 +28,12 @@ public sealed partial class DashboardView : UserControl
     bool _animateManageCollapse;
     AddAccountWindow _addWindow;
 
+    /** Аккаунты в текущем порядке отображения (поиск, избранное, сортировка). */
+    readonly List<AccountInfo> _view = new();
+    string _query = "";
+    string _sortColumn = "";
+    bool _sortDesc;
+
     public event Action LogoutRequested;
     public event Action SettingsRequested;
 
@@ -79,12 +85,15 @@ public sealed partial class DashboardView : UserControl
         LauncherLabel.Text = s["dash.launch"];
         GameInput.PlaceholderText = s["dash.serverId"];
         PlayerInput.PlaceholderText = s["dash.playerNick"];
+        SearchBox.PlaceholderText = s["dash.search"];
         LogoutButton.Content = s["dash.logout"];
 
         ToolTipService.SetToolTip(RefreshButton, s["dash.refresh"]);
         ToolTipService.SetToolTip(DeleteButton, s["dash.delete"]);
         ToolTipService.SetToolTip(DashboardSettingsButton, s["landing.settings"]);
+        ToolTipService.SetToolTip(SearchBox, s["dash.search"]);
         _addWindow?.ApplyLanguage();
+        UpdateSortIcons();
         Reload();
     }
 
@@ -120,23 +129,117 @@ public sealed partial class DashboardView : UserControl
         AccountList.Children.Clear();
         AccountsTitle.Text = $"{Strings.I["dash.accounts"]} ({accounts.Count})";
 
-        if (accounts.Count == 0)
+        _view.Clear();
+        _view.AddRange(BuildView(accounts));
+
+        if (_view.Count == 0)
         {
             AccountList.Children.Add(new TextBlock
             {
-                Text = Strings.I["dash.empty"],
+                Text = Strings.I[accounts.Count == 0 ? "dash.empty" : "dash.notFound"],
                 Style = (Style)Application.Current.Resources["AppMutedText"],
                 Margin = new Thickness(12, 18, 12, 12),
             });
         }
         else
         {
-            for (int i = 0; i < accounts.Count; i++)
-                AccountList.Children.Add(BuildRow(accounts[i], i));
+            for (int i = 0; i < _view.Count; i++)
+                AccountList.Children.Add(BuildRow(_view[i], i));
         }
 
         AccountList.Children.Add(BuildSpacer());
         UpdateControls(accounts);
+    }
+
+    /** Избранное — всегда сверху; внутри групп применяется выбранная сортировка. */
+    List<AccountInfo> BuildView(List<AccountInfo> all)
+    {
+        var query = (_query ?? "").Trim();
+        var result = new List<AccountInfo>();
+
+        if (!string.IsNullOrEmpty(query))
+            all = all.Where(a =>
+                (a.Name ?? "").Contains(query, StringComparison.CurrentCultureIgnoreCase)).ToList();
+
+        result.AddRange(ApplySort(all.Where(a => a.Favorite)));
+        result.AddRange(ApplySort(all.Where(a => !a.Favorite)));
+        return result;
+    }
+
+    IEnumerable<AccountInfo> ApplySort(IEnumerable<AccountInfo> source)
+    {
+        if (string.IsNullOrEmpty(_sortColumn)) return source;
+
+        return _sortColumn switch
+        {
+            "name" => _sortDesc
+                ? source.OrderByDescending(a => a.Name ?? "", StringComparer.CurrentCultureIgnoreCase)
+                : source.OrderBy(a => a.Name ?? "", StringComparer.CurrentCultureIgnoreCase),
+            "status" => _sortDesc
+                ? source.OrderByDescending(a => a.Online).ThenBy(a => a.Name ?? "")
+                : source.OrderBy(a => a.Online).ThenBy(a => a.Name ?? ""),
+            "last" => _sortDesc
+                ? source.OrderByDescending(LastOnlineKey).ThenBy(a => a.Name ?? "")
+                : source.OrderBy(LastOnlineKey).ThenBy(a => a.Name ?? ""),
+            "data" => _sortDesc
+                ? source.OrderByDescending(a => a.DataOk).ThenBy(a => a.Name ?? "")
+                : source.OrderBy(a => a.DataOk).ThenBy(a => a.Name ?? ""),
+            _ => source,
+        };
+    }
+
+    static DateTime LastOnlineKey(AccountInfo account) =>
+        DateTime.TryParseExact(account.LastOnline ?? "", "dd.MM.yyyy HH:mm",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var value)
+            ? value
+            : DateTime.MinValue;
+
+    /* ---------- поиск и сортировка ---------- */
+
+    void OnSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        _query = SearchBox.Text ?? "";
+        Reload();
+    }
+
+    void OnSortName(object sender, TappedRoutedEventArgs e) { e.Handled = true; SetSort("name"); }
+    void OnSortStatus(object sender, TappedRoutedEventArgs e) { e.Handled = true; SetSort("status"); }
+    void OnSortLast(object sender, TappedRoutedEventArgs e) { e.Handled = true; SetSort("last"); }
+    void OnSortData(object sender, TappedRoutedEventArgs e) { e.Handled = true; SetSort("data"); }
+
+    void SetSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortDesc = !_sortDesc;
+        }
+        else
+        {
+            _sortColumn = column;
+            // Для статуса, даты и данных полезнее «сначала онлайн/свежие/актуальные».
+            _sortDesc = column is "status" or "last" or "data";
+        }
+        UpdateSortIcons();
+        Reload();
+    }
+
+    void UpdateSortIcons()
+    {
+        var icons = new (string Column, FontIcon Icon)[]
+        {
+            ("name", SortNameIcon),
+            ("status", SortStatusIcon),
+            ("last", SortLastIcon),
+            ("data", SortDataIcon),
+        };
+        foreach (var (column, icon) in icons)
+        {
+            if (icon == null) continue;
+            bool active = _sortColumn == column;
+            icon.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
+            if (active) icon.Glyph = _sortDesc ? "\uE70D" : "\uE70E";
+        }
     }
 
     static FrameworkElement BuildSpacer() => new Border { Height = 8 };
@@ -243,7 +346,7 @@ public sealed partial class DashboardView : UserControl
             Height = 26,
             CornerRadius = new CornerRadius(6),
             Background = new SolidColorBrush(Colors.Transparent),
-            HorizontalAlignment = HorizontalAlignment.Right,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Child = new FontIcon
             {
@@ -348,11 +451,10 @@ public sealed partial class DashboardView : UserControl
         }
         else if (range && _lastIndex >= 0)
         {
-            var accounts = Vault.All();
             int start = Math.Min(_lastIndex, index);
             int end = Math.Max(_lastIndex, index);
             _selected.Clear();
-            for (int i = start; i <= end && i < accounts.Count; i++) _selected.Add(accounts[i].Id);
+            for (int i = start; i <= end && i < _view.Count; i++) _selected.Add(_view[i].Id);
         }
         else if (_selected.Count == 1 && _selected.Contains(id))
         {

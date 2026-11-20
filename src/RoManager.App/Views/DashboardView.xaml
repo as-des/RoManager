@@ -41,13 +41,27 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <TextBlock x:Name="AccountsTitle" Style="{StaticResource AppPanelTitle}" />
 
-                    <!-- Шапка таблицы уже строк на ширину скроллбара (calc(100% - 8px)) -->
-                    <Grid Grid.Row="1" Margin="0,0,8,0" BorderBrush="#12FFFFFF" BorderThickness="0,0,0,1">
+                    <!-- Поиск по имени аккаунта -->
+                    <Grid Grid.Row="1" Margin="0,0,16,10">
+                        <TextBox x:Name="SearchBox" Style="{StaticResource AppTextBox}"
+                                 Height="36" Padding="34,6,10,6" FontSize="13"
+                                 TextChanged="OnSearchChanged" />
+                        <FontIcon Glyph="&#xE721;" FontSize="14" Margin="12,0,0,0"
+                                  Foreground="{StaticResource AppMuted2}"
+                                  HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  IsHitTestVisible="False" />
+                    </Grid>
+
+                    <!-- Шапка таблицы уже строк на ширину скроллбара (calc(100% - 8px)).
+                         Отступы слева/справа совпадают с Padding строк, иначе колонки «уезжают». -->
+                    <Grid Grid.Row="2" Margin="0,0,16,0" Padding="12,0,10,0"
+                          BorderBrush="#12FFFFFF" BorderThickness="0,0,0,1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40" />
                             <ColumnDefinition Width="34*" />
@@ -56,21 +70,54 @@
                             <ColumnDefinition Width="25*" />
                             <ColumnDefinition Width="34" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="ColAccount" Grid.Column="1" Style="{StaticResource AppCaption}"
-                                   Margin="0,0,10,12" />
-                        <TextBlock x:Name="ColStatus" Grid.Column="2" Style="{StaticResource AppCaption}"
-                                   Margin="0,0,10,12" />
-                        <TextBlock x:Name="ColLast" Grid.Column="3" Style="{StaticResource AppCaption}"
-                                   Margin="0,0,10,12" />
-                        <TextBlock x:Name="ColData" Grid.Column="4" Style="{StaticResource AppCaption}"
-                                   Margin="0,0,10,12" />
+
+                        <Border Grid.Column="1" Background="Transparent" Padding="0,0,10,12"
+                                Tapped="OnSortName">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock x:Name="ColAccount" Style="{StaticResource AppCaption}" />
+                                <FontIcon x:Name="SortNameIcon" Glyph="&#xE70E;" FontSize="9"
+                                          Visibility="Collapsed" VerticalAlignment="Center"
+                                          Foreground="{StaticResource AppMuted2}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="Transparent" Padding="0,0,10,12"
+                                Tapped="OnSortStatus">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock x:Name="ColStatus" Style="{StaticResource AppCaption}" />
+                                <FontIcon x:Name="SortStatusIcon" Glyph="&#xE70E;" FontSize="9"
+                                          Visibility="Collapsed" VerticalAlignment="Center"
+                                          Foreground="{StaticResource AppMuted2}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="3" Background="Transparent" Padding="0,0,10,12"
+                                Tapped="OnSortLast">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock x:Name="ColLast" Style="{StaticResource AppCaption}" />
+                                <FontIcon x:Name="SortLastIcon" Glyph="&#xE70E;" FontSize="9"
+                                          Visibility="Collapsed" VerticalAlignment="Center"
+                                          Foreground="{StaticResource AppMuted2}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="4" Background="Transparent" Padding="0,0,10,12"
+                                Tapped="OnSortData">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock x:Name="ColData" Style="{StaticResource AppCaption}" />
+                                <FontIcon x:Name="SortDataIcon" Glyph="&#xE70E;" FontSize="9"
+                                          Visibility="Collapsed" VerticalAlignment="Center"
+                                          Foreground="{StaticResource AppMuted2}" />
+                            </StackPanel>
+                        </Border>
+
                         <FontIcon Grid.Column="5" Glyph="&#xE734;" FontSize="13"
                                   Foreground="{StaticResource AppMuted}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                   Margin="0,0,0,12" />
                     </Grid>
 
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="8" />
