@@ -1,116 +1,126 @@
 # RoManager
 
-Собственный менеджер аккаунтов Roblox для Windows: хранение cookie в зашифрованном
-хранилище, быстрый запуск клиента под нужным аккаунтом, presence, мульти-инстанс и
-настраиваемый анимированный фон.
+Менеджер аккаунтов Roblox для Windows: шифрованное хранилище, быстрый запуск игры,
+управление cookie и современный интерфейс на C# / WinUI 3.
 
-Написан с нуля (не форк [Roblox Account Manager](https://github.com/ic3w0lf22/Roblox-Account-Manager)):
-C# WinForms + WebView2, интерфейс — React + TypeScript + Vite.
-
-> **Не связан с Roblox Corporation.** Использование сторонних менеджеров аккаунтов может
-> нарушать правила Roblox. Вы используете приложение на свой риск.
+> **Не аффилировано с Roblox Corporation.** Приложение не связано с Roblox и
+> использует только публичные API и cookie ваших собственных аккаунтов.
+> Автоматизация нескольких аккаунтов может нарушать правила Roblox — используйте
+> на свой риск.
 
 ## Возможности
 
-- **Аккаунты:** добавление через встроенное окно входа Roblox или вставкой cookie,
-  обновление данных, удаление.
-- **Запуск:** лаунчер Roblox, «К игре» по `placeId` (в т.ч. приватные серверы),
-  «К игроку» по нику, задержка запуска.
-- **Presence:** статус онлайн/офлайн по реальному API Roblox.
-- **Шифрование:** ключевой файл + фраза из 2 слов + PIN; AES-256-GCM, PBKDF2-SHA256 600k.
-  Старые хранилища v1 (AES-256-CBC) читаются и поддерживаются.
-- **Multi Roblox:** несколько клиентов одновременно (системный мьютекс `ROBLOX_singletonMutex`).
-- **FPS:** разблокировка и ограничение FPS через `ClientAppSettings`.
-- **Внешний вид:** нативная рамка Windows у главного окна и настроек (системный
-  заголовок и плавный ресайз), адаптивная раскладка под любой размер окна,
-  матовое стекло, GLSL-фон (3 цвета + скорость 0.5–2.0×), тёмная тема.
-- **Уведомления:** плашки в верхней части окна с кнопками действий, закрытием
-  и общей мягкой подсветкой; история обновлений на русском и английском —
-  по кнопке версии в нижней панели.
-- **Настройки:** отдельное окно, автообновление cookie, интервал presence, задержка
-  запуска, закрытие предыдущего клиента, встроенный браузер, фон, режим логов.
-- **Язык интерфейса:** русский и английский, переключатель на всех экранах — включая
-  страницу авторизации (там же настройки интерфейса). Выбор хранится в `ui.json`
-  рядом с exe, поэтому работает ещё до разблокировки хранилища.
+### Аккаунты
+- Добавление через встроенный вход в браузере (Chrome/Edge, CDP) или вставку
+  `.ROBLOSECURITY` cookie вручную.
+- Несколько аккаунтов в одном списке, множественное выделение, удаление и
+  обновление данных.
+- **Избранное:** звезда в последнем столбце, избранные строки подсвечиваются
+  золотом и всегда поднимаются в начало списка.
+- **Поиск** по имени и **сортировка** по любому столбцу (имя, статус, последний
+  запуск, данные); повторный клик меняет направление.
+- Статус онлайн/офлайн, время последнего запуска и актуальность cookie.
+
+### Запуск
+- Запуск лаунчера Roblox или конкретной игры по `placeId`.
+- Подключение к серверу по ID и «К игроку» по нику.
+- Multi Roblox (несколько клиентов одновременно) и разблокировка FPS.
+
+### Безопасность
+- Новое хранилище шифруется **AES-256-GCM**, ключ выводится через
+  **PBKDF2-SHA256 (600 000 итераций)** из ключевого файла, фразы из двух слов и PIN.
+- Старые хранилища (AES-256-CBC) открываются и поддерживаются.
+- **Сохранение сессии:** ключевой файл и код авторизации можно запомнить, чтобы
+  не вводить их при каждом запуске. Секреты шифруются DPAPI для текущего
+  пользователя Windows, срок хранения задаётся в настройках (1–365 дней), после
+  чего сессия удаляется. Функцию можно отключить или забыть сохранённые данные.
+- Пароль Roblox нигде не хранится — только cookie, как в самом клиенте.
+
+### Интерфейс
+- Нативный WinUI 3 с матовым стеклом и анимированным фоном.
+- Анимированный шейдер считается на GPU (HLSL через Win2D); при проблемах с
+  драйвером или в RDP автоматически включается облегчённый CPU-рендерер.
+- Русский и английский язык (переключается в настройках).
+- История обновлений, «О программе», проверка релизов на GitHub.
 
 ## Требования
 
-- Windows 10/11 x64
-- [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (в Windows 11 уже есть)
-- Для запуска релизной сборки больше ничего не нужно (self-contained .NET 8)
-- Для сборки из исходников: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0), [Node.js LTS](https://nodejs.org/)
+- Windows 10 x64 (1809+) или Windows 11.
+- Портативная сборка **не требует** установки .NET или Windows App SDK.
+- Для входа через браузер нужен установленный Chrome или Edge; можно положить
+  портативный `chrome-win64` рядом с `RoManager.exe`.
 
-## Скачать
+## Быстрый старт
 
-Готовые сборки — в разделе [Releases](../../releases). Проверяйте контрольные суммы
-`sha256sums.txt`.
-
-1. Распакуйте архив в любую папку.
+1. Скачайте архив релиза и распакуйте в любую папку.
 2. Запустите `RoManager.exe`.
-3. Придумайте ключевой файл, фразу из двух слов и PIN. Сохраните ключевой файл отдельно
-   от хранилища — без него доступ к аккаунтам не восстановить.
+3. Создайте новый ключевой файл либо откройте существующий `.json` и введите
+   фразу и PIN.
+4. Добавьте аккаунты кнопкой «Добавить» на дашборде.
+
+Все данные хранятся рядом с `RoManager.exe`. Папку можно носить с собой на
+флешке; ключевой файл рекомендуется держать отдельно от хранилища.
+
+## Файлы данных
+
+| Файл | Назначение |
+| --- | --- |
+| `AccountData.json` | Зашифрованное хранилище аккаунтов и настроек |
+| `AccountData.json.bak` | Резервная копия предыдущего состояния |
+| `manager-session.json` | Сохранённая сессия (DPAPI), если включена |
+| `shader.json` | Настройки анимированного фона |
+| `ui.json` | Выбранный язык интерфейса |
+| `rom.log` | Журнал работы (ротация при 2 МБ) |
+
+Файлы с cookie, сессией, ключами и логами намеренно исключены из Git.
 
 ## Сборка из исходников
 
-```bat
-cd frontend
-npm install
-npm run build
+Нужен [.NET 8 SDK](https://dotnet.microsoft.com/download) и Windows 10/11 x64.
 
-cd ..
-dotnet build -c Release
+```powershell
+# Debug
+dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64
+
+# Release / портативная сборка
+dotnet publish src\RoManager.App\RoManager.App.csproj `
+  -c Release -r win-x64 --self-contained true -p:Platform=x64 -o publish
 ```
 
-Запуск: `bin\Release\net8.0-windows\RoManager.exe`.
+Готовый `RoManager.exe` появится в:
 
-Публикация портативной сборки:
-
-```bat
-dotnet publish -c Release -r win-x64 --self-contained true -o publish
+```text
+src\RoManager.App\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\
 ```
 
-`publish` можно заархивировать целиком. Подробнее — [docs/BUILD.md](docs/BUILD.md).
+`resources.pri` собирается автоматически (`tools/make-pri.ps1`) после сборки.
+Без него WinUI не находит `themeresources.xaml`, и приложение не запускается.
+Visual Studio Build Tools не обязательны.
 
-## Структура проекта
+## Структура репозитория
 
-```
-RoManager.csproj        WinForms + WebView2 (net8.0-windows)
-Frame.cs                главное окно, хост WebView2, локальный сервер app.local
-Localization.cs         язык интерфейса (ui.json) и строки C# RU/EN
-SettingsFrame.cs        отдельное окно настроек
-BrowserLoginFrame.cs    встроенный вход Roblox во временном профиле
-Bridge.cs               JS ↔ C# мост (window.chrome.webview.hostObjects.rom)
-Engine.cs               крипто, хранилище, Roblox API, запуск, Chrome CDP, таймеры
-frontend/               React + TS + Vite (index.html, settings.html)
-wwwroot_legacy/         резервная копия прежнего UI (только для отката)
-design/offer.html       исходный макет (референс, не менять)
+```text
+src/
+  RoManager.Core/   движок: хранилище, крипто, Roblox API, сессия, настройки
+  RoManager.App/    WinUI 3: окна, дашборд, настройки, шейдерный фон
+tools/              сборка resources.pri и вспомогательные скрипты
+docs/               журнал миграции и заметки по решениям
+design/             исходный макет
 ```
 
-## Безопасность
+## Версии
 
-Подробности — в [SECURITY.md](SECURITY.md). Кратко:
+Текущая версия — **0.2.0**.
 
-- `rom-key.json` и `AccountData.json` **не коммитятся** и не входят в репозиторий;
-- в Release отключены DevTools, внешняя навигация и разрешения WebView2;
-- в лог не попадают фраза, PIN и cookie;
-- `shader.json` и `ui.json` не зашифрованы, но секретов не содержат (фон и язык интерфейса).
+- `pre-0.01`, `pre-0.02` — версии на WebView2 + React.
+- `v0.01`, `v0.02`, … — ветка на C# + WinUI 3.
 
-## Участие
-
-Issues и pull request'ы приветствуются. Перед PR прочитайте [CONTRIBUTING.md](CONTRIBUTING.md).
+Полная история доступна в приложении по кнопке версии в нижней панели и в
+[`Changelog.cs`](src/RoManager.App/Localization/Changelog.cs).
 
 ## Лицензия
 
-[MIT](LICENSE) © 2026 mkyub
+[MIT](LICENSE) © 2026 mkyub.
 
----
-
-## English (short)
-
-RoManager is a from-scratch Roblox account manager for Windows (C# WinForms + WebView2,
-React/TypeScript UI). It stores account cookies in an AES-256-GCM vault protected by a
-key file, a two-word phrase and a PIN, supports multi-instance Roblox, presence, game
-launching and a configurable GLSL background.
-
-Build: `cd frontend && npm install && npm run build`, then `dotnet build -c Release`.
-Download ready builds from Releases. Not affiliated with Roblox Corporation. MIT licensed.
+Ссылки: [GitHub](https://github.com/redolfos2/RoManager) ·
+[Issues](https://github.com/redolfos2/RoManager/issues)
