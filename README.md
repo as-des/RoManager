@@ -1,12 +1,17 @@
 <div align="center">
 
-<h1 align="center">
-  <img src="assets/app-converted.png" alt="RoManager Icon" width="48" height="48" style="vertical-align: middle; margin-right: 10px;">
-  RoManager
-</h1>
+<!-- Используем flexbox для идеального выравнивания -->
+<div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px;">
+  <img src="assets/app-converted.png" alt="RoManager Icon" width="64" height="64" style="border-radius: 12px;">
+  <h1 style="margin: 0; font-size: 2.5em; font-weight: bold;">RoManager</h1>
+</div>
 
-**Менеджер аккаунтов Roblox для Windows**  
-Шифрованное хранилище, быстрый запуск игры, управление cookie и современный интерфейс на C# / WinUI 3.
+<p style="font-size: 1.1em; margin-bottom: 8px;">
+  <b>Менеджер аккаунтов Roblox для Windows</b>
+</p>
+<p style="font-size: 1em; color: #8b949e; margin-bottom: 24px;">
+  Шифрованное хранилище, быстрый запуск игры, управление cookie и современный интерфейс на C# / WinUI 3.
+</p>
 
 <!-- Бейджи -->
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple?style=for-the-badge&logo=dotnet)]()
