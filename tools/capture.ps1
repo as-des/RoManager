@@ -7,7 +7,7 @@
 #>
 param(
     [string] $Exe = 'src\RoManager.App\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\RoManager.exe',
-    [string] $Out = 'C:\Users\mkyub\AppData\Local\Temp\opencode\rom-shot.png',
+    [string] $Out = (Join-Path $env:TEMP 'rom-shot.png'),
     [int] $Wait = 8,
     [int] $Width = 1000,
     [int] $Height = 680,
