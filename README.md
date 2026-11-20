@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1 align="center">
-  <img src="https://imgpile.com/images/CIsEhbB.webp" alt="RoManager Icon" width="48" height="48" style="vertical-align: middle; margin-right: 10px;">
+  <img src="assets/app-converted.png" alt="RoManager Icon" width="48" height="48" style="vertical-align: middle; margin-right: 10px;">
   RoManager
 </h1>
 
