@@ -2,7 +2,7 @@
 
 <h1 align="center">
   <img src="assets/app-converted.png" alt="RoManager Icon" width="48" height="48" style="vertical-align: middle; margin-right: 10px;">
-  RoManager
+  <span style="vertical-align: middle;">RoManager</span>
 </h1>
 
 **Менеджер аккаунтов Roblox для Windows**  
