@@ -81,7 +81,7 @@ docs/               заметки по разработке
 
 ## Лицензия
 
-[MIT](LICENSE) © 2026 redolfos2 (asdes).
+[MIT](LICENSE) © 2026 as-des (asdes).
 
-Ссылки: [GitHub](https://github.com/redolfos2/RoManager) ·
-[Issues](https://github.com/redolfos2/RoManager/issues)
+Ссылки: [GitHub](https://github.com/as-des/RoManager) ·
+[Issues](https://github.com/as-des/RoManager/issues)
