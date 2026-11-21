@@ -366,5 +366,9 @@ ef05c60b7a7523fef32523c4905d1a7d54155b4803dda84ffe6c11da085aa159  AccountData.js
       `dash.notFound`). Shift-выделение диапазона теперь использует порядок
       отображения `_view`, а не исходный порядок хранилища.
 
+## 2026-11-21 — публичный релиз v0.02
 
-
+- [x] README на английском (главная страница) и README.ru.md на русском со ссылками-переключателями; иконка, скриншоты дашборда и настроек лежат в `docs/assets/`.
+- [x] Авторство переведено на `as-des (asdes)`: LICENSE, ссылки, git-конфиг и все коммиты в истории.
+- [x] Исправлена портативная сборка: `dotnet publish` не копировал `resources.pri` и `*.xbf`, из-за чего приложение падало с XamlParseException. Добавлен таргет `CopyAppPriToPublish` в `Directory.Build.targets`.
+- [x] Опубликован релиз v0.02: архив `RoManager-win-x64-v0.02.zip` (88,4 МБ), `sha256sums.txt` и заметки `.github/releases/v0.02.md`; ветки `main` и `winui3` в GitHub.
