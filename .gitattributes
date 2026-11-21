@@ -14,3 +14,8 @@
 *.dll      binary
 *.exe      binary
 *.zip      binary
+
+# Макет и документация не участвуют в статистике языков GitHub.
+design/** linguist-documentation
+docs/**   linguist-documentation
+
