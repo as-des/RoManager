@@ -1,52 +1,43 @@
-# Участие в разработке
+# Contributing
 
-## Перед началом
+Thanks for taking the time to help. A few ground rules keep the project safe and
+easy to maintain.
 
-- Прочитайте [README.md](README.md) и [SECURITY.md](SECURITY.md).
-- Не добавляйте в репозиторий личные данные: `rom-key.json`, `AccountData.json*`,
-  `rom.log*`, `shader.json`, `wv2/`, `chrome-win64/`, `bin/`, `obj/`.
-- Для багов с безопасностью используйте приватный канал из SECURITY.md, а не issue.
+## Before you start
 
-## Локальная сборка
+- Read [README.md](README.md) and [SECURITY.md](SECURITY.md).
+- Never commit account data, keys or logs: `rom-key.json`, `AccountData.json*`,
+  `manager-session.json*`, `rom.log*`, `shader.json`, `ui.json`, `wv2/`,
+  `chrome-win64/`, `bin/`, `obj/`.
+- Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md)
+  instead of opening a public issue.
 
-```bat
-cd frontend
-npm install
-npm run typecheck
-npm run build
+## Development build
 
-cd ..
-dotnet build -c Debug
+Requirements: .NET 8 SDK, Windows 10/11 x64.
+
+```powershell
+dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64
 ```
 
-Интерфейс — React (`frontend/src`), точка входа главного окна `frontend/index.html`,
-настроек — `frontend/settings.html`. Стили: `frontend/src/styles/app.css` и
-`frontend/src/styles/settings.css`.
+The executable appears in
+`src\RoManager.App\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\RoManager.exe`.
 
-## Правила кода
+The build also generates `resources.pri` and the compiled XAML needed by WinUI —
+no Visual Studio Build Tools or Node.js are required.
 
-- Не меняйте дизайн и поведение UI без необходимости: стили и разметка повторяют макет
-  1:1, включая отступы и стеклянные панели.
-- Сохраняйте совместимость `Bridge` API: методы вызываются из JS через
-  `window.chrome.webview.hostObjects.rom`. Новые методы — только добавление.
-- Крипто: новые форматы только с версией и обратным чтением старых. Не логируйте
-  фразу, PIN, cookie и ключи.
-- Не ослабляйте защиту WebView2 (DevTools, навигация, разрешения, CSP).
-- Не коммитьте артефакты сборки.
+## Project layout
 
-## Тесты перед PR
+```text
+src/RoManager.Core/   application logic, vault, Roblox API, settings
+src/RoManager.App/    WinUI 3 interface, windows, views, localization
+tools/                build helpers (resources.pri)
+docs/                 development notes and README images
+```
 
-1. `npm run typecheck` — без ошибок.
-2. `npm run build` — `wwwroot/` собирается.
-3. `dotnet build` — без ошибок.
-4. Запуск приложения: вход по тестовому ключу, список аккаунтов, окно настроек.
-5. В Release-сборке DevTools недоступны (F12).
+## Pull requests
 
-Тестовые хуки окружения (`ROM_TEST_*`) работают только в Debug и не должны попадать
-в релиз.
-
-## Commit / PR
-
-- Короткие сообщения в императиве: `fix: ...`, `feat: ...`, `docs: ...`.
-- Один PR — одна логическая правка.
-- В описании: что изменено, как проверено, влияние на данные пользователя.
+- Keep changes focused: one feature or fix per pull request.
+- Match the style of the surrounding code and keep comments meaningful.
+- Test the change in the running app, not just by compiling.
+- Describe what you changed and how you verified it.
