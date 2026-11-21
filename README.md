@@ -1,87 +1,134 @@
-# RoManager
+<p align="center">
+  <img src="docs/assets/icon.png" width="112" alt="RoManager icon">
+</p>
 
-Менеджер аккаунтов Roblox для Windows: удобный список аккаунтов, быстрый запуск
-игры и аккуратное хранение данных. Написан на C# с интерфейсом на WinUI 3.
+<h1 align="center">RoManager</h1>
 
-> **Не аффилировано с Roblox Corporation.** Приложение не связано с Roblox и
-> работает только с вашими собственными аккаунтами. Автоматизация нескольких
-> аккаунтов может нарушать правила Roblox — используйте на свой риск.
+<p align="center">
+  A modern Roblox account manager for Windows.<br>
+  Encrypted vault, quick launching and a clean native interface.
+</p>
 
-## Возможности
+<p align="center">
+  <a href="https://github.com/as-des/RoManager/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/as-des/RoManager?style=flat-square&label=release"></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-0078D4?style=flat-square">
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-8-512BD4?style=flat-square">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-green?style=flat-square"></a>
+</p>
 
-- Несколько аккаунтов в одном списке: добавление, удаление, обновление данных.
-- Вход через браузер или вставка cookie вручную.
-- Избранное: отмеченные аккаунты подсвечиваются и всегда идут первыми.
-- Поиск по имени и сортировка по столбцам.
-- Статус онлайн/офлайн, время последнего запуска и состояние данных.
-- Запуск лаунчера Roblox или конкретной игры, подключение к серверу и к игроку.
-- Несколько клиентов одновременно и разблокировка FPS.
-- Русский и английский интерфейс, история обновлений и проверка новых версий.
-- Современный интерфейс с матовым стеклом и живым фоном.
+<p align="center">
+  <b>English</b> · <a href="README.ru.md">Русский</a>
+</p>
 
-## Безопасность
+> **Not affiliated with Roblox Corporation.** RoManager is an independent tool.
+> It works only with your own accounts. Running multiple accounts at once may
+> break the Roblox terms of service — use it at your own risk.
 
-- Хранилище аккаунтов шифруется; для доступа нужен ключевой файл и код
-  авторизации, которые вы задаёте сами.
-- Пароль Roblox нигде не хранится — только cookie, как в самом клиенте.
-- Вход в менеджер можно запомнить, чтобы не вводить код при каждом запуске.
-  Функция отключается, срок хранения настраивается, сохранённые данные можно
-  удалить в любой момент.
-- Все файлы приложения лежат рядом с `RoManager.exe` и никуда не отправляются.
+<p align="center">
+  <img src="docs/assets/dashboard-en.png" width="820" alt="RoManager dashboard">
+</p>
 
-## Требования
+## Features
 
-- Windows 10 x64 (1809+) или Windows 11.
-- Портативная сборка не требует установки .NET или Windows App SDK.
-- Для входа через браузер нужен установленный Chrome или Edge.
+### Accounts
+- Keep all your accounts in one list with status, last launch and data freshness.
+- Add accounts in seconds: sign in through a browser window or paste a cookie.
+- **Favourites** are highlighted and always stay at the top of the list.
+- **Search** by name and **sort** any column — click a header twice to reverse it.
+- Multi-select for bulk actions: refresh, copy cookies, delete.
 
-## Быстрый старт
+### Launching
+- Start the Roblox launcher or a specific experience.
+- Join a server by ID, or jump straight to a player by nickname.
+- Run several clients at the same time and unlock the FPS cap.
 
-1. Скачайте архив релиза и распакуйте в любую папку.
-2. Запустите `RoManager.exe`.
-3. Создайте новый ключевой файл или откройте существующий и введите код.
-4. Добавьте аккаунты кнопкой «Добавить» на дашборде.
+### Security
+- The vault is encrypted with a key derived from your key file, a two-word
+  phrase and a PIN — you control all three.
+- Remember-me keeps your sign-in protected for your Windows user only, with a
+  configurable retention period. Turn it off or forget it at any time.
+- Your Roblox password is never stored — only the session cookie, exactly like
+  the official client.
+- No telemetry. The app only talks to Roblox and never sends your data anywhere.
 
-Ключевой файл лучше хранить отдельно от папки с программой.
+### Interface
+- Native WinUI 3 with glass panels, smooth animations and a living shader
+  background.
+- English and Russian, switchable in Settings.
+- Built-in changelog, About section and update check.
 
-## Сборка из исходников
+## Download
 
-Нужен [.NET 8 SDK](https://dotnet.microsoft.com/download) и Windows 10/11 x64.
+Grab the latest portable build from
+[**Releases**](https://github.com/as-des/RoManager/releases/latest):
+
+1. Download and unpack the archive anywhere you like.
+2. Run `RoManager.exe`.
+3. Create a new key file or open an existing one.
+4. Add your accounts and you are ready to go.
+
+No installer and no .NET installation required — the build is self-contained.
+Keep the key file separate from the app folder for extra safety.
+
+**Requirements:** Windows 10 x64 (1809+) or Windows 11. Chrome or Edge is needed
+only for browser sign-in.
+
+## Build from source
+
+You need the [.NET 8 SDK](https://dotnet.microsoft.com/download) and Windows 10/11 x64.
 
 ```powershell
 dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64
 ```
 
-Портативная сборка:
+Self-contained build:
 
 ```powershell
 dotnet publish src\RoManager.App\RoManager.App.csproj `
   -c Release -r win-x64 --self-contained true -p:Platform=x64 -o publish
 ```
 
-Готовый `RoManager.exe` появится в
-`src\RoManager.App\bin\x64\Debug\net8.0-windows10.0.19041.0\win-x64\`.
+The build produces WinUI resources (`resources.pri`) automatically, so no
+Visual Studio Build Tools are required.
 
-## Структура репозитория
+## Project layout
 
 ```text
 src/
-  RoManager.Core/   логика приложения и работа с хранилищем
-  RoManager.App/    интерфейс WinUI 3
-tools/              вспомогательные скрипты сборки
-docs/               заметки по разработке
+  RoManager.Core/   application logic and vault
+  RoManager.App/    WinUI 3 interface
+tools/              build helpers
+docs/               development notes and images
 ```
 
-## Версии
+## FAQ
 
-Текущая версия — **0.2.0**.
+**Does RoManager upload my accounts anywhere?**
+No. Everything stays next to `RoManager.exe`; the app only talks to Roblox.
 
-- `pre-0.01`, `pre-0.02` — ранние версии.
-- `v0.01`, `v0.02`, … — текущая линейка.
+**Can I use it from a USB stick?**
+Yes, the build is portable. Copy the folder, including the key file, and run it.
 
-## Лицензия
+**Is there a Linux or macOS version?**
+No, RoManager is Windows-only.
 
-[MIT](LICENSE) © 2026 as-des (asdes).
+**Why do I need a key file and a phrase?**
+Together with your PIN they unlock the encrypted vault. Without all three the
+data cannot be read, even if someone copies the folder.
 
-Ссылки: [GitHub](https://github.com/as-des/RoManager) ·
-[Issues](https://github.com/as-des/RoManager/issues)
+## Versioning
+
+The current version is **0.2.0**. Earlier `pre-0.01` / `pre-0.02` releases are
+from the first generation of the app; `v0.01` and later are the current
+C# / WinUI 3 line. Full history is available in the changelog inside the app.
+
+## License
+
+[MIT](LICENSE) © 2026 as-des (asdes)
+
+---
+
+<p align="center">
+  <sub>Made for people who juggle too many Roblox accounts.</sub><br>
+  <sub><a href="https://github.com/as-des/RoManager">github.com/as-des/RoManager</a> · <a href="https://github.com/as-des/RoManager/issues">Issues</a></sub>
+</p>

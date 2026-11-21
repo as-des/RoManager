@@ -33,4 +33,24 @@
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\..\tools\make-pri.ps1&quot; -OutputDir &quot;$(TargetDir).&quot;"
           ContinueOnError="true" />
   </Target>
+
+  <!--
+    Publish копирует файлы из ReferenceCopyLocalPaths, поэтому сгенерированный
+    resources.pri в папку публикации не попадает — добавляем его сами, иначе
+    портативная сборка падает при старте.
+  -->
+  <Target Name="CopyAppPriToPublish" AfterTargets="Publish" Condition="'$(PublishDir)' != ''">
+    <Copy SourceFiles="$(TargetDir)resources.pri"
+          DestinationFolder="$(PublishDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(TargetDir)resources.pri')" />
+
+    <!-- Компилированная XAML (*.xbf) тоже не попадает в publish автоматически. -->
+    <ItemGroup>
+      <_XbfToPublish Include="$(TargetDir)**\*.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_XbfToPublish)"
+          DestinationFiles="@(_XbfToPublish->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>

@@ -7,6 +7,7 @@
 /frontend/dist/
 /publish/
 /dist/
+/_artifacts/
 *.tsbuildinfo
 
 # ---------- Личные данные и секреты ----------
