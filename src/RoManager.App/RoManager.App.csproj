@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -40,6 +40,7 @@
     <Page Include="MainWindow.xaml" />
     <Page Include="SettingsWindow.xaml" />
     <Page Include="AddAccountWindow.xaml" />
+    <Page Include="BrowserLoginWindow.xaml" />
     <Page Include="Views\LandingView.xaml" />
     <Page Include="Views\WizardView.xaml" />
     <Page Include="Views\DashboardView.xaml" />

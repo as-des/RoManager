@@ -217,6 +217,9 @@ public sealed class Strings
         ["add.badCookie"] = ("Cookie выглядит неверным", "The cookie looks invalid"),
         ["add.invalidCookie"] = ("Cookie недействителен: ", "Invalid cookie: "),
         ["add.added"] = ("Аккаунт {0} добавлен", "Account {0} added"),
+        ["login.title"] = ("Вход Roblox — RoManager", "Roblox sign-in — RoManager"),
+        ["login.loading"] = ("Загружаю страницу входа Roblox…", "Loading the Roblox sign-in page…"),
+        ["login.failed"] = ("Не удалось открыть страницу входа", "Could not open the sign-in page"),
     };
 
     public string this[string key] =>

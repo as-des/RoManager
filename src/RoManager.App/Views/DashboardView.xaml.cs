@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -929,7 +929,8 @@ public sealed partial class DashboardView : UserControl
         try
         {
             Status(Strings.I["add.openingBrowser"], "busy");
-            var (cookie, _, _) = await ChromeLogin.StartAsync(t => Status(t, "busy"));
+            var login = new BrowserLoginWindow();
+            var cookie = await login.ShowAsync();
             if (string.IsNullOrEmpty(cookie))
             {
                 Status(Strings.I["add.noCookie"], "danger");

@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -34,12 +36,23 @@ jobs:
           $tag = "${{ github.ref_name }}"
           Copy-Item README.md,README.ru.md,LICENSE -Destination publish
           Remove-Item publish/*.pdb -ErrorAction SilentlyContinue
+
+          @(
+            "tag:      $tag"
+            "commit:   ${{ github.sha }}"
+            "source:   https://github.com/${{ github.repository }}/tree/$tag"
+            "workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "built:    $(Get-Date -Format o)"
+          ) | Set-Content -Encoding utf8 publish/build-info.txt
+
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Compress-Archive -Path publish\* -DestinationPath "dist/RoManager-win-x64-$tag.zip" -Force
-          Get-ChildItem dist -Filter *.zip | ForEach-Object {
-            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
-            "$h  $($_.Name)"
-          } | Set-Content -Encoding ascii dist/sha256sums.txt
+
+          $lines = @()
+          $zip = Get-ChildItem dist -Filter *.zip | Select-Object -First 1
+          $lines += "$((Get-FileHash $zip.FullName -Algorithm SHA256).Hash.ToLower())  $($zip.Name)"
+          $lines += "$((Get-FileHash publish\RoManager.exe -Algorithm SHA256).Hash.ToLower())  RoManager.exe"
+          $lines | Set-Content -Encoding ascii dist/sha256sums.txt
 
           $notes = ".github/releases/$tag.md"
           if (Test-Path $notes) {
@@ -47,6 +60,11 @@ jobs:
           } else {
             "RoManager $tag" | Set-Content release-notes.md
           }
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/*.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
