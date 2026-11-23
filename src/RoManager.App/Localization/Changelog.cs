@@ -25,6 +25,8 @@ public static class ChangelogData
                 "Таблица сортируется по столбцам: имя, статус, последний запуск и данные; повторный клик меняет направление.",
                 "Добавлен поиск по имени аккаунта.",
                 "Заголовки столбцов выровнены со строками таблицы.",
+                "Вход в Roblox снова выполняется во встроенном окне браузера: после входа cookie сразу попадает в менеджер, отдельный Edge/Chrome не открывается.",
+                "Удаление аккаунтов подтверждается в отдельном окне, как и добавление.",
             },
             new[]
             {
@@ -35,6 +37,8 @@ public static class ChangelogData
                 "The table can be sorted by column: name, status, last launch and data; click again to reverse the order.",
                 "Added a search box for account names.",
                 "Column headers are now aligned with the table rows.",
+                "Roblox sign-in uses an embedded browser window again, so the cookie reaches the manager right after login without opening a separate Edge/Chrome window.",
+                "Account deletion is confirmed in its own window, like adding an account.",
             }),
         new("0.01", "18 ноября 2026", "November 18, 2026",
             new[]
