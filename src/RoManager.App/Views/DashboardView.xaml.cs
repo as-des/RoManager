@@ -981,69 +981,33 @@ public sealed partial class DashboardView : UserControl
 
     /* ---------- удаление ---------- */
 
-    void OnDeleteAccounts(object sender, RoutedEventArgs e)
+    async void OnDeleteAccounts(object sender, RoutedEventArgs e)
     {
         if (_selected.Count == 0 || _dialogOpen) return;
         _dialogOpen = true;
 
-        var s = Strings.I;
-        var names = _selected.Select(id => Vault.Find(id)?.Name ?? "—").ToList();
         var ids = _selected.ToArray();
-        string text = names.Count == 1
-            ? s.F("dash.deleteOne", names[0])
-            : s.F("dash.deleteMany", string.Join(", ", names));
-
-        var panel = new StackPanel();
-
-        panel.Children.Add(new TextBlock
+        try
         {
-            Text = s["dash.deleteHeading"],
-            Foreground = (Brush)Application.Current.Resources["AppText"],
-            FontSize = 17,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Margin = new Thickness(0, 0, 0, 16),
-        });
-        panel.Children.Add(new TextBlock
-        {
-            Text = text,
-            Style = (Style)Application.Current.Resources["AppMutedText"],
-            Margin = new Thickness(0, 0, 0, 18),
-        });
+            var names = ids.Select(id => Vault.Find(id)?.Name ?? "—").ToList();
+            var dialog = new DeleteAccountWindow(names);
+            if (!await dialog.ShowAsync()) return;
 
-        var confirm = new Button
+            Vault.Remove(ids);
+            Vault.Save();
+            _selected.Clear();
+            _manageMode = null;
+            Reload();
+            Status(Strings.I.F("dash.deleted", ids.Length), "success");
+        }
+        catch (Exception ex)
         {
-            Style = (Style)Application.Current.Resources["AppDangerButton"],
-            Content = s["dash.delete"],
-        };
-        confirm.Click += (_, _) =>
+            App.Dump("DeleteAccounts", ex);
+        }
+        finally
         {
-            CloseModal();
-            try
-            {
-                Vault.Remove(ids);
-                Vault.Save();
-                _selected.Clear();
-                _manageMode = null;
-                Reload();
-                Status(s.F("dash.deleted", ids.Length), "success");
-            }
-            catch (Exception ex)
-            {
-                App.Dump("DeleteAccounts", ex);
-            }
-        };
-        panel.Children.Add(confirm);
-
-        var cancel = new Button
-        {
-            Style = (Style)Application.Current.Resources["AppSecondaryButton"],
-            Content = s["common.cancel"],
-            Margin = new Thickness(0, 10, 0, 0),
-        };
-        cancel.Click += (_, _) => CloseModal();
-        panel.Children.Add(cancel);
-
-        ShowModal(panel);
+            _dialogOpen = false;
+        }
     }
 
     /* ---------- прочее ---------- */

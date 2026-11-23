@@ -41,6 +41,7 @@
     <Page Include="SettingsWindow.xaml" />
     <Page Include="AddAccountWindow.xaml" />
     <Page Include="BrowserLoginWindow.xaml" />
+    <Page Include="DeleteAccountWindow.xaml" />
     <Page Include="Views\LandingView.xaml" />
     <Page Include="Views\WizardView.xaml" />
     <Page Include="Views\DashboardView.xaml" />

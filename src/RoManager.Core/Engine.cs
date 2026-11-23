@@ -409,7 +409,17 @@ public class AccountInfo
 
 static class Roblox
 {
-    public static HttpClient Http;
+    static HttpClient _http;
+    public static HttpClient Http
+    {
+        // Ленивая инициализация: вход в аккаунт может произойти раньше, чем
+        // кто-то вызовет Init(), и тогда Http был бы null.
+        get
+        {
+            if (_http == null) Init();
+            return _http;
+        }
+    }
     static readonly Dictionary<string, HttpClient> _byCookie = new();
     static System.Threading.Timer _presenceT, _checkT;
     static readonly object _lock = new();
@@ -417,12 +427,12 @@ static class Roblox
 
     public static void Init()
     {
-        if (Http != null) return;
+        if (_http != null) return;
         var h = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All });
         h.DefaultRequestHeaders.UserAgent.ParseAdd("RoManager/1.0");
         h.Timeout = TimeSpan.FromSeconds(15);
-        Http = h;
-        StartTimers();
+        _http = h;
+        try { StartTimers(); } catch { /* настройки ещё не загружены */ }
     }
     public static void Shutdown()
     {

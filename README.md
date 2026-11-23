@@ -70,8 +70,9 @@ Grab the latest portable build from
 No installer and no .NET installation required — the build is self-contained.
 Keep the key file separate from the app folder for extra safety.
 
-**Requirements:** Windows 10 x64 (1809+) or Windows 11. Chrome or Edge is needed
-only for browser sign-in.
+**Requirements:** Windows 10 x64 (1809+) or Windows 11, plus the Microsoft Edge
+WebView2 Runtime (already present on Windows 11 and on Windows 10 with Edge).
+Sign-in happens in an embedded browser, so no separate Chrome/Edge window is used.
 
 ## Build from source
 
@@ -115,6 +116,23 @@ No, RoManager is Windows-only.
 **Why do I need a key file and a phrase?**
 Together with your PIN they unlock the encrypted vault. Without all three the
 data cannot be read, even if someone copies the folder.
+
+## Verify the release
+
+Release archives are built and published by GitHub Actions from the tagged
+commit, not from a developer machine. Every archive has a SHA-256 checksum in
+`sha256sums.txt` and a signed build-provenance attestation.
+
+```powershell
+# 1. Compare the downloaded archive with the published checksum
+Get-FileHash .\RoManager-win-x64-v0.02.zip -Algorithm SHA256
+
+# 2. Check that the archive was built by this repository's workflow
+gh attestation verify .\RoManager-win-x64-v0.02.zip -R as-des/RoManager
+```
+
+The archive also contains `build-info.txt` with the tag, commit SHA, source link
+and the workflow run that produced it.
 
 ## Versioning
 
