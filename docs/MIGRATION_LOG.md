@@ -372,3 +372,11 @@ ef05c60b7a7523fef32523c4905d1a7d54155b4803dda84ffe6c11da085aa159  AccountData.js
 - [x] Авторство переведено на `as-des (asdes)`: LICENSE, ссылки, git-конфиг и все коммиты в истории.
 - [x] Исправлена портативная сборка: `dotnet publish` не копировал `resources.pri` и `*.xbf`, из-за чего приложение падало с XamlParseException. Добавлен таргет `CopyAppPriToPublish` в `Directory.Build.targets`.
 - [x] Опубликован релиз v0.02: архив `RoManager-win-x64-v0.02.zip` (88,4 МБ), `sha256sums.txt` и заметки `.github/releases/v0.02.md`; ветки `main` и `winui3` в GitHub.
+
+## 2026-11-24 — компактная портативная сборка v0.02 (пересобрана)
+
+- [x] Версия в интерфейсе берётся из `AppInfo.Version = "0.02"` и совпадает с тегом `v0.02`; в csproj `<Version>0.02</Version>`. Ссылки на репозиторий переведены на `as-des/RoManager`.
+- [x] `publish` чистится от ~85 неиспользуемых папок локализаций (остаются `en-GB`, `en-us`, `ru-RU`, `Microsoft.UI.Xaml`, `Views`), `*.pdb` и AI-стека Windows App SDK (ONNX, DirectML, `Microsoft.Windows.AI.*`, `Microsoft.Windows.Search.*`, `Microsoft.Asg.*`) — минус ~53 МБ.
+- [x] Готовый архив: `70 447 861` байт, распаковано 172,2 МБ, SHA-256 `4c23ae51f582fd38b0f518af868be4161d208801378a052af6c1ca60cd35b408`; коммит `cf5fd74`, workflow run `45304163271`.
+- [x] Удаление аккаунтов вынесено в отдельное окно `DeleteAccountWindow`, как и добавление; в настройках скрыт устаревший раздел про внешний Chrome.
+- [x] Перед переделкой сделан бэкап `D:\RoManager_backup_pre-flat-release_2026-11-24`.
