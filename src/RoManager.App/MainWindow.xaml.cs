@@ -164,11 +164,7 @@ public sealed partial class MainWindow : Window
             SetStatus(Strings.I["dash.ready"], "idle");
     }
 
-    static string Version()
-    {
-        var v = Assembly.GetExecutingAssembly().GetName().Version;
-        return v == null ? "0.2.0" : $"{v.Major}.{v.Minor}.{v.Build}";
-    }
+    static string Version() => AppInfo.Version;
 
     /* ---------- навигация ---------- */
 

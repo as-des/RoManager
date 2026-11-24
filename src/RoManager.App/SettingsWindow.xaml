@@ -123,8 +123,8 @@
                         </StackPanel>
                     </ContentControl>
 
-                    <TextBlock x:Name="BrowserTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" />
-                    <ContentControl x:Name="BrowserSection" HorizontalContentAlignment="Stretch">
+                    <TextBlock x:Name="BrowserTitle" Style="{StaticResource AppSectionTitle}" Margin="0,20,0,12" Visibility="Collapsed" />
+                    <ContentControl x:Name="BrowserSection" HorizontalContentAlignment="Stretch" Visibility="Collapsed">
                         <StackPanel Spacing="8">
                             <CheckBox x:Name="BundledCheck" Style="{StaticResource AppCheckBox}" />
                             <TextBlock x:Name="BundledHint" Style="{StaticResource AppRowHint}" />

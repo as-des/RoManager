@@ -5,7 +5,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>RoManager.App</RootNamespace>
     <AssemblyName>RoManager</AssemblyName>
-    <Version>0.2.0</Version>
+    <Version>0.02</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>..\..\app.ico</ApplicationIcon>
     <Platforms>x64</Platforms>
@@ -24,6 +24,10 @@
          собирается отдельным шагом через tools/make-pri.ps1
          (см. Directory.Build.targets → GenerateAppPri). -->
     <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+    <!-- Приложение переводится только на русский и английский. Без этого
+         publish складывает рядом ~85 папок локализаций WinUI/WindowsAppSDK,
+         в которых нет смысла. -->
+    <SatelliteResourceLanguages>ru;en;en-us</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>

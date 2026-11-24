@@ -70,6 +70,11 @@ Grab the latest portable build from
 No installer and no .NET installation required — the build is self-contained.
 Keep the key file separate from the app folder for extra safety.
 
+The archive keeps the .NET runtime next to `RoManager.exe` (a few hundred `.dll`
+files and one `Views` folder). That is normal for a portable self-contained
+build: move or extract the whole folder, not just the `.exe`. Only English and
+Russian interface resources are shipped.
+
 **Requirements:** Windows 10 x64 (1809+) or Windows 11, plus the Microsoft Edge
 WebView2 Runtime (already present on Windows 11 and on Windows 10 with Edge).
 Sign-in happens in an embedded browser, so no separate Chrome/Edge window is used.
@@ -136,7 +141,7 @@ and the workflow run that produced it.
 
 ## Versioning
 
-The current version is **0.2.0**. Earlier `pre-0.01` / `pre-0.02` releases are
+The current version is **0.02** (release tag `v0.02`). Earlier `pre-0.01` / `pre-0.02` releases are
 from the first generation of the app; `v0.01` and later are the current
 C# / WinUI 3 line. Full history is available in the changelog inside the app.
 

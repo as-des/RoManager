@@ -147,9 +147,7 @@ public sealed partial class SettingsWindow : Window
         LicenseLabel.Text = s["settings.license"];
         LicenseValue.Text = "MIT";
         DataFolderLabel.Text = s["settings.dataFolder"];
-        VersionValue.Text = Assembly.GetExecutingAssembly().GetName().Version is { } v
-            ? $"{v.Major}.{v.Minor}.{v.Build}"
-            : "0.2.0";
+        VersionValue.Text = AppInfo.Version;
         DataFolderValue.Text = AppContext.BaseDirectory;
 
         SaveButton.Content = s["common.save"];
@@ -163,8 +161,8 @@ public sealed partial class SettingsWindow : Window
 
     /* ---------- «О программе» ---------- */
 
-    const string RepoUrl = "https://github.com/redolfos2/RoManager";
-    const string ReleasesApi = "https://api.github.com/repos/redolfos2/RoManager/releases/latest";
+    const string RepoUrl = AppInfo.RepoUrl;
+    const string ReleasesApi = AppInfo.ReleasesApi;
 
     static readonly HttpClient Http = CreateHttp();
 
@@ -219,10 +217,7 @@ public sealed partial class SettingsWindow : Window
         }
     }
 
-    static string CurrentVersion() =>
-        Assembly.GetExecutingAssembly().GetName().Version is { } v
-            ? $"{v.Major}.{v.Minor}.{v.Build}"
-            : "0.2.0";
+    static string CurrentVersion() => AppInfo.Version;
 
     /** "v1.2.3-beta" → Version(1,2,3). */
     static Version ParseVersion(string text)

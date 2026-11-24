@@ -27,6 +27,7 @@ public static class ChangelogData
                 "Заголовки столбцов выровнены со строками таблицы.",
                 "Вход в Roblox снова выполняется во встроенном окне браузера: после входа cookie сразу попадает в менеджер, отдельный Edge/Chrome не открывается.",
                 "Удаление аккаунтов подтверждается в отдельном окне, как и добавление.",
+                "Версия в интерфейсе записывается так же, как тег релиза: 0.02. В архив больше не попадают лишние папки локализаций и неиспользуемые компоненты Windows App SDK — сборка стала компактнее и понятнее.",
             },
             new[]
             {
@@ -39,6 +40,7 @@ public static class ChangelogData
                 "Column headers are now aligned with the table rows.",
                 "Roblox sign-in uses an embedded browser window again, so the cookie reaches the manager right after login without opening a separate Edge/Chrome window.",
                 "Account deletion is confirmed in its own window, like adding an account.",
+                "The version in the UI now matches the release tag (0.02). The archive no longer ships unused localization folders or Windows App SDK components, so the portable folder is smaller and easier to read.",
             }),
         new("0.01", "18 ноября 2026", "November 18, 2026",
             new[]

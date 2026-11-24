@@ -53,4 +53,14 @@
           DestinationFiles="@(_XbfToPublish->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
+
+  <!--
+    Чистим publish от лишнего: ~85 папок локализаций WinUI, которые приложение
+    не использует (интерфейс только ru/en), и *.pdb. Так архив выглядит
+    структурно, а не как свалка файлов.
+  -->
+  <Target Name="PrunePublish" AfterTargets="Publish" Condition="'$(PublishDir)' != ''">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\..\tools\prune-publish.ps1&quot; -Dir &quot;$(PublishDir).&quot;"
+          ContinueOnError="true" />
+  </Target>
 </Project>
