@@ -1,59 +1,56 @@
-# Безопасность
+# Security
 
-## Как сообщить об уязвимости
+## How to report a vulnerability
 
-Не создавайте публичный issue для уязвимостей. Напишите приватно:
+Do not create a public issue for vulnerabilities. Report privately:
 
-- GitHub → вкладка **Security** → **Report a vulnerability** (Private vulnerability reporting), или
-- на e-mail автора из профиля GitHub.
+- GitHub → **Security** tab → **Report a vulnerability** (Private vulnerability reporting), or
+- via the author's email from their GitHub profile.
 
-Укажите версию, шаги воспроизведения и что именно позволяет сделать уязвимость.
-Ответ — в течение 7 дней; исправление и релиз — по возможности быстро.
+Specify the version, steps to reproduce, and what the vulnerability allows an attacker to do.
+Response within 7 days; fix and release as soon as possible.
 
-## Что хранит приложение
+## What the application stores
 
-| Файл | Содержимое | Защита |
+| File | Contents | Protection |
 |---|---|---|
-| `rom-key.json` | соль, параметры KDF, `check` (HMAC ключа) | хранится у пользователя, не содержит фразы/PIN |
-| `AccountData.json` | аккаунты Roblox (cookie, имена, настройки) | AES-256-GCM + PBKDF2-SHA256 (v2) |
-| `shader.json` | цвета и скорость фона | **не зашифрован** — не содержит секретов |
-| `rom.log` | технический лог | **не содержит** фразы, PIN и cookie |
-| `wv2/` | профиль WebView2 | локальные данные Chromium |
+| `rom-key.json` | salt, KDF parameters, `check` (HMAC of the key) | stored locally, does not contain passphrase/PIN |
+| `AccountData.json` | Roblox accounts (cookies, names, settings) | AES-256-GCM + PBKDF2-SHA256 (v2) |
+| `shader.json` | background colors and speed | **not encrypted** — contains no secrets |
+| `rom.log` | technical log | **does not contain** passphrase, PIN, or cookies |
+| `wv2/` | WebView2 profile | local Chromium data |
 
-Ключ шифрования не хранится на диске в явном виде: он выводится из ключевого
-файла + фразы (2 слова) + PIN (4–6 цифр) через PBKDF2-SHA256 и живёт только
-в памяти процесса. `check` в ключевом файле — это HMAC от ключа, а не сам ключ.
+The encryption key is not stored on disk in plain text: it is derived from the key file + passphrase (2 words) + PIN (4–6 digits) via PBKDF2-SHA256 and exists only in process memory. The `check` in the key file is an HMAC of the key, not the key itself.
 
-### Форматы хранилища
+### Storage formats
 
-- **v2 (по умолчанию для новых ключей):** AES-256-GCM, PBKDF2-SHA256 600 000 итераций,
-  `check = HMAC-SHA256(key, "rom-v2-check")`, AAD привязан к `keyId`.
-- **v1 (совместимость):** AES-256-CBC, PBKDF2-SHA256 150 000 итераций.
-  Старые ключи и хранилища продолжают открываться и сохраняться в своём формате.
+- **v2 (default for new keys):** AES-256-GCM, PBKDF2-SHA256 with 600,000 iterations,
+  `check = HMAC-SHA256(key, "rom-v2-check")`, AAD bound to `keyId`.
+- **v1 (compatibility):** AES-256-CBC, PBKDF2-SHA256 with 150,000 iterations.
+  Old keys and stores continue to open and save in their original format.
 
-## Модель угроз и ограничения
+## Threat model and limitations
 
-Приложение защищает **файлы на диске**, а не работающий компьютер:
+The application protects **files on disk**, not the running computer:
 
-- вредоносный процесс с правами пользователя может прочитать память и cookie во время работы;
-- файл `AccountData.json` можно скопировать вместе с `rom-key.json`, но без фразы и PIN он бесполезен;
-- PIN из 4–6 цифр перебирается офлайн, если атакующий уже получил ключевой файл и хранилище.
-  Используйте более длинный PIN и не храните оба файла вместе;
-- cookie Roblox — полноценный доступ к аккаунту. Не передавайте `AccountData.json`,
-  `rom-key.json`, `wv2/` и содержимое `rom.log` третьим лицам.
+- a malicious process with user privileges can read memory and cookies while the app is running;
+- `AccountData.json` can be copied along with `rom-key.json`, but it is useless without the passphrase and PIN;
+- a 4–6 digit PIN can be brute-forced offline if the attacker already has the key file and store.
+  Use a longer PIN and do not store both files together;
+- Roblox cookies provide full account access. Do not share `AccountData.json`,
+  `rom-key.json`, `wv2/`, or the contents of `rom.log` with third parties.
 
-## Что сделано в релизе
+## What is done in the release
 
-- В Release отключены DevTools и браузерные горячие клавиши WebView2.
-- Навигация разрешена только на локальный `https://app.local/`; внешние ссылки и новые
-  окна блокируются, разрешения (камера, микрофон, геолокация и т.п.) запрещены.
-- Локальный сервер отдаёт файлы только из `wwwroot` (защита от path traversal).
-- CSP в `index.html` и `settings.html`; отключены autofill и сохранение паролей.
-- Тестовые хуки (`ROM_TEST_*`) собираются только в Debug.
-- В лог не пишутся фраза, PIN и cookie; лог ротируется при 2 МБ.
+- DevTools and WebView2 browser hotkeys are disabled in Release builds.
+- Navigation is allowed only to the local `https://app.local/`; external links and new windows are blocked, permissions (camera, microphone, geolocation, etc.) are denied.
+- The local server serves files only from `wwwroot` (protection against path traversal).
+- CSP in `index.html` and `settings.html`; autofill and password saving are disabled.
+- Test hooks (`ROM_TEST_*`) are compiled only in Debug mode.
+- Passphrase, PIN, and cookies are not written to the log; log rotation occurs at 2 MB.
 
-## Рекомендации пользователю
+## User recommendations
 
-- Скачивайте релизы только из этого репозитория и проверяйте `sha256sums.txt`.
-- Не запускайте сборки из непроверенных источников.
-- Для сборки из исходников используйте официальный .NET SDK и Node.js LTS.
+- Download releases only from this repository and verify `sha256sums.txt`.
+- Do not run builds from untrusted sources.
+- For building from source, use the official .NET SDK and Node.js LTS.
