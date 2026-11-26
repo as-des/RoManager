@@ -87,6 +87,10 @@ public sealed class Strings
         ["settings.tabs.misc"] = ("Разное", "Miscellaneous"),
         ["settings.interface"] = ("Интерфейс", "Interface"),
         ["settings.language"] = ("Язык интерфейса", "Interface language"),
+        ["settings.accent"] = ("Акцентный цвет", "Accent colour"),
+        ["settings.accentHint"] = (
+            "Цвет кнопок, выделения и активных элементов. Применяется после сохранения.",
+            "Colour of buttons, selection and active elements. Applies after saving."),
         ["settings.animatedBg"] = ("Анимированный фон", "Animated background"),
         ["settings.session"] = ("Сессия и аккаунты", "Session & accounts"),
         ["settings.managerSession"] = ("Вход в менеджер", "Manager sign-in"),
@@ -133,6 +137,10 @@ public sealed class Strings
         ["settings.speedHint"] = (
             "Скорость анимации от {0} до {1}; 1.00× — как в оригинале. Фон применяется сразу после сохранения.",
             "Animation speed from {0} to {1}; 1.00× is the original. The background applies right after saving."),
+        ["settings.blur"] = ("Размытие фона", "Background blur"),
+        ["settings.blurHint"] = (
+            "0 — резкий фон, 36 — максимальное размытие. Применяется после сохранения.",
+            "0 is a sharp background, 36 is the strongest blur. Applies after saving."),
         ["settings.badColor"] = ("Цвет должен быть в формате #RRGGBB.", "The colour must be in #RRGGBB format."),
         ["settings.locked"] = ("Доступно после входа", "Available after sign-in"),
         ["settings.about"] = ("О приложении", "About"),

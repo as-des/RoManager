@@ -15,6 +15,11 @@
     <SolidColorBrush x:Key="AppMuted2" Color="#FF666666" />
     <SolidColorBrush x:Key="AppPrimary" Color="#FF3B82F6" />
     <SolidColorBrush x:Key="AppPrimaryHover" Color="#FF2563EB" />
+    <SolidColorBrush x:Key="AppPrimaryPressed" Color="#FF1D4ED8" />
+    <SolidColorBrush x:Key="AppPrimaryDisabled" Color="#FF1E3A5F" />
+    <SolidColorBrush x:Key="AppPrimaryDisabledText" Color="#FF5A7AA5" />
+    <!-- Свечение вокруг активных элементов: тот же акцент с прозрачностью. -->
+    <SolidColorBrush x:Key="AppPrimaryGlow" Color="#263B82F6" />
     <SolidColorBrush x:Key="AppSuccess" Color="#FF22C55E" />
     <SolidColorBrush x:Key="AppWarning" Color="#FFEAB308" />
     <SolidColorBrush x:Key="AppDanger" Color="#FFEF4444" />
@@ -50,18 +55,25 @@
     <x:Double x:Key="AppRadius">14</x:Double>
     <x:Double x:Key="AppRadiusSm">10</x:Double>
 
+    <!-- Шрифт бренда: Unbounded (OFL, лежит в Assets/Fonts). Им набраны
+         заголовки, кнопки и вкладки; текст таблиц и подписи остаются
+         системным шрифтом, иначе широкие буквы ломают колонки. -->
+    <FontFamily x:Key="AppFont">ms-appx:///Assets/Fonts/Unbounded.ttf#Unbounded</FontFamily>
+
     <!-- ========== Текст ========== -->
     <Style x:Key="AppH1" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AppText}" />
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="26" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
     <Style x:Key="AppH2" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AppText}" />
-        <Setter Property="FontSize" Value="19" />
+        <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -85,15 +97,17 @@
 
     <Style x:Key="AppPanelTitle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="#FFCCCCCC" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13.5" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Margin" Value="0,0,0,16" />
     </Style>
 
     <Style x:Key="AppSectionTitle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="#FF999999" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="CharacterSpacing" Value="90" />
         <Setter Property="Margin" Value="0,0,0,10" />
     </Style>
@@ -141,9 +155,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="controls:GlassSurface">
                     <Grid>
-                        <!-- Пустой слой: сюда композиция подставляет размытый backdrop -->
-                        <Border x:Name="GlassLayer" CornerRadius="{TemplateBinding CornerRadius}" />
-                        <!-- Тонировка и рамка поверх размытия -->
+                        <!-- Тонировка и рамка поверх размытого фона окна.
+                             Отдельного backdrop-слоя нет: именно он давал
+                             «двойные» панели при кликах и ресайзе. -->
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -201,6 +215,7 @@
         <Setter Property="Padding" Value="18,12" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -219,13 +234,13 @@
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF1D4ED8" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppPrimaryPressed}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="#FF1E3A5F" />
-                                        <Setter Target="Content.Foreground" Value="#FF5A7AA5" />
+                                        <Setter Target="Root.Background" Value="{StaticResource AppPrimaryDisabled}" />
+                                        <Setter Target="Content.Foreground" Value="{StaticResource AppPrimaryDisabledText}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -253,6 +268,7 @@
         <Setter Property="Padding" Value="18,12" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -306,6 +322,7 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="18,12" />
         <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -355,6 +372,7 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="4,4" />
         <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
         <Setter Property="Template">
@@ -539,8 +557,9 @@
     <!-- Управление аккаунтом: «шторки» по do.html в палитре приложения -->
     <Style x:Key="AppManageTitle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AppMuted}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Margin" Value="4,0,0,10" />
     </Style>
 
@@ -644,6 +663,7 @@
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="FontSize" Value="13.5" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="False" />
@@ -685,7 +705,8 @@
         <Setter Property="BorderBrush" Value="{StaticResource AppWhiteA12}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="#FF8B93A5" />
-        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Padding" Value="9,5" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="CornerRadius" Value="6" />
@@ -725,7 +746,8 @@
         <Setter Property="BorderBrush" Value="#1FFFFFFF" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="#FFDFE3EA" />
-        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Padding" Value="10,4" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="CornerRadius" Value="6" />
@@ -801,7 +823,8 @@
         <Setter Property="BorderBrush" Value="#24FFFFFF" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="#FFE7EBF2" />
-        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Padding" Value="14,7" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="CornerRadius" Value="8" />
@@ -850,7 +873,8 @@
     <!-- Табы настроек -->
     <Style x:Key="AppTabButton" TargetType="Button">
         <Setter Property="Padding" Value="16,9" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="#FFAAAAAA" />
         <Setter Property="BorderThickness" Value="0" />
@@ -906,14 +930,14 @@
                                 <VisualState x:Name="Focused">
                                     <VisualState.Setters>
                                         <Setter Target="Root.BorderBrush" Value="{StaticResource AppPrimary}" />
-                                        <Setter Target="Glow.BorderBrush" Value="#263B82F6" />
+                                        <Setter Target="Glow.BorderBrush" Value="{StaticResource AppPrimaryGlow}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Unfocused" />
                                 <VisualState x:Name="PointerFocused">
                                     <VisualState.Setters>
                                         <Setter Target="Root.BorderBrush" Value="{StaticResource AppPrimary}" />
-                                        <Setter Target="Glow.BorderBrush" Value="#263B82F6" />
+                                        <Setter Target="Glow.BorderBrush" Value="{StaticResource AppPrimaryGlow}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
@@ -961,14 +985,14 @@
                                 <VisualState x:Name="Focused">
                                     <VisualState.Setters>
                                         <Setter Target="Root.BorderBrush" Value="{StaticResource AppPrimary}" />
-                                        <Setter Target="Glow.BorderBrush" Value="#263B82F6" />
+                                        <Setter Target="Glow.BorderBrush" Value="{StaticResource AppPrimaryGlow}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Unfocused" />
                                 <VisualState x:Name="PointerFocused">
                                     <VisualState.Setters>
                                         <Setter Target="Root.BorderBrush" Value="{StaticResource AppPrimary}" />
-                                        <Setter Target="Glow.BorderBrush" Value="#263B82F6" />
+                                        <Setter Target="Glow.BorderBrush" Value="{StaticResource AppPrimaryGlow}" />
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>

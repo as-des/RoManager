@@ -79,7 +79,7 @@ public sealed class NotificationStack : Grid
         "success" => Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E),
         "danger" => Color.FromArgb(0xFF, 0xEF, 0x44, 0x44),
         "warning" => Color.FromArgb(0xFF, 0xEA, 0xB3, 0x08),
-        _ => Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6),
+        _ => Appearance.AccentColor,
     };
 
     static string Glyph(string kind) => kind switch

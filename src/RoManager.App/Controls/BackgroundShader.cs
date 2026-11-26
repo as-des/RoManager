@@ -249,11 +249,16 @@ public static class BackgroundShader
         var colors = _colors;
         var bitmap = _target.Source as WriteableBitmap;
 
+        // Размытие в пикселях мини-буфера: настройка задана в DIP.
+        double scale = _target.ActualSize.X > 1 && w > 0 ? _target.ActualSize.X / w : 1;
+        int radius = (int)Math.Round(AppearanceConfig.Current.Blur / scale);
+
         _ = Task.Run(() =>
         {
             try
             {
                 RenderFrame(buffer, vignette, w, h, time, colors);
+                if (radius > 0) BoxBlur(buffer, w, h, radius);
             }
             catch (Exception ex)
             {
@@ -339,6 +344,48 @@ public static class BackgroundShader
     }
 
     static byte ToByte(float v) => (byte)Math.Clamp((int)(v * 255f + 0.5f), 0, 255);
+
+    /**
+     * Дешёвое размытие CPU-фона: два прохода box blur по мини-буферу
+     * (36 тыс. пикселей), поэтому на глаз это гаусс, а по цене — копейки.
+     */
+    static void BoxBlur(byte[] px, int w, int h, int radius)
+    {
+        int max = Math.Max(1, Math.Min(w, h) / 6);
+        radius = Math.Clamp(radius, 1, max);
+        var tmp = new byte[px.Length];
+        BlurPass(px, tmp, w, h, radius, horizontal: true);
+        BlurPass(tmp, px, w, h, radius, horizontal: false);
+    }
+
+    static void BlurPass(byte[] src, byte[] dst, int w, int h, int radius, bool horizontal)
+    {
+        int outer = horizontal ? h : w;   // строк (или столбцов)
+        int inner = horizontal ? w : h;   // длина прохода
+        Parallel.For(0, outer, RenderOptions, o =>
+        {
+            for (int i = 0; i < inner; i++)
+            {
+                int sb = 0, sg = 0, sr = 0, sa = 0;
+                for (int k = -radius; k <= radius; k++)
+                {
+                    int j = Math.Clamp(i + k, 0, inner - 1);
+                    int index = horizontal ? (o * w + j) * 4 : (j * w + o) * 4;
+                    sb += src[index];
+                    sg += src[index + 1];
+                    sr += src[index + 2];
+                    sa += src[index + 3];
+                }
+
+                int count = radius * 2 + 1;
+                int d = horizontal ? (o * w + i) * 4 : (i * w + o) * 4;
+                dst[d] = (byte)(sb / count);
+                dst[d + 1] = (byte)(sg / count);
+                dst[d + 2] = (byte)(sr / count);
+                dst[d + 3] = (byte)(sa / count);
+            }
+        });
+    }
 
     static float OrganicWave(float stx, float sty, float time, in Wave w, float fadeA, float fadeB)
     {

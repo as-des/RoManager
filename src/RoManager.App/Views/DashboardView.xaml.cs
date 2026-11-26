@@ -37,7 +37,9 @@ public sealed partial class DashboardView : UserControl
     public event Action LogoutRequested;
     public event Action SettingsRequested;
 
-    static readonly Color Accent = Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6);
+    /** Акцент берём из темы: его можно сменить в настройках. */
+    static Color AccentColor => Appearance.AccentColor;
+
     static readonly SolidColorBrush RowDivider = new(Color.FromArgb(0xFF, 0x1A, 0x1A, 0x1A));
     /** Подсветка строки под курсором: та же волна, что у выделения, но серая. */
     static readonly Brush RowHover = WaveBrush(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF));
@@ -56,6 +58,15 @@ public sealed partial class DashboardView : UserControl
             AccountsBar.Attach(AccountsScroll);
         };
         SizeChanged += (_, _) => ApplyResponsiveLayout();
+
+        // Акцент меняет только вычисленные элементы (галочки, подсветка строк),
+        // кисти темы обновляются сами.
+        UiEvents.AppearanceChanged += () => DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!IsLoaded) return;
+            Reload();
+            ApplyManageLayout(animate: false);
+        });
 
         // Ширину строки задаём от панели явно: так Grid со звёздными
         // колонками всегда заполняет её целиком, независимо от контента.
@@ -263,8 +274,8 @@ public sealed partial class DashboardView : UserControl
             Height = 16,
             CornerRadius = new CornerRadius(4),
             BorderThickness = new Thickness(1.5),
-            BorderBrush = selected ? new SolidColorBrush(Accent) : CheckBorder,
-            Background = selected ? new SolidColorBrush(Accent) : new SolidColorBrush(Colors.Transparent),
+            BorderBrush = selected ? new SolidColorBrush(AccentColor) : CheckBorder,
+            Background = selected ? new SolidColorBrush(AccentColor) : new SolidColorBrush(Colors.Transparent),
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Left,
         };
@@ -398,7 +409,11 @@ public sealed partial class DashboardView : UserControl
     /** Лёгкая золотая волна для избранных аккаунтов. */
     static LinearGradientBrush FavoriteBrush() => WaveBrush(Color.FromArgb(0x2E, 0xE0, 0xBA, 0x5E));
 
-    static LinearGradientBrush SelectionBrush() => WaveBrush(Color.FromArgb(0x33, 0x3B, 0x82, 0xF6));
+    static LinearGradientBrush SelectionBrush()
+    {
+        var accent = AccentColor;
+        return WaveBrush(Color.FromArgb(0x33, accent.R, accent.G, accent.B));
+    }
 
     /**
      * Горизонтальная «волна» с прозрачными краями — как выделение в 2.1.0.
@@ -508,7 +523,8 @@ public sealed partial class DashboardView : UserControl
     static readonly SolidColorBrush SegmentBg = new(Color.FromArgb(0x8C, 0x1A, 0x1C, 0x24));
     static readonly SolidColorBrush SegmentBorder = new(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
     static readonly SolidColorBrush SegmentBgActive = new(Color.FromArgb(0xB3, 0x0F, 0x11, 0x18));
-    static readonly SolidColorBrush SegmentBorderActive = new(Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6));
+    /** Рамка активной шторки тоже следует за акцентом. */
+    static SolidColorBrush SegmentBorderActive => new(AccentColor);
 
     /* ---------- адаптивная сетка (как media queries 2.1.0) ---------- */
 

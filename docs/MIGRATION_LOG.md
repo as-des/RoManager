@@ -380,3 +380,11 @@ ef05c60b7a7523fef32523c4905d1a7d54155b4803dda84ffe6c11da085aa159  AccountData.js
 - [x] Готовый архив: `70 447 861` байт, распаковано 172,2 МБ, SHA-256 `4c23ae51f582fd38b0f518af868be4161d208801378a052af6c1ca60cd35b408`; коммит `cf5fd74`, workflow run `45304163271`.
 - [x] Удаление аккаунтов вынесено в отдельное окно `DeleteAccountWindow`, как и добавление; в настройках скрыт устаревший раздел про внешний Chrome.
 - [x] Перед переделкой сделан бэкап `D:\RoManager_backup_pre-flat-release_2026-11-24`.
+
+## 2026-11-26 — версия 0.03: внешний вид и исправление панелей
+
+- [x] Причина «двойных» панелей — `CompositionBackdropBrush` + Win2D-размытие в `GlassSurface`: слой захватывал уже отрисованное окно. `GlassSurface` переведён на тонировку и рамку, размывается только фон (`BackgroundGpu`/`BackgroundShader`).
+- [x] Размытие фона настраивается (0–36 DIP) и хранится в `appearance.json`; акцентный цвет тоже в `appearance.json` и применяется перекраской кистей темы без перезапуска.
+- [x] Исправлено состояние нажатия кнопок и рамка активной шторки: они больше не остаются синими при другом акценте (`AppPrimaryPressed`, `SegmentBorderActive`, `PinDots`, уведомления, зона перетаскивания в мастере).
+- [x] Шрифт Unbounded (`Assets/Fonts/Unbounded.ttf`, лицензия OFL) для заголовков, кнопок и вкладок; таблицы и подписи остаются на системном шрифте. `prune-publish.ps1` сохраняет `Assets`.
+- [x] Версия `0.03` в `AppInfo.Version` и csproj, запись в changelog, `README.md` / `README.ru.md`, заметки `.github/releases/v0.03.md`.

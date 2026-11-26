@@ -54,6 +54,9 @@
 ### Interface
 - Native WinUI 3 with glass panels, smooth animations and a living shader
   background.
+- Adjustable background blur and accent colour: pick any accent and the
+  buttons, selection, tabs and highlights follow live, without a restart.
+- The Unbounded typeface for headings and controls, with full Cyrillic support.
 - English and Russian, switchable in Settings.
 - Built-in changelog, About section and update check.
 
@@ -130,10 +133,10 @@ commit, not from a developer machine. Every archive has a SHA-256 checksum in
 
 ```powershell
 # 1. Compare the downloaded archive with the published checksum
-Get-FileHash .\RoManager-win-x64-v0.02.zip -Algorithm SHA256
+Get-FileHash .\RoManager-win-x64-v0.03.zip -Algorithm SHA256
 
 # 2. Check that the archive was built by this repository's workflow
-gh attestation verify .\RoManager-win-x64-v0.02.zip -R as-des/RoManager
+gh attestation verify .\RoManager-win-x64-v0.03.zip -R as-des/RoManager
 ```
 
 The archive also contains `build-info.txt` with the tag, commit SHA, source link
@@ -141,7 +144,7 @@ and the workflow run that produced it.
 
 ## Versioning
 
-The current version is **0.02** (release tag `v0.02`). Earlier `pre-0.01` / `pre-0.02` releases are
+The current version is **0.03** (release tag `v0.03`). Earlier `pre-0.01` / `pre-0.02` releases are
 from the first generation of the app; `v0.01` and later are the current
 C# / WinUI 3 line. Full history is available in the changelog inside the app.
 

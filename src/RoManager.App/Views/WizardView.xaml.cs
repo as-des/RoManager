@@ -208,7 +208,8 @@ public sealed partial class WizardView : UserControl
         e.AcceptedOperation = DataPackageOperation.Copy;
         e.DragUIOverride.Caption = Strings.I["wizard.dropHint"];
         DropRect.Stroke = (Brush)Application.Current.Resources["AppPrimary"];
-        DropZone.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x0F, 0x3B, 0x82, 0xF6));
+        var accent = Appearance.AccentColor;
+        DropZone.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0x0F, accent.R, accent.G, accent.B));
     }
 
     void OnDropDragLeave(object sender, DragEventArgs e)

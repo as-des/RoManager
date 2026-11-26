@@ -39,6 +39,8 @@ static class BackgroundGpu
     static PixelShaderEffect _effect;
     static CanvasRenderTarget _target;
     static CanvasBitmap _source;
+    static GaussianBlurEffect _blur;
+    static float _blurAmount = -1;
     static int _w, _h;
 
     static double _time;
@@ -99,6 +101,7 @@ static class BackgroundGpu
         ShaderConfig.Changed -= ApplySettings;
         _canvas.CreateResources -= OnCreateResources;
         _canvas.Draw -= OnDraw;
+        _blur?.Dispose();
         _target?.Dispose();
         _source?.Dispose();
         _effect?.Dispose();
@@ -106,6 +109,8 @@ static class BackgroundGpu
         _target = null;
         _source = null;
         _effect = null;
+        _blur = null;
+        _blurAmount = -1;
         _w = _h = 0;
         Ready = false;
     }
@@ -165,9 +170,12 @@ static class BackgroundGpu
 
             if (_target == null || _w != pw || _h != ph)
             {
+                _blur?.Dispose();
                 _target?.Dispose();
                 _source?.Dispose();
                 _target = new CanvasRenderTarget(_canvas, pw, ph, 96);
+                _blur = null;
+                _blurAmount = -1;
                 _w = pw;
                 _h = ph;
             }
@@ -187,7 +195,24 @@ static class BackgroundGpu
             using (var ds = _target.CreateDrawingSession())
                 ds.DrawImage(_effect, new Rect(0, 0, pw, ph), new Rect(0, 0, pw, ph));
 
-            args.DrawingSession.DrawImage(_target, new Rect(0, 0, size.Width, size.Height),
+            // Размытие задаётся в DIP, а рендер идёт в 1/3 разрешения —
+            // радиус делим на RenderScale, иначе картинка «плывёт».
+            float amount = (float)Math.Max(0, AppearanceConfig.Current.Blur / RenderScale);
+            if (_blur == null || Math.Abs(_blurAmount - amount) > 0.01f)
+            {
+                _blur?.Dispose();
+                _blur = amount <= 0.01f ? null : new GaussianBlurEffect
+                {
+                    Source = _target,
+                    BlurAmount = amount,
+                    BorderMode = EffectBorderMode.Hard,
+                    Optimization = EffectOptimization.Balanced,
+                };
+                _blurAmount = amount;
+            }
+
+            ICanvasImage image = _blur ?? (ICanvasImage)_target;
+            args.DrawingSession.DrawImage(image, new Rect(0, 0, size.Width, size.Height),
                 new Rect(0, 0, pw, ph), 1, CanvasImageInterpolation.Linear);
         }
         catch (Exception ex)

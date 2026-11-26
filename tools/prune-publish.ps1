@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)][string]$Dir,
-    [string[]]$Keep = @('en-us', 'en-GB', 'ru-RU', 'Microsoft.UI.Xaml', 'Views')
+    [string[]]$Keep = @('en-us', 'en-GB', 'ru-RU', 'Microsoft.UI.Xaml', 'Views', 'Assets')
 )
 
 # Removes WinUI / Windows App SDK localization folders that the app never uses.

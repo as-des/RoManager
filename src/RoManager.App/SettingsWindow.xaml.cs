@@ -93,6 +93,8 @@ public sealed partial class SettingsWindow : Window
 
         InterfaceTitle.Text = s["settings.interface"].ToUpperInvariant();
         LanguageLabel.Text = s["settings.language"];
+        AccentLabel.Text = s["settings.accent"];
+        AccentHint.Text = s["settings.accentHint"];
 
         ManagerSessionTitle.Text = s["settings.managerSession"].ToUpperInvariant();
         SaveSessionCheck.Content = s["settings.saveSession"];
@@ -109,6 +111,8 @@ public sealed partial class SettingsWindow : Window
         Wave3Label.Text = s["settings.wave3"];
         SpeedLabel.Text = s["settings.speed"];
         SpeedHint.Text = s.F("settings.speedHint", ShaderConfig.SpeedMin.ToString("0.00"), ShaderConfig.SpeedMax.ToString("0.00"));
+        BlurLabel.Text = s["settings.blur"];
+        BlurHint.Text = s["settings.blurHint"];
 
         LockBannerText.Text = s["settings.locked"];
 
@@ -264,10 +268,17 @@ public sealed partial class SettingsWindow : Window
         Color3Box.Text = sh.Color3;
         SpeedSlider.Value = sh.Speed;
         SpeedValue.Text = sh.Speed.ToString("0.00") + "×";
+
+        var ap = AppearanceConfig.Current;
+        AccentBox.Text = ap.Accent;
+        BlurSlider.Value = ap.Blur;
+        BlurValue.Text = ((int)Math.Round(ap.Blur)).ToString();
         UpdateSwatches();
     }
 
     void OnColorChanged(object sender, TextChangedEventArgs e) => UpdateSwatches();
+
+    void OnAccentChanged(object sender, TextChangedEventArgs e) => UpdateSwatches();
 
     bool _syncingColor;
 
@@ -276,6 +287,7 @@ public sealed partial class SettingsWindow : Window
         Color1SwatchFill.Background = Swatch(Color1Box.Text);
         Color2SwatchFill.Background = Swatch(Color2Box.Text);
         Color3SwatchFill.Background = Swatch(Color3Box.Text);
+        if (AccentSwatchFill != null) AccentSwatchFill.Background = Swatch(AccentBox.Text);
     }
 
     static Brush Swatch(string hex) =>
@@ -286,6 +298,7 @@ public sealed partial class SettingsWindow : Window
     void OnPickColor1(object sender, RoutedEventArgs e) => ShowPicker(Color1Swatch);
     void OnPickColor2(object sender, RoutedEventArgs e) => ShowPicker(Color2Swatch);
     void OnPickColor3(object sender, RoutedEventArgs e) => ShowPicker(Color3Swatch);
+    void OnPickAccent(object sender, RoutedEventArgs e) => ShowPicker(AccentSwatch);
 
     static void ShowPicker(Button button)
     {
@@ -298,6 +311,7 @@ public sealed partial class SettingsWindow : Window
     void OnColor1FlyoutOpened(object sender, object e) => SyncPicker(Color1Picker, Color1Box);
     void OnColor2FlyoutOpened(object sender, object e) => SyncPicker(Color2Picker, Color2Box);
     void OnColor3FlyoutOpened(object sender, object e) => SyncPicker(Color3Picker, Color3Box);
+    void OnAccentFlyoutOpened(object sender, object e) => SyncPicker(AccentPicker, AccentBox);
 
     void OnColor1PickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
         PickerChanged(Color1Box, args.NewColor);
@@ -305,6 +319,8 @@ public sealed partial class SettingsWindow : Window
         PickerChanged(Color2Box, args.NewColor);
     void OnColor3PickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
         PickerChanged(Color3Box, args.NewColor);
+    void OnAccentPickerChanged(ColorPicker sender, ColorChangedEventArgs args) =>
+        PickerChanged(AccentBox, args.NewColor);
 
     void SyncPicker(ColorPicker picker, TextBox box)
     {
@@ -326,6 +342,12 @@ public sealed partial class SettingsWindow : Window
     {
         if (SpeedValue == null) return;
         SpeedValue.Text = SpeedSlider.Value.ToString("0.00") + "×";
+    }
+
+    void OnBlurChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (BlurValue == null) return;
+        BlurValue.Text = ((int)Math.Round(BlurSlider.Value)).ToString();
     }
 
     /* ---------- значения ---------- */
@@ -389,7 +411,8 @@ public sealed partial class SettingsWindow : Window
 
     async void OnSave(object sender, RoutedEventArgs e)
     {
-        if (!Hex.IsMatch(Color1Box.Text) || !Hex.IsMatch(Color2Box.Text) || !Hex.IsMatch(Color3Box.Text))
+        if (!Hex.IsMatch(Color1Box.Text) || !Hex.IsMatch(Color2Box.Text) || !Hex.IsMatch(Color3Box.Text) ||
+            !Hex.IsMatch(AccentBox.Text))
         {
             SaveStatus.Text = Strings.I["settings.badColor"];
             return;
@@ -440,6 +463,15 @@ public sealed partial class SettingsWindow : Window
                 // Рендерер задаётся вручную в shader.json — не сбрасываем его.
                 Renderer = ShaderConfig.Current.Renderer,
             });
+
+            // Акцент и размытие — в appearance.json; применится сразу
+            // (AppearanceConfig.Changed → Appearance.Apply).
+            AppearanceConfig.Save(new AppearanceSettings
+            {
+                Accent = AccentBox.Text,
+                Blur = BlurSlider.Value,
+            });
+            UiEvents.RaiseAppearanceChanged();
 
             SaveStatus.Text = Strings.I["status.settingsSaved"];
             CoreHost.PushStatus(Strings.I["status.settingsSaved"], "success");

@@ -8,7 +8,7 @@ namespace RoManager.App;
  */
 static class AppInfo
 {
-    public const string Version = "0.02";
+    public const string Version = "0.03";
     public const string RepoUrl = "https://github.com/as-des/RoManager";
     public const string ReleasesApi = "https://api.github.com/repos/as-des/RoManager/releases/latest";
 

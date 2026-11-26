@@ -5,7 +5,9 @@ public static class UiEvents
 {
     public static Action LanguageChanged;
     public static Action SettingsSaved;
+    public static Action AppearanceChanged;
 
     public static void RaiseLanguageChanged() => LanguageChanged?.Invoke();
     public static void RaiseSettingsSaved() => SettingsSaved?.Invoke();
+    public static void RaiseAppearanceChanged() => AppearanceChanged?.Invoke();
 }

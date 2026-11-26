@@ -15,6 +15,23 @@ public static class ChangelogData
 {
     public static readonly ChangelogEntry[] Entries =
     {
+        new("0.03", "25 ноября 2026", "November 25, 2026",
+            new[]
+            {
+                "Исправлены «двойные» полупрозрачные панели: при кликах и изменении размера окна фон больше не дублируется и не становится непрозрачным.",
+                "Размытие фона теперь настраивается: ползунок от 0 (резкий фон) до 36 (максимальное размытие) в настройках, раздел «Фон».",
+                "Акцентный цвет интерфейса можно изменить: кнопки, выделение и активные элементы перекрашиваются без перезапуска. Настройка находится в «Интерфейсе».",
+                "Заголовки, кнопки и вкладки набраны шрифтом Unbounded — он поддерживает кириллицу и латиницу. Текст таблицы остался системным шрифтом для читаемости.",
+                "Версия обновлена до 0.03.",
+            },
+            new[]
+            {
+                "Fixed the doubled translucent panels: clicking or resizing the window no longer duplicates the background or leaves opaque copies.",
+                "Background blur is now adjustable: a slider from 0 (sharp) to 36 (strongest blur) in Settings → Background.",
+                "The interface accent colour can be changed: buttons, selection and active elements recolour without a restart. The setting lives in Interface.",
+                "Headings, buttons and tabs use the Unbounded typeface, which includes Cyrillic and Latin. Table text stays on the system font for readability.",
+                "Version bumped to 0.03.",
+            }),
         new("0.02", "20 ноября 2026", "November 20, 2026",
             new[]
             {

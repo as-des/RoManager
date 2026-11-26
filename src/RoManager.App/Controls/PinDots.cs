@@ -9,7 +9,9 @@ namespace RoManager.App.Controls;
 public sealed class PinDots : StackPanel
 {
     static readonly SolidColorBrush EmptyBorder = new(Color.FromArgb(0xFF, 0x44, 0x44, 0x44));
-    static readonly SolidColorBrush Filled = new(Color.FromArgb(0xFF, 0x3B, 0x82, 0xF6));
+
+    /** Заполненные точки красятся акцентом из настроек. */
+    static SolidColorBrush Filled => new(Appearance.AccentColor);
 
     readonly Border[] _dots = new Border[6];
 
@@ -40,9 +42,10 @@ public sealed class PinDots : StackPanel
     {
         for (int i = 0; i < _dots.Length; i++)
         {
-            bool filled = i < count;
-            _dots[i].Background = filled ? Filled : new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
-            _dots[i].BorderBrush = filled ? Filled : EmptyBorder;
+            bool on = i < count;
+            var filled = Filled;
+            _dots[i].Background = on ? filled : new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+            _dots[i].BorderBrush = on ? filled : EmptyBorder;
         }
     }
 }
