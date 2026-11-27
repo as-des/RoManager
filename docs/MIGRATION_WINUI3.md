@@ -1,69 +1,69 @@
-# План переноса RoManager на C# + WinUI 3 (Windows App SDK)
+# Plan for migrating RoManager to C# + WinUI 3 (Windows App SDK)
 
-**Цель:** заменить текущий UI на `HTML + CSS + JS` в WebView2 на нативный интерфейс,
-который рендерится программно (XAML + Win2D), сохранив весь C#-бэкенд: хранилище,
-шифрование, запуск Roblox, настройки, вход через WebView2 и реальные данные пользователя.
+**Goal:** replace the current `HTML + CSS + JS` UI in WebView2 with a native interface
+that renders programmatically (XAML + Win2D), while keeping the entire C# backend: storage,
+encryption, launching Roblox, settings, login via WebView2 and the user's real data.
 
-**Целевой стек:**
+**Target stack:**
 
 - C# / .NET 8
 - WinUI 3 + Windows App SDK
-- Win2D + HLSL для анимированного фона
-- WebView2 только для входа в Roblox (это не UI приложения)
-- Unpackaged self-contained сборка (портативная папка, как сейчас)
+- Win2D + HLSL for the animated background
+- WebView2 only for logging into Roblox (this is not the app UI)
+- Unpackaged self-contained build (portable folder, as now)
 
-**Версия нового UI:** 3.0.0 (старая 2.1.0 остаётся рабочей и нетронутой).
+**New UI version:** 3.0.0 (the old 2.1.0 stays working and untouched).
 
 ---
 
-## 0. Бэкап — НЕ ТРОГАТЬ
+## 0. Backup — DO NOT TOUCH
 
-Делается один раз до любых изменений. Этот бэкап не открываем на запись,
-не пересобираем, не «подчищаем» и не используем как рабочий каталог.
+Created once before any changes. We do not open this backup for writing,
+do not rebuild it, do not "clean it up" and do not use it as a working directory.
 
-### 0.1. Зафиксировать исходники
+### 0.1. Freeze the sources
 
-- [ ] Убедиться, что рабочее дерево чистое: `git status`.
-- [ ] Поставить тег на текущий коммит: `git tag pre-winui-3.0.0`.
-- [ ] Сделать полную копию проекта:
+- [ ] Make sure the working tree is clean: `git status`.
+- [ ] Tag the current commit: `git tag pre-winui-3.0.0`.
+- [ ] Make a full copy of the project:
   `D:\RoManager_backup_pre-winui_2026-11-14\`
-  (без `bin`, `obj`, `wv2`, `chrome-win64`, `dist`, чтобы копия была лёгкой,
-  но с `frontend`, `wwwroot_legacy`, `design`, `docs`).
-- [ ] Дополнительно сохранить `git bundle` всего репозитория в эту же папку.
-- [ ] Записать в `SHA256SUMS.txt` контрольные суммы архива/бандла.
+  (without `bin`, `obj`, `wv2`, `chrome-win64`, `dist`, so the copy stays light,
+  but with `frontend`, `wwwroot_legacy`, `design`, `docs`).
+- [ ] Additionally save a `git bundle` of the whole repository into the same folder.
+- [ ] Write the checksums of the archive/bundle into `SHA256SUMS.txt`.
 
-### 0.2. Зафиксировать рабочий артефакт
+### 0.2. Freeze the working artifact
 
-- [ ] Скопировать `dist\RoManager-win-x64-v2.1.0.zip` и `dist\sha256sums.txt`
-  в бэкап-папку.
-- [ ] Проверить, что архив запускается из бэкап-папки и показывает текущий UI.
+- [ ] Copy `dist\RoManager-win-x64-v2.1.0.zip` and `dist\sha256sums.txt`
+  into the backup folder.
+- [ ] Verify that the archive launches from the backup folder and shows the current UI.
 
-### 0.3. Зафиксировать пользовательские данные (отдельно, не в git)
+### 0.3. Freeze the user data (separately, not in git)
 
-- [ ] Скопировать реальные `AccountData.json`, `rom-key.json`, `settings.json`,
-  `shader.json` в защищённое место вне репозитория.
-- [ ] Проверить размер/дату и то, что копия расшифровывается тем же ключом.
-- [ ] **Не коммитить и не прикладывать** эти файлы никуда.
+- [ ] Copy the real `AccountData.json`, `rom-key.json`, `settings.json`,
+  `shader.json` into a secure location outside the repository.
+- [ ] Check the size/date and that the copy decrypts with the same key.
+- [ ] **Do not commit and do not attach** these files anywhere.
 
-### 0.4. Правила по бэкапу
+### 0.4. Backup rules
 
-- [ ] Бэкап-папка доступна только на чтение для рабочего процесса.
-- [ ] Все эксперименты ведутся только в новом каталоге/ветке.
-- [ ] Старый проект не удаляется и не переименовывается до полного паритета.
-- [ ] `wwwroot_legacy`, `design/offer.html`, реальные vault/key — не изменять.
+- [ ] The backup folder is read-only for the workflow.
+- [ ] All experiments are carried out only in the new directory/branch.
+- [ ] The old project is not deleted or renamed until full parity.
+- [ ] `wwwroot_legacy` and the real vault/key — do not modify.
 
-**Критерий готовности шага:** бэкап собран, его хэши записаны, архив из бэкапа
-запускается и открывает текущий интерфейс.
+**Step completion criterion:** the backup is assembled, its hashes are recorded, the archive from the backup
+launches and opens the current interface.
 
 ---
 
-## 1. Аудит и подготовка архитектуры
+## 1. Audit and architecture preparation
 
-### 1.1. Разделить решение на проекты
+### 1.1. Split the solution into projects
 
 ```
 RoManager.sln
-├─ src/RoManager.Core/          — без UI, net8.0-windows
+├─ src/RoManager.Core/          — no UI, net8.0-windows
 │   ├─ Engine.cs                — Vault, Crypto, Roblox, ChromeLogin, UserSettings, AccountInfo
 │   ├─ Services/                — AccountService, LaunchService, SettingsService
 │   └─ Models/
@@ -73,223 +73,223 @@ RoManager.sln
 │   ├─ Controls/                — NotificationStack, AccountTable, Sidebar
 │   ├─ ViewModels/
 │   └─ Rendering/               — Win2D + HLSL
-└─ tests/RoManager.Core.Tests/  — проверки хранилища и сервисов
+└─ tests/RoManager.Core.Tests/  — vault and service tests
 ```
 
-- [ ] Перенести `Engine.cs` в `RoManager.Core` без изменения логики
-  (в нём нет WinForms — проверено).
-- [ ] `Bridge.cs` не переносить как есть: его роль выполняет слой ViewModel/сервисов.
-  Оставить `Bridge` только в старом проекте.
-- [ ] Вынести из `Frame.cs`/`SettingsFrame.cs` всё, что не относится к окну:
-  запуск, настройки, работу с аккаунтами.
-- [ ] Определить контракты сервисов: `IAccountService`, `ILaunchService`,
+- [ ] Move `Engine.cs` into `RoManager.Core` without changing the logic
+  (it has no WinForms — verified).
+- [ ] Do not move `Bridge.cs` as is: its role is performed by the ViewModel/services layer.
+  Leave `Bridge` only in the old project.
+- [ ] Extract from `Frame.cs`/`SettingsFrame.cs` everything not related to the window:
+  launching, settings, working with accounts.
+- [ ] Define the service contracts: `IAccountService`, `ILaunchService`,
   `ISettingsService`, `IVaultService`, `ILoginService`.
-- [ ] Сохранить совместимость форматов: `AccountData.json` v1/v2, `settings.json`,
-  `shader.json`. Никаких миграций «на всякий случай».
+- [ ] Preserve format compatibility: `AccountData.json` v1/v2, `settings.json`,
+  `shader.json`. No migrations "just in case".
 
-### 1.2. Зафиксировать паритет функций
+### 1.2. Freeze feature parity
 
-Чек-лист, который должен работать после переноса:
+The checklist that must work after the migration:
 
-- [ ] Создание ключевого файла (фраза + PIN + подтверждение).
-- [ ] Вход по ключевому файлу, обработка неверной фразы/PIN.
-- [ ] Дашборд: список аккаунтов, онлайн-статус, дата, актуальность данных.
-- [ ] Выделение строк (клик, Ctrl, Shift), массовое удаление.
-- [ ] Добавление аккаунта через встроенный вход Roblox.
-- [ ] Добавление вставкой cookie.
-- [ ] Обновление данных аккаунта.
-- [ ] Запуск лаунчера, «К игре», «К игроку».
-- [ ] Настройки: cookie, Multi Roblox, presence, FPS, Chrome, фон, логи.
-- [ ] Уведомления, статус-бар, версия, история обновлений.
-- [ ] Выход из аккаунта / закрытие приложения.
-- [ ] Работа с реальным хранилищем на 13 аккаунтов.
+- [ ] Creating a key file (phrase + PIN + confirmation).
+- [ ] Login by key file, handling an incorrect phrase/PIN.
+- [ ] Dashboard: account list, online status, date, data freshness.
+- [ ] Row selection (click, Ctrl, Shift), bulk deletion.
+- [ ] Adding an account through the built-in Roblox login.
+- [ ] Adding by pasting a cookie.
+- [ ] Refreshing account data.
+- [ ] Launching the launcher, "To game", "To player".
+- [ ] Settings: cookie, Multi Roblox, presence, FPS, Chrome, background, logs.
+- [ ] Notifications, status bar, version, changelog.
+- [ ] Logging out of an account / closing the app.
+- [ ] Working with the real storage of 13 accounts.
 
 ---
 
-## 2. Каркас WinUI 3
+## 2. WinUI 3 skeleton
 
-- [ ] Создать `RoManager.App` (WinUI 3, unpackaged).
-- [ ] Настроить `WindowsPackageType=None`, `WindowsAppSDKSelfContained=true`,
+- [ ] Create `RoManager.App` (WinUI 3, unpackaged).
+- [ ] Configure `WindowsPackageType=None`, `WindowsAppSDKSelfContained=true`,
   `SelfContained=true`, `RuntimeIdentifier=win-x64`.
-- [ ] Нативное окно: заголовок, иконка, минимальный размер 760×520, тёмный title bar.
-- [ ] Проверить ресайз, maximize, restore, несколько мониторов, разный DPI.
-- [ ] Задать дизайн-систему в `ResourceDictionary`:
-  цвета, радиусы, отступы, типографика, кнопки, поля, панели.
-- [ ] Перенести базовый фон и «стекло»: `Mica`/`Acrylic` или полупрозрачные кисти.
-- [ ] Сделать `NotificationStack` как отдельный контрол.
-- [ ] Сделать общий `StatusBar` с кнопкой версии.
+- [ ] Native window: title, icon, minimum size 760×520, dark title bar.
+- [ ] Test resize, maximize, restore, multiple monitors, different DPI.
+- [ ] Define the design system in a `ResourceDictionary`:
+  colors, radii, spacing, typography, buttons, fields, panels.
+- [ ] Port the base background and "glass": `Mica`/`Acrylic` or semi-transparent brushes.
+- [ ] Make `NotificationStack` as a separate control.
+- [ ] Make a shared `StatusBar` with a version button.
 
-**Критерий:** пустое окно открывается, тянется, не мерцает, тема совпадает.
+**Criterion:** an empty window opens, resizes, does not flicker, the theme matches.
 
 ---
 
-## 3. Экраны
+## 3. Screens
 
-### 3.1. Мастер (Wizard)
+### 3.1. Wizard
 
 - [ ] Landing.
-- [ ] Выбор ключевого файла: кнопка + drag&drop файла.
-- [ ] Ввод фразы и PIN.
-- [ ] Создание ключа (фраза, PIN, подтверждение).
-- [ ] Экран «Готово» + скачивание/сохранение ключевого файла.
-- [ ] Индикатор шагов, кнопка «Назад», обработка ошибок.
-- [ ] Анимации переходов.
+- [ ] Selecting a key file: button + drag&drop of a file.
+- [ ] Entering the phrase and PIN.
+- [ ] Creating a key (phrase, PIN, confirmation).
+- [ ] "Done" screen + downloading/saving the key file.
+- [ ] Step indicator, "Back" button, error handling.
+- [ ] Transition animations.
 
-### 3.2. Дашборд
+### 3.2. Dashboard
 
-- [ ] Таблица аккаунтов: чекбокс, имя, статус, последний запуск, данные.
-- [ ] Закреплённая шапка, внутренний скролл.
-- [ ] Выделение строк и горячие сочетания.
-- [ ] Панель действий: добавить, обновить, удалить.
-- [ ] Блок «Управление аккаунтом»: игра / игрок / лаунчер.
-- [ ] Блок настроек.
-- [ ] Нижняя панель статуса и версии.
-- [ ] Адаптив: 2 колонки → 1 колонка → компактная таблица.
+- [ ] Account table: checkbox, name, status, last launch, data.
+- [ ] Sticky header, inner scroll.
+- [ ] Row selection and hotkeys.
+- [ ] Actions panel: add, refresh, delete.
+- [ ] "Account management" block: game / player / launcher.
+- [ ] Settings block.
+- [ ] Bottom status and version panel.
+- [ ] Responsive: 2 columns → 1 column → compact table.
 
-### 3.3. Настройки (отдельное окно)
+### 3.3. Settings (separate window)
 
-- [ ] Нативное окно с заголовком и ресайзом.
-- [ ] Вкладки General / Developer / Miscellaneous.
-- [ ] Все поля и сохранение.
-- [ ] Валидация чисел и границ.
-- [ ] Передача изменений в главное окно без перезапуска.
+- [ ] Native window with a title and resize.
+- [ ] Tabs General / Developer / Miscellaneous.
+- [ ] All fields and saving.
+- [ ] Validation of numbers and bounds.
+- [ ] Passing changes to the main window without a restart.
 
-### 3.4. История обновлений
+### 3.4. Changelog
 
-- [ ] Полноэкранное окно внутри главного.
-- [ ] Скролл-бокс, крупный заголовок, прочерки вместо точек.
-- [ ] Переключатель RU / EN.
-- [ ] Кнопка «Назад», Esc, клик по фону.
-
----
-
-## 4. Уведомления
-
-- [ ] Контрол стопки карточек: верхняя видна полностью, нижние — краями.
-- [ ] Одна общая подсветка в цвет верхнего уведомления.
-- [ ] Мягкое размытие подсветки (Composition blur / Win2D).
-- [ ] Плавное появление и исчезновение вместе с подсветкой.
-- [ ] Время жизни: success 5 с, info 6 с, warning 9 с, danger 12 с.
-- [ ] Дедупликация по тексту.
-- [ ] Кнопки действий (настройки, история).
-- [ ] Очередь и ограничение количества.
+- [ ] Full-screen window inside the main one.
+- [ ] Scroll box, large heading, em dashes instead of dots.
+- [ ] RU / EN toggle.
+- [ ] "Back" button, Esc, click on the background.
 
 ---
 
-## 5. Шейдер фона (Win2D + HLSL)
+## 4. Notifications
 
-- [ ] Перенести GLSL-шейдер в HLSL (simplex noise, три цвета, скорость).
-- [ ] Подключить `Microsoft.Graphics.Win2D`.
-- [ ] Рендер в пониженном разрешении (1/3), растягивание на окно.
-- [ ] Анимация по `CompositionTarget.Rendering`, пауза при ресайзе.
-- [ ] Настройки: включение, три цвета, скорость 0.5–2.0×.
-- [ ] Хранить в `shader.json`, применять без перезапуска.
-- [ ] Fallback: если Win2D/HLSL недоступен, показывать статичный тёмный фон.
-- [ ] Проверить GPU-нагрузку и FPS при 1000×680, 1920×1080, maximize.
-
-**Важно:** GLSL не запускается напрямую — только HLSL. Логика переносится
-один в один, меняется синтаксис и передача uniform-параметров.
+- [ ] Card stack control: the top one is fully visible, the lower ones — by their edges.
+- [ ] One shared glow in the color of the top notification.
+- [ ] Soft blur of the glow (Composition blur / Win2D).
+- [ ] Smooth appearance and disappearance together with the glow.
+- [ ] Lifetime: success 5 s, info 6 s, warning 9 s, danger 12 s.
+- [ ] Deduplication by text.
+- [ ] Action buttons (settings, changelog).
+- [ ] Queue and limit on the count.
 
 ---
 
-## 6. WebView2 и системная интеграция
+## 5. Background shader (Win2D + HLSL)
 
-WebView2 остаётся, но только как встроенный браузер для входа Roblox.
+- [ ] Port the GLSL shader to HLSL (simplex noise, three colors, speed).
+- [ ] Connect `Microsoft.Graphics.Win2D`.
+- [ ] Render at a reduced resolution (1/3), stretch to the window.
+- [ ] Animation via `CompositionTarget.Rendering`, pause on resize.
+- [ ] Settings: enable, three colors, speed 0.5–2.0×.
+- [ ] Store in `shader.json`, apply without a restart.
+- [ ] Fallback: if Win2D/HLSL is unavailable, show a static dark background.
+- [ ] Check GPU load and FPS at 1000×680, 1920×1080, maximize.
 
-- [ ] Открыть окно входа Roblox в WinUI + WebView2.
-- [ ] Дождаться `NavigationCompleted`, забрать cookie `.ROBLOSECURITY`.
-- [ ] Передать cookie в `ILoginService` и добавить аккаунт.
-- [ ] Закрыть/уничтожить WebView2 после входа.
-- [ ] Ограничить навигацию и отключить DevTools в Release.
-- [ ] Drag&drop ключевого файла на окно.
-- [ ] Иконка приложения, одинарный экземпляр (если нужно), завершение процессов.
-- [ ] Убедиться, что запуск Roblox и Multi Roblox не затронуты.
-
----
-
-## 7. Производительность и качество
-
-- [ ] Ресайз без белых полос и «отстающей» раскладки.
-- [ ] Отключение тяжёлых эффектов на время перетаскивания рамки.
-- [ ] Плавные анимации 60 FPS на среднем GPU.
-- [ ] Нет утечек WebView2, Win2D и подписок на события.
-- [ ] Корректная работа при 100%, 125%, 150%, 200% масштабе.
-- [ ] Минимальное окно 760×520 и максимизация на 4K.
-- [ ] Быстрый старт: не дольше текущей версии.
+**Important:** GLSL does not run directly — only HLSL. The logic is ported
+one to one; the syntax and the passing of uniform parameters change.
 
 ---
 
-## 8. Безопасность и данные
+## 6. WebView2 and system integration
 
-- [ ] AES-256-GCM v2 и чтение v1 не меняются.
-- [ ] Ключ, фраза и PIN не попадают в логи.
-- [ ] Логи с ротацией, Debug-хуки только в Debug.
-- [ ] Реальные vault/key не копируются в артефакты.
-- [ ] Проверить, что новый UI не ослабляет CSP/навигацию WebView2.
+WebView2 stays, but only as an embedded browser for the Roblox login.
+
+- [ ] Open the Roblox login window in WinUI + WebView2.
+- [ ] Wait for `NavigationCompleted`, grab the `.ROBLOSECURITY` cookie.
+- [ ] Pass the cookie to `ILoginService` and add the account.
+- [ ] Close/destroy WebView2 after login.
+- [ ] Restrict navigation and disable DevTools in Release.
+- [ ] Drag&drop of the key file onto the window.
+- [ ] App icon, single instance (if needed), process termination.
+- [ ] Make sure launching Roblox and Multi Roblox are not affected.
 
 ---
 
-## 9. Сборка и поставка
+## 7. Performance and quality
 
-- [ ] Отдельный `publish` WinUI 3 (unpackaged, self-contained, win-x64).
-- [ ] Портативная папка + `README.md` + `LICENSE`.
-- [ ] Проверка на чистой Windows 10/11 без .NET SDK.
-- [ ] WebView2 Runtime: проверить наличие/установку.
+- [ ] Resize without white stripes and "lagging" layout.
+- [ ] Disabling heavy effects while dragging the frame.
+- [ ] Smooth 60 FPS animations on a mid-range GPU.
+- [ ] No leaks of WebView2, Win2D and event subscriptions.
+- [ ] Correct operation at 100%, 125%, 150%, 200% scaling.
+- [ ] Minimum window 760×520 and maximization on 4K.
+- [ ] Fast startup: no slower than the current version.
+
+---
+
+## 8. Security and data
+
+- [ ] AES-256-GCM v2 and reading v1 do not change.
+- [ ] The key, phrase and PIN do not get into the logs.
+- [ ] Logs with rotation, Debug hooks only in Debug.
+- [ ] The real vault/key are not copied into the artifacts.
+- [ ] Verify that the new UI does not weaken the WebView2 CSP/navigation.
+
+---
+
+## 9. Build and delivery
+
+- [ ] A separate `publish` of WinUI 3 (unpackaged, self-contained, win-x64).
+- [ ] Portable folder + `README.md` + `LICENSE`.
+- [ ] Test on a clean Windows 10/11 without the .NET SDK.
+- [ ] WebView2 Runtime: check availability/installation.
 - [ ] ZIP + `sha256sums.txt`.
-- [ ] CI: сборка Core + App, тесты, публикация.
-- [ ] Не менять старую ветку/тег 2.1.0.
+- [ ] CI: build Core + App, tests, publishing.
+- [ ] Do not change the old 2.1.0 branch/tag.
 
 ---
 
-## 10. Этапы и ориентиры
+## 10. Stages and estimates
 
-| Этап | Содержание | Оценка |
+| Stage | Content | Estimate |
 |---|---|---|
-| 0 | Бэкап и фиксация 2.1.0 | 0.5 дня |
-| 1 | Разделение на Core/App, сервисы | 2–3 дня |
-| 2 | Каркас WinUI, тема, нативное окно | 2–3 дня |
-| 3 | Мастер ключей | 2 дня |
-| 4 | Дашборд и таблица | 3–4 дня |
-| 5 | Настройки + история обновлений | 2 дня |
-| 6 | Уведомления и статус-бар | 2 дня |
-| 7 | Шейдер Win2D + HLSL | 2–3 дня |
-| 8 | WebView2-вход, drag&drop | 2 дня |
-| 9 | Паритет, тесты, упаковка | 3–4 дня |
-| **Итого** | | **~20–25 рабочих дней** |
+| 0 | Backup and freezing 2.1.0 | 0.5 day |
+| 1 | Splitting into Core/App, services | 2–3 days |
+| 2 | WinUI skeleton, theme, native window | 2–3 days |
+| 3 | Key wizard | 2 days |
+| 4 | Dashboard and table | 3–4 days |
+| 5 | Settings + changelog | 2 days |
+| 6 | Notifications and status bar | 2 days |
+| 7 | Win2D + HLSL shader | 2–3 days |
+| 8 | WebView2 login, drag&drop | 2 days |
+| 9 | Parity, tests, packaging | 3–4 days |
+| **Total** | | **~20–25 working days** |
 
 ---
 
-## 11. Критерии готовности (Definition of Done)
+## 11. Definition of Done
 
-- [ ] Все пункты паритета из раздела 1.2 работают на реальных данных.
-- [ ] UI полностью нативный, без HTML/CSS/JS для интерфейса.
-- [ ] GLSL-фон заменён на HLSL/Win2D и настраивается.
-- [ ] Ресайз, maximize, DPI, несколько мониторов — без артефактов.
-- [ ] Хранилище v1/v2 и запуск Roblox работают как раньше.
-- [ ] Собран портативный ZIP, проверен на чистой системе.
-- [ ] Бэкап 2.1.0 не изменён и запускается.
-- [ ] Старый проект можно удалить только после успешного релиза 3.0.0.
+- [ ] All parity items from section 1.2 work on real data.
+- [ ] The UI is fully native, without HTML/CSS/JS for the interface.
+- [ ] The GLSL background is replaced with HLSL/Win2D and is configurable.
+- [ ] Resize, maximize, DPI, multiple monitors — without artifacts.
+- [ ] v1/v2 storage and launching Roblox work as before.
+- [ ] A portable ZIP is built and tested on a clean system.
+- [ ] The 2.1.0 backup is unchanged and launches.
+- [ ] The old project can be deleted only after a successful 3.0.0 release.
 
 ---
 
-## 12. Риски
+## 12. Risks
 
-| Риск | mitigation |
+| Risk | mitigation |
 |---|---|
-| WinUI 3 сложнее в кастомном дизайне, чем CSS | заранее собрать дизайн-систему и проверить на 1–2 экранах |
-| Acrylic/Mica даёт другой вид, чем `backdrop-filter` | подобрать кисти и прозрачность, проверить на светлом/тёмном фоне |
-| Win2D/HLSL-порт шейдера | начать с упрощённой версии, затем вернуть все цвета/скорость |
-| Unpackaged WinUI 3 и зависимости | ранний тест `dotnet publish` на чистой Windows |
-| Потеря функций при переносе | чек-лист паритета и тесты на реальном vault |
-| Смешивание старого и нового кода | Core-библиотека с чистыми контрактами, без `Bridge` |
+| WinUI 3 is harder for custom design than CSS | build the design system in advance and test it on 1–2 screens |
+| Acrylic/Mica looks different from `backdrop-filter` | pick brushes and opacity, test on a light/dark background |
+| Win2D/HLSL port of the shader | start with a simplified version, then bring back all colors/speed |
+| Unpackaged WinUI 3 and dependencies | early `dotnet publish` test on a clean Windows |
+| Losing features during migration | parity checklist and tests on the real vault |
+| Mixing old and new code | Core library with clean contracts, without `Bridge` |
 
 ---
 
-## 13. Откат
+## 13. Rollback
 
-Пока новый UI не достиг паритета:
+While the new UI has not reached parity:
 
-- старый проект и бэкап не трогаются;
-- новая разработка живёт в отдельной папке/ветке;
-- при любой проблеме возвращаемся к тегу `pre-winui-3.0.0`;
-- реальные данные не перезаписываются новым UI без проверки на копии.
+- the old project and the backup are not touched;
+- new development lives in a separate folder/branch;
+- on any problem we return to the `pre-winui-3.0.0` tag;
+- real data is not overwritten by the new UI without testing on a copy.

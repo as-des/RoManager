@@ -1,24 +1,24 @@
-# Журнал переноса RoManager на WinUI 3
+# RoManager migration log to WinUI 3
 
-Ведётся по ходу работ, чтобы не потерять состояние между сессиями.
-План: `docs/MIGRATION_WINUI3.md`. Ветка: `winui3`. Бэкап: `D:\RoManager_backup_pre-winui_2026-11-14`.
+Kept as work progresses so that state isn't lost between sessions.
+Plan: `docs/MIGRATION_WINUI3.md`. Branch: `winui3`. Backup: `D:\RoManager_backup_pre-winui_2026-11-14`.
 
 ---
 
-## 2026-11-14 — Этап 0: бэкап и фиксация 2.1.0
+## 2026-11-14 — Stage 0: backup and tagging 2.1.0
 
-- [x] Рабочее дерево чистое, коммит `55c87a9`.
-- [x] Тег `pre-winui-3.0.0` на коммите 2.1.0.
-- [x] Полная копия проекта в `D:\RoManager_backup_pre-winui_2026-11-14`
-      (без `bin`, `obj`, `wv2`, `chrome-win64`, `dist`, `publish`, `node_modules`, `new-build`).
+- [x] Working tree clean, commit `55c87a9`.
+- [x] Tag `pre-winui-3.0.0` on the 2.1.0 commit.
+- [x] Full copy of the project to `D:\RoManager_backup_pre-winui_2026-11-14`
+      (without `bin`, `obj`, `wv2`, `chrome-win64`, `dist`, `publish`, `node_modules`, `new-build`).
 - [x] `git bundle --all` → `_artifacts\RoManager-pre-winui.bundle`.
-- [x] Копия релиза `RoManager-win-x64-v2.1.0.zip` + `sha256sums.txt` в `_artifacts`.
-- [x] Реальные `AccountData.json` (13 аккаунтов) и `rom-key.json` → `_userdata`.
-- [x] `SHA256SUMS.txt` записан, все файлы бэкапа помечены read-only.
-- [x] Архив из бэкапа распакован в `D:\rom-backup-test`, приложение открыло окно.
-- [x] Создана ветка `winui3`; `main` и тег не трогаются.
+- [x] Copy of the release `RoManager-win-x64-v2.1.0.zip` + `sha256sums.txt` to `_artifacts`.
+- [x] Real `AccountData.json` (13 accounts) and `rom-key.json` → `_userdata`.
+- [x] `SHA256SUMS.txt` written, all backup files marked read-only.
+- [x] The archive from the backup was unpacked to `D:\rom-backup-test`, the application opened its window.
+- [x] Branch `winui3` created; `main` and the tag are left untouched.
 
-Хэши бэкапа:
+Backup hashes:
 
 ```
 84c538adf548fe0609f297e60dec7d65c116447425512859d34d74deb883bc2e  RoManager-win-x64-v2.1.0.zip
@@ -29,363 +29,363 @@ ef05c60b7a7523fef32523c4905d1a7d54155b4803dda84ffe6c11da085aa159  AccountData.js
 
 ---
 
-## Решения по UI (дополнение пользователя)
+## UI decisions (user's addendum)
 
-1. **Меньше переключателей языка.** Один основной переключатель — в окне настроек
-   (вкладка General). На landing остаётся только кнопка «Настройки», открывающая это окно.
-   Дублирующие RU/EN в шапке dashboard, в шагах мастера и в changelog убираем;
-   язык меняется в настройках и применяется ко всем окнам сразу.
-2. **Настройки с landing = те же, что внутри приложения.** Полное окно с вкладками
-   General / Developer / Miscellaneous. До авторизации доступны только разделы
-   «Интерфейс» и «Приложение» (язык, фон, тема, поведение окна, логи).
-   Все Roblox-настройки (cookie, presence, Multi Roblox, FPS, задержка запуска,
-   Chrome, управление аккаунтами) показываются, но **отключены** с пояснением
-   «Доступно после входа», а не скрываются бесследно.
-3. **Roblox-функции недоступны до авторизации** — и в настройках, и на дашборде.
+1. **Fewer language toggles.** One main toggle — in the settings window
+   (General tab). On the landing page only the "Settings" button remains, which opens that window.
+   We remove the duplicate RU/EN in the dashboard header, in the wizard steps and in the changelog;
+   the language is changed in settings and applied to all windows at once.
+2. **Settings from the landing = the same as inside the application.** A full window with tabs
+   General / Developer / Miscellaneous. Before authorization only the
+   "Interface" and "Application" sections are available (language, background, theme, window behavior, logs).
+   All Roblox settings (cookie, presence, Multi Roblox, FPS, launch delay,
+   Chrome, account management) are shown but **disabled**, with the explanation
+   "Available after sign-in", rather than hidden without a trace.
+3. **Roblox features are unavailable before authorization** — both in settings and on the dashboard.
 
 ---
 
-## 2026-11-14 — Этап 1: архитектура Core/App (в работе)
+## 2026-11-14 — Stage 1: Core/App architecture (in progress)
 
-- [x] Решение: старый `RoManager.csproj` остаётся в корне и собирает 2.1.0;
-      новые проекты — в `src/`, старый csproj исключает `src/**` из компиляции.
-- [ ] `src/RoManager.Core` — Engine без UI (Vault, Crypto, Roblox, ChromeLogin, settings, Loc).
+- [x] Decision: the old `RoManager.csproj` stays in the root and builds 2.1.0;
+      the new projects go in `src/`, the old csproj excludes `src/**` from compilation.
+- [ ] `src/RoManager.Core` — engine without UI (Vault, Crypto, Roblox, ChromeLogin, settings, Loc).
 - [ ] `src/RoManager.App` — WinUI 3 (unpackaged, self-contained).
-- [ ] `RoManager.sln` + `tests/RoManager.Core.Tests` (позже).
-- [ ] Проверки: сборка старого проекта, сборка Core, запуск WinUI-окна.
+- [ ] `RoManager.sln` + `tests/RoManager.Core.Tests` (later).
+- [ ] Checks: build the old project, build Core, launch the WinUI window.
 
-### Заметки
+### Notes
 
-- `Engine.cs` зависит от `Bridge` только через `Session`, `Log`, `PushStatus`,
-  `PushAccounts`; заменяем на `CoreHost` (события + лог), чтобы Core не знал про UI.
-- `Loc` в Core — только язык и строки; обновление заголовков окон остаётся в UI-слое.
-- Шейдер: GLSL → HLSL/Win2D на этапе 7; до этого — статичный тёмный фон.
+- `Engine.cs` depends on `Bridge` only through `Session`, `Log`, `PushStatus`,
+  `PushAccounts`; we replace that with `CoreHost` (events + log) so that Core doesn't know about the UI.
+- `Loc` in Core — only language and strings; updating window titles stays in the UI layer.
+- Shader: GLSL → HLSL/Win2D at stage 7; until then — a static dark background.
 
 ---
 
-## 2026-11-15 — Этап 1: каркас WinUI 3 и вход (готово)
+## 2026-11-15 — Stage 1: WinUI 3 skeleton and sign-in (done)
 
-### Сборка и ресурсы
+### Build and resources
 
-- [x] Windows App SDK **2.6.5** (пакеты 1.6/1.7 падали на задачах PRI/XAML без VS Build Tools).
-- [x] `AppxGeneratePriEnabled=false`; упаковочные output groups заменены в
+- [x] Windows App SDK **2.6.5** (packages 1.6/1.7 crashed on PRI/XAML tasks without VS Build Tools).
+- [x] `AppxGeneratePriEnabled=false`; the packaging output groups were replaced in
       `src/RoManager.App/Directory.Build.targets`.
-- [x] `tools/make-pri.ps1` собирает `resources.pri` из `*.xbf` + `Microsoft.UI.Xaml.Controls.pri`.
-      Без этого `XamlControlsResources` падал с `Cannot locate resource ... themeresources.xaml`.
-      Запускается автоматически из target `GenerateAppPri` (AfterTargets=Build).
-      Проверено: кнопки, чекбоксы, NumberBox, TabView, ToggleSwitch стилизованы.
-- [x] `tools/capture.ps1` — запуск exe и снимок окна (PrintWindow или реальный экран `-Screen`),
-      фильтр по заголовку (`-TitleLike`), тестовые env-крючки.
+- [x] `tools/make-pri.ps1` builds `resources.pri` from `*.xbf` + `Microsoft.UI.Xaml.Controls.pri`.
+      Without this `XamlControlsResources` crashed with `Cannot locate resource ... themeresources.xaml`.
+      It runs automatically from the `GenerateAppPri` target (AfterTargets=Build).
+      Verified: buttons, checkboxes, NumberBox, TabView, ToggleSwitch are styled.
+- [x] `tools/capture.ps1` — launches the exe and takes a window snapshot (PrintWindow or the real screen with `-Screen`),
+      a title filter (`-TitleLike`), test env hooks.
 
 ### UI
 
-- [x] `Theme.xaml`: палитра из legacy `app.css` (`#0A0A0A`, `#141414`, `#3B82F6`), стили
-      заголовков, карточек, кнопок, полей; переопределён `SystemAccentColor` (WinUI-акцент).
-- [x] `Localization/Strings.cs`: плоские ключи ru/en из `frontend/src/i18n.tsx`,
-      язык берётся из `Loc` (Core, `ui.json`). Один переключатель языка — только в настройках.
-- [x] `MainWindow`: шапка (иконка, версия, кнопка «Настройки»), строка состояния
-      (idle/busy/success/danger), тёмный заголовок через DWM (`WindowChrome`).
-- [x] `LandingView`: «У меня есть доступ» / «У меня нет доступа», без дублирующего
-      переключателя языка.
-- [x] `WizardView`: 8 шагов (файл, фраза, PIN, подтверждение + создание ключа),
-      FileOpenPicker/FileSavePicker с `InitializeWithWindow`, drag&drop `.json`,
-      проверки как в 2.1.0, вход через `Vault.TryUnlock` → `Roblox.RestartTimers`,
-      `ApplyMultiInstance`; создание ключа через `Crypto` + `Vault.Save`.
-- [x] `SettingsWindow`: три вкладки (Общие / Разработчик / Разное). До входа
-      Roblox-разделы видны, но выключены и приглушены, с баннером
-      «Доступно после входа»; доступны только интерфейс (язык) и «О приложении».
-      Сохранение пишет `Vault.Settings` + `Vault.Save()` + `Roblox.ApplyMultiInstance()`.
-- [x] `DashboardView` (временно): читает **реальные 13 аккаунтов** из хранилища,
-      показывает имя и последний запуск, кнопку «Выйти». Полный дашборд — этап 4.
-- [x] Версия приложения 3.0.0 (`<Version>`), отображается в шапке и статус-баре.
+- [x] `Theme.xaml`: palette from the legacy `app.css` (`#0A0A0A`, `#141414`, `#3B82F6`), styles for
+      headings, cards, buttons, fields; `SystemAccentColor` overridden (WinUI accent).
+- [x] `Localization/Strings.cs`: flat ru/en keys from `frontend/src/i18n.tsx`,
+      the language comes from `Loc` (Core, `ui.json`). One language toggle — only in settings.
+- [x] `MainWindow`: header (icon, version, "Settings" button), status line
+      (idle/busy/success/danger), dark title bar via DWM (`WindowChrome`).
+- [x] `LandingView`: "I have access" / "I don't have access", without the duplicate
+      language toggle.
+- [x] `WizardView`: 8 steps (file, phrase, PIN, confirmation + key creation),
+      FileOpenPicker/FileSavePicker with `InitializeWithWindow`, drag&drop `.json`,
+      validations as in 2.1.0, sign-in via `Vault.TryUnlock` → `Roblox.RestartTimers`,
+      `ApplyMultiInstance`; key creation via `Crypto` + `Vault.Save`.
+- [x] `SettingsWindow`: three tabs (General / Developer / Miscellaneous). Before sign-in
+      the Roblox sections are visible but off and dimmed, with a banner
+      "Available after sign-in"; only the interface (language) and "About" are available.
+      Saving writes `Vault.Settings` + `Vault.Save()` + `Roblox.ApplyMultiInstance()`.
+- [x] `DashboardView` (temporary): reads the **real 13 accounts** from the vault,
+      shows the name and last launch, and a "Sign out" button. Full dashboard — stage 4.
+- [x] Application version 3.0.0 (`<Version>`), shown in the header and status bar.
 
-### Проверки
+### Checks
 
-- [x] `dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64` — 0 ошибок.
-- [x] Окно 1000×680, тёмный заголовок, landing/мастер/настройки/дашборд сняты скриншотами.
-- [x] Реальный сейв открыт тестовым ключом (фраза `11 11`, PIN `111111`): 13 аккаунтов,
-      статус «Вход выполнен». Копия сейва лежала только в `bin` нового проекта и удалена.
-- [x] Английский язык (`ui.json`) применяется ко всем экранам.
+- [x] `dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64` — 0 errors.
+- [x] Window 1000×680, dark title bar, landing/wizard/settings/dashboard captured in screenshots.
+- [x] The real save was opened with a test key (phrase `11 11`, PIN `111111`): 13 accounts,
+      status "Signed in". A copy of the save lived only in the new project's `bin` and was deleted.
+- [x] English language (`ui.json`) applied to all screens.
 
-### Тестовые крючки (только Debug)
+### Test hooks (Debug only)
 
-- `ROM_TEST_SCREEN=settings|wizard|create` — сразу открыть экран.
-- `ROM_TEST_UNLOCK_KEY` + `ROM_TEST_UNLOCK_PHRASE` / `ROM_TEST_UNLOCK_PIN` — открыть хранилище.
+- `ROM_TEST_SCREEN=settings|wizard|create` — open the screen immediately.
+- `ROM_TEST_UNLOCK_KEY` + `ROM_TEST_UNLOCK_PHRASE` / `ROM_TEST_UNLOCK_PIN` — unlock the vault.
 
-### Осталось до паритета
+### Remaining before parity
 
-- [ ] Полный дашборд: выбор/мультивыбор, добавление (браузер/cookie), запуск, presence,
-      удаление, changelog, плашки-уведомления.
-- [ ] Кастомный заголовок окна (как в 2.1.0) и ресайз-хэндлы, если понадобятся.
-- [ ] Анимированный фон GLSL → Win2D/HLSL (этап 7) + `shader.json`.
-- [ ] `RoManager.sln`, тесты Core, публикация.
+- [ ] Full dashboard: selection/multi-select, adding (browser/cookie), launch, presence,
+      deletion, changelog, notification toasts.
+- [ ] Custom window title bar (as in 2.1.0) and resize handles, if needed.
+- [ ] Animated GLSL background → Win2D/HLSL (stage 7) + `shader.json`.
+- [ ] `RoManager.sln`, Core tests, publishing.
 
 ---
 
-## 2026-11-18 — Паритет 2.1.0 на WinUI 3, версия 1.0.0
+## 2026-11-18 — 2.1.0 parity on WinUI 3, version 1.0.0
 
-### Функциональность
+### Functionality
 
-- [x] Полный дашборд: список аккаунтов, выбор/мультивыбор, «Добавить» (браузер /
-      cookie), запуск игры, сброс статуса, удаление, presence, refresh.
-- [x] Шаги мастера: файл ключа, фраза, PIN, подтверждение и создание ключа.
-- [x] Уведомления как в 2.1.0: стек во всю ширину сверху, действия в ряд,
-      кнопка закрытия; успех/ошибка статуса дублируются плашкой.
-- [x] История обновлений — полноэкранный оверлей с прокруткой и списком версий
-      (1.0.0 → 2.1.0 → 2.0.0); открывается кнопкой версии в нижней панели.
-- [x] Добавление и удаление аккаунтов переведены на собственный модальный слой
-      внутри окна вместо `ContentDialog` (единый стиль с приложением).
-- [x] Настройки: 3 вкладки, сохранение в `Vault.Settings`, закрытие через 600 мс
-      после успешного сохранения, состояние блокировки до входа.
+- [x] Full dashboard: account list, selection/multi-select, "Add" (browser /
+      cookie), game launch, status reset, deletion, presence, refresh.
+- [x] Wizard steps: key file, phrase, PIN, confirmation and key creation.
+- [x] Notifications as in 2.1.0: a full-width stack at the top, actions in a row,
+      a close button; status success/error are duplicated by a toast.
+- [x] Update history — a full-screen scrollable overlay with a list of versions
+      (1.0.0 → 2.1.0 → 2.0.0); opened by the version button in the bottom bar.
+- [x] Adding and deleting accounts moved to a custom modal layer
+      inside the window instead of `ContentDialog` (consistent style with the app).
+- [x] Settings: 3 tabs, saving to `Vault.Settings`, closing 600 ms
+      after a successful save, locked state before sign-in.
 
-### Визуал и UX
+### Visuals and UX
 
-- [x] Landing: только две кнопки по 400 px по центру и шестерёнка справа сверху,
-      без приветствия, заголовка, подзаголовка и подсказки.
-- [x] Мастер: карточка ~400 px, точки шагов 6 px, активная — пилюля 20 px,
-      заголовок с кнопкой «Назад» выровнен по карточке.
-- [x] Dashboard: правая колонка «Действия» (Добавить / обновить / удалить) и
-      «Управление аккаунтом» (сервер / ник / запуск); колонки таблицы
+- [x] Landing: only two 400 px buttons in the center and a gear in the top right,
+      without a greeting, title, subtitle or hint.
+- [x] Wizard: ~400 px card, step dots 6 px, the active one a 20 px pill,
+      the title with a "Back" button aligned with the card.
+- [x] Dashboard: right column "Actions" (Add / refresh / delete) and
+      "Account management" (server / nickname / launch); table columns
       ACCOUNT / STATUS / LAST LAUNCH / DATA.
-- [x] Одна кнопка настроек в шапке (рядом с «Выйти»); панель и кнопка Settings
-      убраны из сайдбара дашборда.
-- [x] Переключатель языка остался только в «Настройки → Общие»; RU/EN убраны
-      с landing, мастера, дашборда и changelog.
-- [x] «Матовое стекло»: `Controls/GlassSurface.cs` на Win2D `GaussianBlurEffect`
-      + `CompositionBackdropBrush` с закруглённым клипом. Панели, карточки,
-      модалки и уведомления размывают именно фон позади себя.
-- [x] Нижняя панель статуса — прозрачное стекло поверх шейдера, две колонки:
-      статус слева, кнопка версии справа. Исправлено: `ContentControl` прижимал
-      содержимое влево, поэтому чип версии стоял рядом с текстом.
-- [x] Кастомные тонкие скроллбары (`ThinScrollBar`, 8 px) вместо нативных.
-- [x] Настройки полностью в стиле приложения (без нативных WinUI-контролов):
-      переключатели, числовые поля, поля ввода, цветовые свотчи.
+- [x] One settings button in the header (next to "Sign out"); the Settings panel and button
+      removed from the dashboard sidebar.
+- [x] The language toggle remains only in "Settings → General"; RU/EN removed
+      from the landing, wizard, dashboard and changelog.
+- [x] "Frosted glass": `Controls/GlassSurface.cs` on Win2D `GaussianBlurEffect`
+      + `CompositionBackdropBrush` with a rounded clip. Panels, cards,
+      modals and notifications blur the background behind themselves.
+- [x] Bottom status bar — transparent glass over the shader, two columns:
+      status on the left, version button on the right. Fixed: `ContentControl` pressed
+      the content to the left, so the version chip sat next to the text.
+- [x] Custom thin scrollbars (`ThinScrollBar`, 8 px) instead of native ones.
+- [x] Settings fully in the app's style (no native WinUI controls):
+      toggles, number fields, input fields, color swatches.
 
-### Фон и производительность
+### Background and performance
 
-- [x] Анимированный шейдер портирован из legacy GLSL с вертикальным флипом,
-      совпадает с 2.1.0 по картинке.
-- [x] Оптимизация: ограничение 48k px, таймер 80 мс, кэш цветов, пауза при
-      деактивации окна (`SetActive`); заметно меньше нагрузки на CPU.
-- [x] Настройки шейдера (`ShaderConfig`, `shader.json`: Enabled / Color1..3 /
-      Speed 0.5–2.0) хранятся в Core и сохраняются даже при закрытом хранилище.
-- [x] Выбор цветов волн — WinUI `ColorPicker` в фабричном флайауте, спектр,
-      RGB и HEX; свотчи показывают текущий цвет.
+- [x] The animated shader was ported from legacy GLSL with a vertical flip,
+      matches 2.1.0 visually.
+- [x] Optimization: 48k px cap, 80 ms timer, color cache, pause on
+      window deactivation (`SetActive`); noticeably less CPU load.
+- [x] Shader settings (`ShaderConfig`, `shader.json`: Enabled / Color1..3 /
+      Speed 0.5–2.0) are stored in Core and saved even with the vault closed.
+- [x] Wave color selection — WinUI `ColorPicker` in a factory flyout, spectrum,
+      RGB and HEX; swatches show the current color.
 
-### Исправления
+### Fixes
 
-- [x] Выбор файла при авторизации: `DropZone` с `Background="Transparent"`,
-      явная кнопка «Выбрать файл…», `ViewMode=List`, фильтры `.json` и `*`,
-      `Task.Yield()` перед открытием пикера.
-- [x] Строка статуса больше не перекрывается версией; прозрачный фон как в 2.1.0.
+- [x] File selection during authorization: `DropZone` with `Background="Transparent"`,
+      an explicit "Choose file…" button, `ViewMode=List`, `.json` and `*` filters,
+      `Task.Yield()` before opening the picker.
+- [x] The status line is no longer overlapped by the version; transparent background as in 2.1.0.
 
-### Управление аккаунтом по макету `do.html`
+### Account management according to the `do.html` layout
 
-- [x] Три выдвижные «шторки» высотой 52 px в палитре приложения:
-      фон `AppSecondaryBg`, рамка `AppWhiteA12`, скругление 10 px, зазор 12 px.
-- [x] Неактивные занимают по 1 доле, активная — 3 доли. Раскладка на Grid
-      со звёздными колонками: сегменты всегда заполняют панель целиком и
-      пересчитываются при ресайзе окна.
-- [x] Анимация ширины 300 мс `cubic-bezier(0.25, 0.8, 0.25, 1)` только при
-      клике по сегменту; смена выделения в списке больше не дёргает кнопки.
-- [x] Линейные иконки 20 px (карта / профиль / play) с обводкой `AppMuted`,
-      `Stretch=Uniform` — больше не обрезаются; гаснут при раскрытии,
-      содержимое проявляется за 300 мс.
-- [x] Поле ввода без рамки, по центру по вертикали, текст `AppText`,
-      placeholder `AppMuted2`, отступ 14 px; стрелка `➤` приклеена к правому
-      краю (42 px, фон `#8C141822`, разделитель `AppWhiteA12`,
+- [x] Three slide-out "drawers" 52 px high in the app palette:
+      background `AppSecondaryBg`, border `AppWhiteA12`, radius 10 px, gap 12 px.
+- [x] Inactive ones take 1 share each, the active one 3 shares. Layout on a Grid
+      with star columns: the segments always fill the panel completely and
+      recalculate on window resize.
+- [x] 300 ms width animation `cubic-bezier(0.25, 0.8, 0.25, 1)` only on
+      clicking a segment; changing the selection in the list no longer jerks the buttons.
+- [x] Linear 20 px icons (map / profile / play) with an `AppMuted` stroke,
+      `Stretch=Uniform` — no longer clipped; they fade out on expansion,
+      the content appears over 300 ms.
+- [x] Input field without a border, vertically centered, text `AppText`,
+      placeholder `AppMuted2`, padding 14 px; the arrow `➤` is glued to the right
+      edge (42 px, background `#8C141822`, divider `AppWhiteA12`,
       hover `AppSecondaryHover`).
-- [x] Активный сегмент получает синюю рамку `AppPrimary` и более тёмный фон.
-- [x] Третья шторка — кнопка «Запустить» на всю площадь с отступом 5 px,
-      фон `AppPrimary`, hover `AppPrimaryHover`, скругление 8 px.
-- [x] Повторный клик по активной шторке ничего не делает; клик по другой
-      очищает введённый текст; фокус ставится после анимации.
-- [x] Правая колонка расширена до 340 px (360 px на широких окнах), чтобы
-      раскрытое поле ввода не обрезало placeholder.
-- [x] Нижняя строка статуса получила тёмную плашку `AppGlassStatus`
-      (`#D90A0C12`, верхняя грань `#24FFFFFF`) с размытием — статус и версия
-      больше не сливаются с фоном.
+- [x] The active segment gets a blue `AppPrimary` border and a darker background.
+- [x] The third drawer — a "Launch" button filling the area with 5 px padding,
+      background `AppPrimary`, hover `AppPrimaryHover`, radius 8 px.
+- [x] Clicking the active drawer again does nothing; clicking another
+      clears the entered text; focus is set after the animation.
+- [x] The right column widened to 340 px (360 px on wide windows) so that
+      the expanded input field doesn't clip the placeholder.
+- [x] The bottom status line got a dark plate `AppGlassStatus`
+      (`#D90A0C12`, top edge `#24FFFFFF`) with blur — status and version
+      no longer blend into the background.
 
-### Версия
+### Version
 
-- [x] Нумерация C#-ветки начата заново: **1.0.0** (`<Version>`, шапка, статус-бар,
-      fallback-значения). Запись 1.0.0 добавлена в changelog (RU/EN) с пояснением
-      о сбросе нумерации.
+- [x] C# branch numbering started over: **1.0.0** (`<Version>`, header, status bar,
+      fallback values). A 1.0.0 entry added to the changelog (RU/EN) with an explanation
+      of the numbering reset.
 
-### Проверки
+### Checks
 
-- [x] `dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64` — 0 ошибок.
-- [x] Реальное хранилище (13 аккаунтов) открывается тестовым ключом.
-- [x] Скриншотами проверены: landing, мастер (шаг 1), dashboard, настройки
-      (заблокированные/разблокированные, выбор цвета), changelog с записью 1.0.0.
-- [x] Шторки управления аккаунтом: раскрытие/смена/закрытие, полное заполнение
-      панели, поле ввода по центру, иконки без обрезки, кнопка «Запустить»
-      в синем акцентном цвете.
-- [x] Нижняя плашка статуса читается поверх шейдера, версия — в правом краю.
-- [x] Шейдер включается/выключается и сохраняется; размытие видно на панелях,
-      уведомлениях, модалках, мастере и строке статуса.
+- [x] `dotnet build src\RoManager.App\RoManager.App.csproj -c Debug -p:Platform=x64` — 0 errors.
+- [x] The real vault (13 accounts) opens with a test key.
+- [x] Verified with screenshots: landing, wizard (step 1), dashboard, settings
+      (locked/unlocked, color selection), changelog with the 1.0.0 entry.
+- [x] Account management drawers: expand/switch/close, full panel
+      fill, centered input field, icons not clipped, "Launch" button
+      in the blue accent color.
+- [x] The bottom status plate is readable over the shader, version at the right edge.
+- [x] The shader turns on/off and is saved; blur is visible on panels,
+      notifications, modals, the wizard and the status line.
 
-### Осталось
+### Remaining
 
-- [ ] `RoManager.sln`, тесты Core, публикация.
+- [ ] `RoManager.sln`, Core tests, publishing.
 
-## GPU-фон, темп кадров и мелочи из списка Qwen
+## GPU background, frame rate and small items from Qwen's list
 
-### Анимированный фон на видеокарте
+### Animated background on the GPU
 
-- [x] Новый `Controls/BackgroundGpu.cs`: дословный порт GLSL из `frontend/src/components/ShaderBackground.tsx`
-      в HLSL (три аддитивные органические волны: simplex noise + подтёки, виньетка).
-- [x] Шейдер компилируется в рантайме через `D3DCompile` из `d3dcompiler_47.dll` (профиль `ps_4_0`),
-      поэтому `fxc.exe` и Windows SDK в сборочной машине не нужны.
-- [x] Отрисовка через Win2D `PixelShaderEffect` в `CanvasAnimatedControl`: кадр считается в
-      `CanvasRenderTarget` размером 1/3 окна и растягивается билинейно — визуал как в 2.1.0,
-      стоимость мизерная. Композиция (`CompositionEffectBrush`) для кастомных пиксельных шейдеров
-      в Win2D не поддерживается, поэтому взят игровой цикл `CanvasAnimatedControl`.
-- [x] У эффекта без входных текстур Direct2D не знает границ, поэтому кадр рисуется формой
-      `DrawImage(effect, dest, src)` без `Source1` (установка `Source1` запрещена: «shader inputs: 0»).
-- [x] `CanvasAnimatedControl` переведён на фиксированный шаг: `IsFixedTimeStep = true`,
-      `TargetElapsedTime = 33 ms` (30 fps). Фон медленный и мягкий — движение остаётся плавным.
-- [x] Пауза кадра при сворачивании/деактивации окна; при ошибке компиляции или отрисовки —
-      автоматический откат на CPU-версию (событие `BackgroundGpu.OnFailed`).
-- [x] `shader.json` получил поле `"Renderer": "auto" | "gpu" | "cpu"` (`ShaderSettings.Renderer`,
-      нормализация в `ShaderConfig.Load`). `auto` — GPU с откатом на CPU, `cpu` — принудительно
-      CPU (RDP/старые драйверы). Сохранение настроек больше не сбрасывает выбранный рендерер.
-- [x] `ShaderConfig.Load()` вызывается в `App.OnLaunched`: раньше `shader.json` читался только
-      при открытии настроек, то есть до этого игнорировался.
+- [x] New `Controls/BackgroundGpu.cs`: a verbatim port of the GLSL from `frontend/src/components/ShaderBackground.tsx`
+      to HLSL (three additive organic waves: simplex noise + streaks, vignette).
+- [x] The shader is compiled at runtime via `D3DCompile` from `d3dcompiler_47.dll` (profile `ps_4_0`),
+      so `fxc.exe` and the Windows SDK aren't needed on the build machine.
+- [x] Rendering via Win2D `PixelShaderEffect` in a `CanvasAnimatedControl`: the frame is computed in
+      a `CanvasRenderTarget` 1/3 of the window size and stretched bilinearly — the visual is as in 2.1.0,
+      the cost is tiny. Composition (`CompositionEffectBrush`) for custom pixel shaders
+      isn't supported in Win2D, so the `CanvasAnimatedControl` game loop was used instead.
+- [x] For an effect without input textures Direct2D doesn't know the bounds, so the frame is drawn with the form
+      `DrawImage(effect, dest, src)` without `Source1` (setting `Source1` is forbidden: "shader inputs: 0").
+- [x] `CanvasAnimatedControl` switched to a fixed step: `IsFixedTimeStep = true`,
+      `TargetElapsedTime = 33 ms` (30 fps). The background is slow and soft — movement stays smooth.
+- [x] Frame pause on minimizing/deactivating the window; on a compile or render error —
+      automatic fallback to the CPU version (`BackgroundGpu.OnFailed` event).
+- [x] `shader.json` got a `"Renderer": "auto" | "gpu" | "cpu"` field (`ShaderSettings.Renderer`,
+      normalization in `ShaderConfig.Load`). `auto` — GPU with fallback to CPU, `cpu` — force
+      CPU (RDP/old drivers). Saving settings no longer resets the selected renderer.
+- [x] `ShaderConfig.Load()` is called in `App.OnLaunched`: previously `shader.json` was read only
+      when opening settings, that is, until then it was ignored.
 
-### CPU-версия (fallback)
+### CPU version (fallback)
 
-- [x] Кадры идут по `DispatcherQueueTimer` с шагом 33 мс и фиксированным приращением времени —
-      движение не зависит от джиттера таймера.
-- [x] Предвычисления: виньетка считается один раз на размер окна; `exp(-y*fade)` — один раз на
-      строку и волну; `pow(|sin|, softness)` заменён таблицей `512 × 96`.
-- [x] Ограничение стоимости кадра: `MaxRenderPixels = 36 000` (масштаб растёт вместе с окном),
+- [x] Frames run on a `DispatcherQueueTimer` with a 33 ms step and a fixed time increment —
+      movement doesn't depend on timer jitter.
+- [x] Precomputations: the vignette is computed once per window size; `exp(-y*fade)` — once per
+      row and wave; `pow(|sin|, softness)` replaced by a `512 × 96` table.
+- [x] Frame cost cap: `MaxRenderPixels = 36 000` (the scale grows with the window),
       `MaxDegreeOfParallelism = Clamp(ProcessorCount/2, 2, 4)`.
 
-### Измерения (доля одного ядра, окно 1000×680, 6 с)
+### Measurements (share of one core, 1000×680 window, 6 s)
 
-- [x] GPU 30 fps — ≈ 4.7 %; GPU 60 fps (до фиксированного шага) — ≈ 9.6 %.
-- [x] CPU-рендерер — ≈ 280 % (несколько ядер).
-- [x] Фон выключен — ≈ 0.78 %. Окно свёрнуто/деактивировано — ≈ 0.26–0.3 %.
+- [x] GPU 30 fps — ≈ 4.7 %; GPU 60 fps (before the fixed step) — ≈ 9.6 %.
+- [x] CPU renderer — ≈ 280 % (several cores).
+- [x] Background off — ≈ 0.78 %. Window minimized/deactivated — ≈ 0.26–0.3 %.
 
-### Минимальный размер окна
+### Minimum window size
 
-- [x] `WindowChrome.SetMinSize` — подкласс на `WM_GETMINMAXINFO`: `MinTrackSize` 860×560,
-      масштабируется через `GetDpiForWindow`. Панели «Аккаунты»/«Действия» и статус-бар
-      остаются читаемыми. Проверено пробой `SendMessage(WM_GETMINMAXINFO)` → `860 x 560`.
+- [x] `WindowChrome.SetMinSize` — a subclass on `WM_GETMINMAXINFO`: `MinTrackSize` 860×560,
+      scaled via `GetDpiForWindow`. The "Accounts"/"Actions" panels and the status bar
+      stay readable. Verified with a `SendMessage(WM_GETMINMAXINFO)` probe → `860 x 560`.
 
-### Кнопки управления аккаунтами
+### Account management buttons
 
-- [x] Клик по пустой области панели аккаунтов сбрасывает выделение
-      (`AccountsPanel.Tapped` → `OnAccountsPanelTapped`). Клик по строке помечается
-      `e.Handled = true`, поэтому не всплывает до панели.
-- [x] При сбросе выделения раскрытая шторка плавно сворачивается той же анимацией ширины
-      (`_animateManageCollapse`); обычная смена выделения по-прежнему без анимации.
+- [x] Clicking an empty area of the accounts panel resets the selection
+      (`AccountsPanel.Tapped` → `OnAccountsPanelTapped`). A click on a row is marked
+      `e.Handled = true`, so it doesn't bubble up to the panel.
+- [x] When the selection is reset, the expanded drawer smoothly collapses with the same width animation
+      (`_animateManageCollapse`); a normal selection change is still without animation.
 
-### Иконка, «О программе», хранилище
+### Icon, "About", vault
 
-- [x] `app.ico` копируется рядом с exe (`Content` + `PreserveNewest`), `AppWindow.SetIcon`
-      вызывается только при наличии файла.
-- [x] В разделе «О программе» добавлена строка «Лицензия / MIT» (`settings.license`).
-- [x] Восстановлено боевое хранилище из pre-WinUI-бэкапа `_userdata\AccountData.json`
-      (13 аккаунтов, тот же `keyId`); файл с одним аккаунтом сохранён как
-      `AccountData.1account.saved.json`. Папка бэкапа не изменялась.
+- [x] `app.ico` is copied next to the exe (`Content` + `PreserveNewest`), `AppWindow.SetIcon`
+      is called only if the file exists.
+- [x] A "License / MIT" line (`settings.license`) added to the "About" section.
+- [x] The production vault restored from the pre-WinUI backup `_userdata\AccountData.json`
+      (13 accounts, the same `keyId`); the file with one account saved as
+      `AccountData.1account.saved.json`. The backup folder wasn't modified.
 
-### Не делалось (осознанно)
+### Not done (deliberately)
 
-- [ ] Сохранение авторизации лаунчера (DPAPI-токен + переключатель) — меняет модель безопасности
-      хранилища, нужно отдельное решение.
-- [ ] Полная кастомизация темы (палитра/шрифт/акцент на лету) — требует перевода
-      `StaticResource` на `ThemeResource` по всему приложению.
-- [ ] Виртуализация списка аккаунтов — 13 строк, кастомный список с мультивыделением;
-      `ItemsRepeater` потребовал бы переписать выделение и шторки.
-- [ ] «Проверить обновления» и ссылки GitHub в «О программе» — нет публичного URL репозитория
-      и фида релизов.
+- [ ] Saving the launcher authorization (DPAPI token + toggle) — changes the security model
+      of the vault, needs a separate decision.
+- [ ] Full theme customization (palette/font/accent on the fly) — requires converting
+      `StaticResource` to `ThemeResource` across the whole application.
+- [ ] Account list virtualization — 13 rows, a custom list with multi-select;
+      `ItemsRepeater` would require rewriting the selection and drawers.
+- [ ] "Check for updates" and GitHub links in "About" — no public repository URL
+      and release feed.
 
-## Доработки после первого прогона
+## Refinements after the first run
 
-- [x] Строка аккаунта под курсором получила ту же градиентную «волну», что и выделение,
-      но серую (`WaveBrush`): раньше был плоский полупрозрачный прямоугольник.
-- [x] Шторки управления аккаунтом плавно сворачиваются при любом сбросе выбора — клик по
-      пустой области, повторный клик по выбранной строке, чекбокс, Ctrl+клик. Вместе с шириной
-      анимируется и прозрачность содержимого панели (`FadeTo`).
-- [x] Переключатель языка в настройках синхронизирован: окно подписано на
-      `UiEvents.LanguageChanged` и перерисовывается сразу, а не только после повторного открытия.
-- [x] Блок «О программе»: описание, версия, лицензия MIT, папка данных, кнопка GitHub
-      (`https://github.com/redolfos2/RoManager`) и «Проверить обновления» через GitHub Releases API.
-      Если релизов ещё нет, показывается соответствующее сообщение (404 обрабатывается мягко).
-- [x] Changelog v0.01 (RU/EN) дополнен этими пунктами.
+- [x] The account row under the cursor got the same gradient "wave" as the selection,
+      but grey (`WaveBrush`): before it was a flat translucent rectangle.
+- [x] The account management drawers smoothly collapse on any selection reset — clicking an
+      empty area, clicking the selected row again, the checkbox, Ctrl+click. Along with the width,
+      the opacity of the panel content is animated (`FadeTo`).
+- [x] The language toggle in settings is synchronized: the window subscribes to
+      `UiEvents.LanguageChanged` and redraws immediately, not only after reopening.
+- [x] "About" block: description, version, MIT license, data folder, GitHub button
+      (`https://github.com/redolfos2/RoManager`) and "Check for updates" via the GitHub Releases API.
+      If there are no releases yet, a corresponding message is shown (404 is handled gently).
+- [x] Changelog v0.01 (RU/EN) supplemented with these items.
 
-## Окно добавления аккаунта
+## Add account window
 
-- [x] «Добавить» больше не рисует форму через `ModalOverlay` поверх дашборда: создан
-      `AddAccountWindow` — отдельное окно 460×424 с тёмным заголовком, иконкой, без ресайза
-      и разворота, по центру главного окна.
-- [x] Окно только собирает ввод: кнопки дергают колбэки `BrowserRequested`/`CookieRequested`,
-      а добавление по cookie и вход через браузер по-прежнему выполняет `DashboardView`.
-- [x] Если язык переключили при открытом окне, его тексты обновляются через `ApplyLanguage()`.
-- [x] `ModalOverlay` остался для остальных подтверждений (например, диалогов действий).
-- [x] Блоки «Войти через браузер» и ручная вставка cookie разделены линией с подписью
-      «ИЛИ»/«OR» (строка `add.or`, меняется вместе с языком).
-- [x] Окна `AddAccountWindow` и `SettingsWindow` объявлены owned-окнами главного
-      (`WindowChrome.SetOwner` → `GWLP_HWNDPARENT`): они не уходят под главное и
-      закрываются вместе с ним; на `MainWindow.Closed` есть подстраховка
-      (`DashboardView.CloseDialogs`). Проверено закрытием главного окна — процесс
-      завершается, оба окна исчезают.
+- [x] "Add" no longer draws a form via `ModalOverlay` over the dashboard: created
+      `AddAccountWindow` — a separate 460×424 window with a dark title bar, an icon, no resize
+      and no maximize, centered on the main window.
+- [x] The window only collects input: the buttons invoke the `BrowserRequested`/`CookieRequested` callbacks,
+      while adding by cookie and signing in through the browser is still done by `DashboardView`.
+- [x] If the language was switched while the window is open, its texts update via `ApplyLanguage()`.
+- [x] `ModalOverlay` remains for the other confirmations (for example, action dialogs).
+- [x] The "Sign in through browser" and manual cookie paste blocks are separated by a line with the label
+      "OR" (string `add.or`, changes with the language).
+- [x] The `AddAccountWindow` and `SettingsWindow` windows are declared owned windows of the main one
+      (`WindowChrome.SetOwner` → `GWLP_HWNDPARENT`): they don't go under the main one and
+      close with it; on `MainWindow.Closed` there's a fallback
+      (`DashboardView.CloseDialogs`). Verified by closing the main window — the process
+      terminates, both windows disappear.
 
-## Сессия менеджера и избранное
+## Manager session and favorites
 
-- [x] Новый `SessionStore` (ядро): `manager-session.json` рядом с exe хранит
-      настройку «запоминать сессию», срок в днях, ключевой файл `.json` и код
-      авторизации (фраза + PIN). Секреты шифруются DPAPI (`CryptProtectData`)
-      для текущего пользователя Windows, поэтому файл бесполезен на другой машине.
-- [x] После успешного входа (по ключу или при создании нового ключа) сессия
-      сохраняется автоматически, если включено. Следующий запуск открывает
-      хранилище без ввода (`MainWindow.RestoreSavedSession`), статус — «Открываю
-      сохранённую сессию…».
-- [x] Настройки → Общие: раздел «Вход в менеджер» с чекбоксом, полем срока
-      (1–365 дней) и кнопкой «Забыть сохранённую сессию». Раздел доступен до
-      входа, потому что конфигурация лежит рядом с программой, а не в сейве.
-- [x] «Выйти» очищает сохранённые секреты, чтобы автовход не вернул пользователя
-      в тот же аккаунт при следующем запуске.
-- [x] Избранное: `AccountInfo.Favorite`, звезда в последнем столбце таблицы
-      (заливка/контур), избранные строки подсвечиваются мягкой золотой волной.
-      Состояние сохраняется в зашифрованном хранилище.
-- [x] Исправлено сохранение хранилища, восстановленного из бэкапа с атрибутом
-      «только чтение»: `Vault.Save` снимает `ReadOnly` с `AccountData.json`
-      и `.bak` перед записью (раньше было «Access to the path is denied»).
-- [x] Нумерация версий: WebView-ветка — `pre-0.01` и `pre-0.02`, C#-ветка —
-      `v0.01` и `v0.02`; упоминание «нумерация начата заново» удалено.
-      `Version` сборки — 0.2.0.
-- [x] Таблица: заголовки выровнены со строками (общий `Padding` 12/10 и отступ
-      на ширину скроллбара 16 px). Избранное всегда идёт первым, сортировка
-      работает внутри групп. Клик по столбцу сортирует, повторный — меняет
-      направление (стрелка в заголовке); статус/дата/данные по умолчанию
-      сортируются «лучшие сверху».
-- [x] Поиск по имени аккаунта над таблицей (`dash.search`, пустой результат —
-      `dash.notFound`). Shift-выделение диапазона теперь использует порядок
-      отображения `_view`, а не исходный порядок хранилища.
+- [x] New `SessionStore` (core): `manager-session.json` next to the exe stores
+      the "remember session" setting, the term in days, the key file `.json` and the
+      authorization code (phrase + PIN). Secrets are encrypted with DPAPI (`CryptProtectData`)
+      for the current Windows user, so the file is useless on another machine.
+- [x] After a successful sign-in (by key or when creating a new key) the session
+      is saved automatically if enabled. The next launch opens
+      the vault without input (`MainWindow.RestoreSavedSession`), status — "Opening the
+      saved session…".
+- [x] Settings → General: a "Manager sign-in" section with a checkbox, a term field
+      (1–365 days) and a "Forget saved session" button. The section is available before
+      sign-in because the configuration lives next to the program, not in the save.
+- [x] "Sign out" clears the saved secrets so that auto sign-in doesn't return the user
+      to the same account on the next launch.
+- [x] Favorites: `AccountInfo.Favorite`, a star in the last table column
+      (filled/outline), favorite rows highlighted with a soft golden wave.
+      The state is saved in the encrypted vault.
+- [x] Fixed saving of a vault restored from a backup with the "read-only" attribute:
+      `Vault.Save` removes `ReadOnly` from `AccountData.json`
+      and `.bak` before writing (before it was "Access to the path is denied").
+- [x] Version numbering: the WebView branch — `pre-0.01` and `pre-0.02`, the C# branch —
+      `v0.01` and `v0.02`; the mention of "numbering started over" removed.
+      Build `Version` — 0.2.0.
+- [x] Table: headers aligned with rows (shared `Padding` 12/10 and an offset
+      for the scrollbar width of 16 px). Favorites always go first, sorting
+      works within groups. Clicking a column sorts, clicking again changes
+      the direction (arrow in the header); status/date/data are sorted by default
+      "best on top".
+- [x] Account name search above the table (`dash.search`, empty result —
+      `dash.notFound`). Shift range selection now uses the
+      display order `_view`, not the original vault order.
 
-## 2026-11-21 — публичный релиз v0.02
+## 2026-11-21 — public release v0.02
 
-- [x] README на английском (главная страница) и README.ru.md на русском со ссылками-переключателями; иконка, скриншоты дашборда и настроек лежат в `docs/assets/`.
-- [x] Авторство переведено на `as-des (asdes)`: LICENSE, ссылки, git-конфиг и все коммиты в истории.
-- [x] Исправлена портативная сборка: `dotnet publish` не копировал `resources.pri` и `*.xbf`, из-за чего приложение падало с XamlParseException. Добавлен таргет `CopyAppPriToPublish` в `Directory.Build.targets`.
-- [x] Опубликован релиз v0.02: архив `RoManager-win-x64-v0.02.zip` (88,4 МБ), `sha256sums.txt` и заметки `.github/releases/v0.02.md`; ветки `main` и `winui3` в GitHub.
+- [x] README in English (main page) and README.ru.md in Russian with switcher links; the icon, dashboard and settings screenshots are in `docs/assets/`.
+- [x] Authorship changed to `as-des (asdes)`: LICENSE, links, git config and all commits in the history.
+- [x] Fixed the portable build: `dotnet publish` didn't copy `resources.pri` and `*.xbf`, which made the application crash with XamlParseException. Added a `CopyAppPriToPublish` target in `Directory.Build.targets`.
+- [x] Published release v0.02: archive `RoManager-win-x64-v0.02.zip` (88.4 MB), `sha256sums.txt` and notes `.github/releases/v0.02.md`; branches `main` and `winui3` on GitHub.
 
-## 2026-11-24 — компактная портативная сборка v0.02 (пересобрана)
+## 2026-11-24 — compact portable build v0.02 (rebuilt)
 
-- [x] Версия в интерфейсе берётся из `AppInfo.Version = "0.02"` и совпадает с тегом `v0.02`; в csproj `<Version>0.02</Version>`. Ссылки на репозиторий переведены на `as-des/RoManager`.
-- [x] `publish` чистится от ~85 неиспользуемых папок локализаций (остаются `en-GB`, `en-us`, `ru-RU`, `Microsoft.UI.Xaml`, `Views`), `*.pdb` и AI-стека Windows App SDK (ONNX, DirectML, `Microsoft.Windows.AI.*`, `Microsoft.Windows.Search.*`, `Microsoft.Asg.*`) — минус ~53 МБ.
-- [x] Готовый архив: `70 447 861` байт, распаковано 172,2 МБ, SHA-256 `4c23ae51f582fd38b0f518af868be4161d208801378a052af6c1ca60cd35b408`; коммит `cf5fd74`, workflow run `45304163271`.
-- [x] Удаление аккаунтов вынесено в отдельное окно `DeleteAccountWindow`, как и добавление; в настройках скрыт устаревший раздел про внешний Chrome.
-- [x] Перед переделкой сделан бэкап `D:\RoManager_backup_pre-flat-release_2026-11-24`.
+- [x] The version in the interface comes from `AppInfo.Version = "0.02"` and matches the tag `v0.02`; in csproj `<Version>0.02</Version>`. Repository links changed to `as-des/RoManager`.
+- [x] `publish` cleaned of ~85 unused localization folders (kept: `en-GB`, `en-us`, `ru-RU`, `Microsoft.UI.Xaml`, `Views`), `*.pdb` and the Windows App SDK AI stack (ONNX, DirectML, `Microsoft.Windows.AI.*`, `Microsoft.Windows.Search.*`, `Microsoft.Asg.*`) — minus ~53 MB.
+- [x] Ready archive: `70 447 861` bytes, unpacked 172.2 MB, SHA-256 `4c23ae51f582fd38b0f518af868be4161d208801378a052af6c1ca60cd35b408`; commit `cf5fd74`, workflow run `45304163271`.
+- [x] Account deletion moved to a separate `DeleteAccountWindow`, like adding; in settings the outdated section about external Chrome is hidden.
+- [x] Before the rework, a backup was made at `D:\RoManager_backup_pre-flat-release_2026-11-24`.
 
-## 2026-11-26 — версия 0.03: внешний вид и исправление панелей
+## 2026-11-26 — version 0.03: appearance and panel fix
 
-- [x] Причина «двойных» панелей — `CompositionBackdropBrush` + Win2D-размытие в `GlassSurface`: слой захватывал уже отрисованное окно. `GlassSurface` переведён на тонировку и рамку, размывается только фон (`BackgroundGpu`/`BackgroundShader`).
-- [x] Размытие фона настраивается (0–36 DIP) и хранится в `appearance.json`; акцентный цвет тоже в `appearance.json` и применяется перекраской кистей темы без перезапуска.
-- [x] Исправлено состояние нажатия кнопок и рамка активной шторки: они больше не остаются синими при другом акценте (`AppPrimaryPressed`, `SegmentBorderActive`, `PinDots`, уведомления, зона перетаскивания в мастере).
-- [x] Шрифт Unbounded (`Assets/Fonts/Unbounded.ttf`, лицензия OFL) для заголовков, кнопок и вкладок; таблицы и подписи остаются на системном шрифте. `prune-publish.ps1` сохраняет `Assets`.
-- [x] Версия `0.03` в `AppInfo.Version` и csproj, запись в changelog, `README.md` / `README.ru.md`, заметки `.github/releases/v0.03.md`.
-- [x] Опубликован релиз v0.03: архив `RoManager-win-x64-v0.03.zip` — 70 862 133 байт, 173,0 МБ распакованного, SHA-256 `785c5c92fe81d3265abb2edc78abe05dc455f38116041ca8ebb7613c0537f807`, SHA-256 `RoManager.exe` `fd11a8847168c732a6dde0a0827b7fe4350b4fa38e70dc9f0c2d320121c25890`; коммит `0090f4a`, workflow run `45790804372`; attestation проверена. В архиве 6 папок (`Assets`, `en-GB`, `en-us`, `Microsoft.UI.Xaml`, `ru-RU`, `Views`). Релиз v0.02 сохранён и остаётся доступным.
+- [x] The cause of the "double" panels — `CompositionBackdropBrush` + Win2D blur in `GlassSurface`: the layer captured the already rendered window. `GlassSurface` switched to tint and border, only the background is blurred (`BackgroundGpu`/`BackgroundShader`).
+- [x] Background blur is configurable (0–36 DIP) and stored in `appearance.json`; the accent color is also in `appearance.json` and applied by recoloring the theme brushes without a restart.
+- [x] Fixed the button pressed state and the active drawer border: they no longer stay blue with a different accent (`AppPrimaryPressed`, `SegmentBorderActive`, `PinDots`, notifications, the drag zone in the wizard).
+- [x] Unbounded font (`Assets/Fonts/Unbounded.ttf`, OFL license) for headings, buttons and tabs; tables and captions stay on the system font. `prune-publish.ps1` preserves `Assets`.
+- [x] Version `0.03` in `AppInfo.Version` and csproj, entry in the changelog, `README.md` / `README.ru.md`, notes `.github/releases/v0.03.md`.
+- [x] Published release v0.03: archive `RoManager-win-x64-v0.03.zip` — 70 862 133 bytes, 173.0 MB unpacked, SHA-256 `785c5c92fe81d3265abb2edc78abe05dc455f38116041ca8ebb7613c0537f807`, SHA-256 of `RoManager.exe` `fd11a8847168c732a6dde0a0827b7fe4350b4fa38e70dc9f0c2d320121c25890`; commit `0090f4a`, workflow run `45790804372`; attestation verified. The archive has 6 folders (`Assets`, `en-GB`, `en-us`, `Microsoft.UI.Xaml`, `ru-RU`, `Views`). Release v0.02 is preserved and remains available.

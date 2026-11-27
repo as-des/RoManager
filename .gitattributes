@@ -15,7 +15,6 @@
 *.exe      binary
 *.zip      binary
 
-# Design mockups and documentation are excluded from GitHub language stats.
-design/** linguist-documentation
-docs/**   linguist-documentation
+# Documentation is excluded from GitHub language stats.
+docs/** linguist-documentation
 
