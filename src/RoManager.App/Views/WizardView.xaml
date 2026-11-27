@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:RoManager.App.Controls">
 
-    <!-- Геометрия 2.1.0: карточка 400 px, шапка той же ширины. -->
+    <!-- 2.1.0 geometry: a 400 px card with a header of the same width. -->
     <Grid Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel>
             <Grid Width="400" Margin="0,0,0,28">
@@ -28,7 +28,7 @@
                 <StackPanel>
                     <TextBlock x:Name="StepLabel" Style="{StaticResource AppCaption}" Margin="0,0,0,6" />
 
-                    <!-- Шаг 1: ключевой файл -->
+                    <!-- Step 1: key file -->
                     <StackPanel x:Name="FilePanel" Visibility="Collapsed">
                         <TextBlock x:Name="FileTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
 
@@ -59,7 +59,7 @@
                         <Button x:Name="FileNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnFileNext" IsEnabled="False" />
                     </StackPanel>
 
-                    <!-- Шаг 2: фраза -->
+                    <!-- Step 2: phrase -->
                     <StackPanel x:Name="PhrasePanel" Visibility="Collapsed">
                         <TextBlock x:Name="PhraseTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <TextBlock x:Name="PhraseHint" Style="{StaticResource AppMutedText}" Margin="0,0,0,14" />
@@ -69,7 +69,7 @@
                         <Button x:Name="PhraseNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnPhraseNext" />
                     </StackPanel>
 
-                    <!-- Шаг 3: PIN -->
+                    <!-- Step 3: PIN -->
                     <StackPanel x:Name="PinPanel" Visibility="Collapsed">
                         <TextBlock x:Name="PinTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <controls:PinDots x:Name="AccessPinDots" />
@@ -81,7 +81,7 @@
                         <Button x:Name="PinNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnPinNext" />
                     </StackPanel>
 
-                    <!-- Шаг 4: подтверждение входа -->
+                    <!-- Step 4: sign-in confirmation -->
                     <StackPanel x:Name="ConfirmPanel" Visibility="Collapsed">
                         <TextBlock x:Name="ConfirmTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <Border Background="#FF0F0F0F" CornerRadius="10" BorderBrush="#FF222222"
@@ -111,7 +111,7 @@
                         <Button x:Name="ConfirmButton" Style="{StaticResource AppPrimaryButton}" Click="OnConfirmAccess" />
                     </StackPanel>
 
-                    <!-- Создание: фраза -->
+                    <!-- Create: phrase -->
                     <StackPanel x:Name="CreatePhrasePanel" Visibility="Collapsed">
                         <TextBlock x:Name="CreatePhraseTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <TextBlock x:Name="CreatePhraseHint" Style="{StaticResource AppMutedText}" Margin="0,0,0,14" />
@@ -121,7 +121,7 @@
                         <Button x:Name="CreatePhraseNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreatePhraseNext" />
                     </StackPanel>
 
-                    <!-- Создание: PIN -->
+                    <!-- Create: PIN -->
                     <StackPanel x:Name="CreatePinPanel" Visibility="Collapsed">
                         <TextBlock x:Name="CreatePinTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <controls:PinDots x:Name="CreatePinDots" />
@@ -133,7 +133,7 @@
                         <Button x:Name="CreatePinNextButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreatePinNext" />
                     </StackPanel>
 
-                    <!-- Создание: подтверждение PIN -->
+                    <!-- Create: PIN confirmation -->
                     <StackPanel x:Name="CreateConfirmPanel" Visibility="Collapsed">
                         <TextBlock x:Name="CreateConfirmTitle" Style="{StaticResource AppH2}" Margin="0,0,0,18" />
                         <controls:PinDots x:Name="CreateConfirmDots" />
@@ -145,7 +145,7 @@
                         <Button x:Name="CreateConfirmButton" Style="{StaticResource AppPrimaryButton}" Click="OnCreateConfirm" />
                     </StackPanel>
 
-                    <!-- Готово -->
+                    <!-- Done -->
                     <StackPanel x:Name="DonePanel" Visibility="Collapsed">
                         <Border Width="56" Height="56" CornerRadius="28" Background="#1FF59E0B"
                                 HorizontalAlignment="Center" Margin="0,0,0,16">

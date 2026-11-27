@@ -7,9 +7,9 @@ using Windows.UI;
 namespace RoManager.App.Controls;
 
 /**
- * Тонкий ползунок как в 2.1.0: 8 px, скруглённый, без трека и стрелок.
- * Прикрепляется к ScrollViewer: обновляется при прокрутке/ресайзе,
- * перетаскивается мышью, клик по дорожке перематывает.
+ * Thin scrollbar as in 2.1.0: 8 px, rounded, with no track or arrows.
+ * Attaches to a ScrollViewer: updates on scroll/resize, drags with the mouse,
+ * and a click on the track jumps to that position.
  */
 public sealed class ThinScrollBar : Grid
 {

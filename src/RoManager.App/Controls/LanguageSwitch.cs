@@ -6,7 +6,7 @@ using Windows.UI;
 
 namespace RoManager.App.Controls;
 
-/** Переключатель RU/EN как в 2.1.0 (один на экран). */
+/** RU/EN switch as in 2.1.0 (one per screen). */
 public sealed class LanguageSwitch : UserControl
 {
     static readonly SolidColorBrush ActiveBg = new(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
@@ -24,7 +24,7 @@ public sealed class LanguageSwitch : UserControl
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
         };
-        // Раскладку задаёт вызывающий экран (Left/Right), не переключатель.
+        // The host screen controls placement (left/right), not the switch itself.
         VerticalAlignment = VerticalAlignment.Center;
 
         var style = (Style)Application.Current.Resources["AppLangButton"];

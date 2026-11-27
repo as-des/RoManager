@@ -15,9 +15,9 @@ using Windows.UI;
 namespace RoManager.App.Views;
 
 /**
- * Дашборд как в 2.1.0: таблица аккаунтов и правая колонка
- * «Действия» → «Управление аккаунтом». Настройки открываются
- * единой кнопкой в шапке.
+ * Dashboard as in 2.1.0: the account table and a right-hand
+ * "Actions" -> "Account controls" column. Settings open from a
+ * single button in the header.
  */
 public sealed partial class DashboardView : UserControl
 {
@@ -28,7 +28,7 @@ public sealed partial class DashboardView : UserControl
     bool _animateManageCollapse;
     AddAccountWindow _addWindow;
 
-    /** Аккаунты в текущем порядке отображения (поиск, избранное, сортировка). */
+    /** Accounts in the current display order (search, favourites, sorting). */
     readonly List<AccountInfo> _view = new();
     string _query = "";
     string _sortColumn = "";
@@ -37,11 +37,11 @@ public sealed partial class DashboardView : UserControl
     public event Action LogoutRequested;
     public event Action SettingsRequested;
 
-    /** Акцент берём из темы: его можно сменить в настройках. */
+    /** Accent comes from the theme and can be changed in Settings. */
     static Color AccentColor => Appearance.AccentColor;
 
     static readonly SolidColorBrush RowDivider = new(Color.FromArgb(0xFF, 0x1A, 0x1A, 0x1A));
-    /** Подсветка строки под курсором: та же волна, что у выделения, но серая. */
+    /** Row hover highlight: the same wave as the selection, but grey. */
     static readonly Brush RowHover = WaveBrush(Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF));
     static readonly SolidColorBrush MutedBrush = new(Color.FromArgb(0xFF, 0x88, 0x88, 0x88));
     static readonly SolidColorBrush TextBrush = new(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
@@ -59,8 +59,8 @@ public sealed partial class DashboardView : UserControl
         };
         SizeChanged += (_, _) => ApplyResponsiveLayout();
 
-        // Акцент меняет только вычисленные элементы (галочки, подсветка строк),
-        // кисти темы обновляются сами.
+        // The accent only changes computed elements (checkmarks, row highlights);
+        // theme brushes update themselves.
         UiEvents.AppearanceChanged += () => DispatcherQueue.TryEnqueue(() =>
         {
             if (!IsLoaded) return;
@@ -68,8 +68,8 @@ public sealed partial class DashboardView : UserControl
             ApplyManageLayout(animate: false);
         });
 
-        // Ширину строки задаём от панели явно: так Grid со звёздными
-        // колонками всегда заполняет её целиком, независимо от контента.
+        // The row width is set explicitly from the panel so the star-sized Grid
+        // columns always fill it completely, regardless of content.
         ManagePanel.SizeChanged += (_, _) =>
         {
             if (ManagePanel.ActualWidth > 0)
@@ -108,7 +108,7 @@ public sealed partial class DashboardView : UserControl
         Reload();
     }
 
-    /** Закрывает окно добавления аккаунта (вызывается при закрытии главного окна). */
+    /** Closes the Add account window (called when the main window closes). */
     public void CloseDialogs()
     {
         try { _addWindow?.Close(); } catch { }
@@ -116,11 +116,11 @@ public sealed partial class DashboardView : UserControl
         _dialogOpen = false;
     }
 
-    /* ---------- таблица ---------- */
+    /* ---------- table ---------- */
 
     public void Reload()
     {
-        // Подтягиваем актуальный список и подчищаем выделение удалённых.
+        // Pull the current list and drop selections for deleted accounts.
         List<AccountInfo> accounts;
         try { accounts = Vault.All()?.ToList() ?? new List<AccountInfo>(); }
         catch (Exception ex)
@@ -162,7 +162,7 @@ public sealed partial class DashboardView : UserControl
         UpdateControls(accounts);
     }
 
-    /** Избранное — всегда сверху; внутри групп применяется выбранная сортировка. */
+    /** Favourites always come first; within groups the chosen sort applies. */
     List<AccountInfo> BuildView(List<AccountInfo> all)
     {
         var query = (_query ?? "").Trim();
@@ -206,7 +206,7 @@ public sealed partial class DashboardView : UserControl
             ? value
             : DateTime.MinValue;
 
-    /* ---------- поиск и сортировка ---------- */
+    /* ---------- search and sorting ---------- */
 
     void OnSearchChanged(object sender, TextChangedEventArgs e)
     {
@@ -228,7 +228,7 @@ public sealed partial class DashboardView : UserControl
         else
         {
             _sortColumn = column;
-            // Для статуса, даты и данных полезнее «сначала онлайн/свежие/актуальные».
+            // For status, date and data, "online/newest/current first" is more useful.
             _sortDesc = column is "status" or "last" or "data";
         }
         UpdateSortIcons();
@@ -267,7 +267,7 @@ public sealed partial class DashboardView : UserControl
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(25, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
 
-        // Чекбокс
+        // Checkbox
         var box = new Border
         {
             Width = 16,
@@ -350,7 +350,7 @@ public sealed partial class DashboardView : UserControl
         Grid.SetColumn(data, 4);
         grid.Children.Add(data);
 
-        // Избранное: звезда в последнем столбце.
+        // Favourite: star in the last column.
         var star = new Border
         {
             Width = 26,
@@ -390,8 +390,8 @@ public sealed partial class DashboardView : UserControl
         };
         row.Tapped += (s, e) =>
         {
-            // Клик по строке не должен доходить до панели: иначе он сразу
-            // сбросил бы выделение обработчиком пустой области.
+            // A row click must not reach the panel; otherwise the empty-area
+            // handler would clear the selection immediately.
             e.Handled = true;
             OnRowTapped(account.Id, index);
         };
@@ -406,7 +406,7 @@ public sealed partial class DashboardView : UserControl
 
     static readonly SolidColorBrush FavoriteGold = new(Color.FromArgb(0xFF, 0xE8, 0xC4, 0x6A));
 
-    /** Лёгкая золотая волна для избранных аккаунтов. */
+    /** A light golden wave for favourite accounts. */
     static LinearGradientBrush FavoriteBrush() => WaveBrush(Color.FromArgb(0x2E, 0xE0, 0xBA, 0x5E));
 
     static LinearGradientBrush SelectionBrush()
@@ -416,8 +416,8 @@ public sealed partial class DashboardView : UserControl
     }
 
     /**
-     * Горизонтальная «волна» с прозрачными краями — как выделение в 2.1.0.
-     * Цвет задаёт вызывающий: синий для выбора, белый/серый для hover.
+     * Horizontal wave with transparent edges, like the 2.1.0 selection.
+     * The caller sets the colour: blue for selection, white/grey for hover.
      */
     static LinearGradientBrush WaveBrush(Color color)
     {
@@ -436,7 +436,7 @@ public sealed partial class DashboardView : UserControl
         };
     }
 
-    /** Клик по пустому месту панели аккаунтов = сброс выделения. */
+    /** Clicking an empty spot in the account panel clears the selection. */
     void OnAccountsPanelTapped(object sender, TappedRoutedEventArgs e)
     {
         if (_selected.Count == 0) return;
@@ -444,7 +444,7 @@ public sealed partial class DashboardView : UserControl
         _selected.Clear();
         _lastIndex = -1;
 
-        // Раскрытая шторка уходит вместе с выделением — плавно.
+        // An expanded drawer collapses with the selection, smoothly.
         if (_manageMode != null)
         {
             _manageMode = null;
@@ -485,8 +485,8 @@ public sealed partial class DashboardView : UserControl
 
         if (_selected.Count != 1)
         {
-            // Любой сброс выбора (чекбокс, Ctrl+клик, клик по пустой области)
-            // сворачивает раскрытую шторку плавно, а не рывком.
+            // Any selection reset (checkbox, Ctrl+click, empty-area click)
+            // collapses the expanded drawer smoothly instead of snapping.
             if (_manageMode != null) _animateManageCollapse = true;
             _manageMode = null;
         }
@@ -523,10 +523,10 @@ public sealed partial class DashboardView : UserControl
     static readonly SolidColorBrush SegmentBg = new(Color.FromArgb(0x8C, 0x1A, 0x1C, 0x24));
     static readonly SolidColorBrush SegmentBorder = new(Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF));
     static readonly SolidColorBrush SegmentBgActive = new(Color.FromArgb(0xB3, 0x0F, 0x11, 0x18));
-    /** Рамка активной шторки тоже следует за акцентом. */
+    /** The active drawer border also follows the accent. */
     static SolidColorBrush SegmentBorderActive => new(AccentColor);
 
-    /* ---------- адаптивная сетка (как media queries 2.1.0) ---------- */
+    /* ---------- responsive grid (like the 2.1.0 media queries) ---------- */
 
     void ApplyResponsiveLayout()
     {
@@ -548,7 +548,7 @@ public sealed partial class DashboardView : UserControl
             DashBody.Padding = new Thickness(20, 20, 20, 20);
             DashBody.ColumnSpacing = 16;
             DashHeader.Padding = new Thickness(20, 13, 20, 13);
-            // Шире прежних 280 px: раскрытая «шторка» должна вмещать поле ввода.
+            // Wider than the previous 280 px: an expanded drawer must fit the input field.
             ColSidebar.Width = new GridLength(340);
             Sidebar.SetValue(Grid.RowProperty, 0);
             Sidebar.SetValue(Grid.ColumnProperty, 1);
@@ -578,13 +578,13 @@ public sealed partial class DashboardView : UserControl
         bool canManage = _selected.Count == 1;
         if (!canManage) _manageMode = null;
 
-        // Смена выделения в списке не должна анимировать ширину шторок —
-        // анимация только при явном клике по сегменту или при сбросе
-        // выделения (клик по пустой области, чекбокс, Ctrl+клик).
+        // Changing the selection in the list must not animate drawer widths;
+        // animate only on an explicit segment click or when clearing the
+        // selection (empty-area click, checkbox, Ctrl+click).
         bool animate = _animateManageCollapse && !canManage;
         _animateManageCollapse = false;
 
-        // В legacy гасились только дети панели, а не сама панель.
+        // The legacy version dimmed only the panel's children, not the panel itself.
         FadeTo(ManageInner, canManage ? 1 : 0.4, 300, animate);
         ManageInner.IsHitTestVisible = canManage;
         ManageTitle.Foreground = canManage ? ManageTitleActive : ManageTitleDisabled;
@@ -603,7 +603,7 @@ public sealed partial class DashboardView : UserControl
         if (rowWidth > 0 && (double.IsNaN(ManageRow.Width) || Math.Abs(ManageRow.Width - rowWidth) > 0.5))
             ManageRow.Width = rowWidth;
 
-        // flex: 1 у неактивных и flex: 3 у активной (do.html).
+        // flex: 1 for inactive drawers and flex: 3 for the active one (do.html).
         if (animate) AnimateManageColumns(game, player, launcher);
         else
         {
@@ -615,7 +615,7 @@ public sealed partial class DashboardView : UserControl
         SegmentBgTo(PlayerSegment, player);
         SegmentBgTo(LauncherSegment, launcher);
 
-        // Иконка плавно исчезает, содержимое плавно проявляется.
+        // The icon fades out while the content fades in.
         ApplySegmentState(GameIcon, GameContent, game, animate);
         ApplySegmentState(PlayerIcon, PlayerContent, player, animate);
         ApplySegmentState(LauncherIcon, LauncherContent, launcher, animate);
@@ -646,10 +646,10 @@ public sealed partial class DashboardView : UserControl
     DispatcherTimer _manageWidthTimer;
 
     /**
-     * Текущие «flex-grow» шторок: 1 у свёрнутой, 3 у раскрытой.
-     * Анимируем именно эти коэффициенты, как CSS-transition flex в демо:
-     * Grid сам пересчитывает ширины, поэтому обратная анимация —
-     * честный реверс (активная 3→1, остальные 1→1, но растут долей).
+     * Current drawer "flex-grow" values: 1 when collapsed, 3 when expanded.
+     * These coefficients are animated, like the CSS flex transition in the demo:
+     * the Grid recalculates widths itself, so the reverse animation is a true
+     * reversal (active 3->1, others 1->1 but growing by share).
      */
     readonly double[] _manageGrow = { 1, 1, 1 };
 
@@ -738,7 +738,7 @@ public sealed partial class DashboardView : UserControl
         PlayerInput.Text = "";
     }
 
-    /* ---------- действия ---------- */
+    /* ---------- actions ---------- */
 
     void OnGameSegmentTapped(object sender, TappedRoutedEventArgs e) =>
         ToggleManageMode("game");
@@ -770,7 +770,7 @@ public sealed partial class DashboardView : UserControl
 
     async void FocusManageInput(TextBox input, string mode)
     {
-        // В do.html фокус ставится после завершения анимации раскрытия.
+        // In do.html the focus is set after the expand animation finishes.
         await Task.Delay(320);
         if (_manageMode == mode) input.Focus(FocusState.Programmatic);
     }
@@ -897,14 +897,14 @@ public sealed partial class DashboardView : UserControl
             v.ok ? "success" : "danger");
     }
 
-    /* ---------- добавление аккаунта ---------- */
+    /* ---------- adding an account ---------- */
 
     void OnAddAccount(object sender, RoutedEventArgs e)
     {
         if (_dialogOpen) return;
         _dialogOpen = true;
 
-        // Форма добавления — отдельное окно, а не слой поверх дашборда.
+        // The add form is a separate window, not a layer over the dashboard.
         var dialog = new AddAccountWindow();
         _addWindow = dialog;
         dialog.BrowserRequested = () =>
@@ -995,7 +995,7 @@ public sealed partial class DashboardView : UserControl
         Status(Strings.I.F("add.added", v.name), "success");
     }
 
-    /* ---------- удаление ---------- */
+    /* ---------- deletion ---------- */
 
     async void OnDeleteAccounts(object sender, RoutedEventArgs e)
     {
@@ -1026,7 +1026,7 @@ public sealed partial class DashboardView : UserControl
         }
     }
 
-    /* ---------- прочее ---------- */
+    /* ---------- misc ---------- */
 
     void OnOpenSettings(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke();
     void OnLogout(object sender, RoutedEventArgs e) => LogoutRequested?.Invoke();

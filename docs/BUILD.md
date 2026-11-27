@@ -1,15 +1,15 @@
-# Сборка
+# Build
 
-## Что нужно
+## Requirements
 
-| Инструмент | Версия | Зачем |
+| Tool | Version | Purpose |
 |---|---|---|
-| Windows | 10/11 x64 | целевая платформа |
+| Windows | 10/11 x64 | target platform |
 | .NET SDK | 8.0.x | `dotnet build` / `publish` |
-| Node.js | LTS (20+) | сборка React-интерфейса |
-| WebView2 Runtime | Evergreen | работа окна (не нужен для сборки) |
+| Node.js | LTS (20+) | build the React interface |
+| WebView2 Runtime | Evergreen | runs the window (not needed to build) |
 
-## 1. Интерфейс
+## 1. Interface
 
 ```bat
 cd frontend
@@ -18,39 +18,40 @@ npm run typecheck
 npm run build
 ```
 
-Vite собирает два entry (`index.html`, `settings.html`) сразу в `../wwwroot`
-(см. `frontend/vite.config.ts`). `wwwroot` — сгенерированная папка, в git её нет.
+Vite builds both entries (`index.html`, `settings.html`) into `../wwwroot`
+(see `frontend/vite.config.ts`). `wwwroot` is generated and is not tracked in git.
 
-## 2. Приложение
+## 2. Application
 
 ```bat
 dotnet build -c Debug
 ```
 
-Результат: `bin\Debug\net8.0-windows\RoManager.exe`.
-`wwwroot`, `app.ico` и DLL WebView2 копируются в `bin` автоматически.
+Output: `bin\Debug\net8.0-windows\RoManager.exe`.
+`wwwroot`, `app.ico` and the WebView2 DLLs are copied into `bin` automatically.
 
-## 3. Релиз
+## 3. Release
 
 ```bat
 dotnet publish -c Release -r win-x64 --self-contained true -o publish
 ```
 
-`--self-contained true` избавляет пользователя от установки .NET Runtime.
-WebView2 Runtime всё равно нужен (в Windows 11 он предустановлен; для Windows 10
-приложите ссылку на официальный установщик в описании релиза).
+`--self-contained true` saves users from installing the .NET Runtime.
+WebView2 Runtime is still required (it ships with Windows 11; for Windows 10,
+link the official installer in the release notes).
 
-Архив: содержимое `publish` + `README.md` + `LICENSE` + `sha256sums.txt`.
+Archive: the contents of `publish` + `README.md` + `LICENSE` + `sha256sums.txt`.
 
-### Необязательно: portable Chrome
+### Optional: portable Chrome
 
-Вход в Roblox использует установленный Chrome, затем Edge. Если положить рядом с exe
-папку `chrome-win64\chrome.exe`, приложение возьмёт её (можно отключить в настройках).
-В репозиторий и релиз этот браузер не входит — слишком большой.
+Roblox sign-in uses the installed Chrome, then Edge. If a
+`chrome-win64\chrome.exe` folder sits next to the exe, the app uses it (this can
+be disabled in Settings). The browser is not included in the repository or the
+release, as it is too large.
 
-## Откат интерфейса
+## Rolling back the interface
 
-`wwwroot_legacy/` хранит предыдущую (legacy) версию UI. Откат:
+`wwwroot_legacy/` keeps the previous (legacy) UI. To roll back:
 
 ```bat
 rmdir /s /q wwwroot
@@ -58,10 +59,10 @@ ren wwwroot_legacy wwwroot
 dotnet build -c Debug
 ```
 
-## Частые проблемы
+## Common problems
 
-- **Пустое окно / 404** — не собран фронт: выполните `npm run build`, затем `dotnet build`.
-- **`WebView2 Runtime not found`** — установите Evergreen Runtime.
-- **Не запускается Roblox** — проверьте, что установлен клиент Roblox и вход выполнен.
-- **Multi Roblox не включается** — закройте все процессы Roblox и сохраните настройки снова.
-- **Сборка не видит Node** — перезапустите терминал после установки Node.js.
+- **Blank window / 404**: the front end was not built; run `npm run build`, then `dotnet build`.
+- **`WebView2 Runtime not found`**: install the Evergreen Runtime.
+- **Roblox does not launch**: make sure the Roblox client is installed and signed in.
+- **Multi Roblox does not enable**: close every Roblox process and save Settings again.
+- **The build cannot find Node**: restart the terminal after installing Node.js.

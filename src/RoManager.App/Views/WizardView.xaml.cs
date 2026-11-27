@@ -33,7 +33,7 @@ public sealed partial class WizardView : UserControl
         ApplyLanguage();
     }
 
-    /** Начать сценарий заново: вход по ключу или создание нового ключа. */
+    /** Restart the flow: sign in with a key or create a new one. */
     public void Restart(bool haveAccess)
     {
         _creating = !haveAccess;
@@ -57,7 +57,7 @@ public sealed partial class WizardView : UserControl
         SetStep(_creating ? Step.CreatePhrase : Step.File);
 
 #if DEBUG
-        // ROM_TEST_WIZARD_STEP=2|3|4 — открыть нужный шаг для снимков UI.
+        // ROM_TEST_WIZARD_STEP=2|3|4 opens a step for UI screenshots.
         var testStep = Environment.GetEnvironmentVariable("ROM_TEST_WIZARD_STEP");
         if (!string.IsNullOrEmpty(testStep) && !_creating)
         {
@@ -127,7 +127,7 @@ public sealed partial class WizardView : UserControl
         UpdateStepLabel();
     }
 
-    /* ---------- шаги ---------- */
+    /* ---------- steps ---------- */
 
     void SetStep(Step step)
     {
@@ -201,7 +201,7 @@ public sealed partial class WizardView : UserControl
         }
     }
 
-    /* ---------- выбор ключевого файла ---------- */
+    /* ---------- choosing the key file ---------- */
 
     void OnDropDragOver(object sender, DragEventArgs e)
     {
@@ -244,7 +244,7 @@ public sealed partial class WizardView : UserControl
     {
         try
         {
-            // Пикер открывается только у активного окна-владельца.
+            // The picker opens only for the active owner window.
             var picker = new FileOpenPicker
             {
                 SuggestedStartLocation = PickerLocationId.Desktop,
@@ -291,7 +291,7 @@ public sealed partial class WizardView : UserControl
         PhraseBox.Focus(FocusState.Programmatic);
     }
 
-    /* ---------- фраза ---------- */
+    /* ---------- phrase ---------- */
 
     static bool PhraseOk(string phrase) =>
         (phrase ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 2;
@@ -377,7 +377,7 @@ public sealed partial class WizardView : UserControl
             .Select(w => new string('•', Math.Min(w.Length, 6))));
     }
 
-    /* ---------- вход ---------- */
+    /* ---------- sign-in ---------- */
 
     async void OnConfirmAccess(object sender, RoutedEventArgs e)
     {
@@ -401,14 +401,14 @@ public sealed partial class WizardView : UserControl
             Roblox.ApplyMultiInstance();
         });
 
-        // Если включено «запоминать сессию» — сохраняем ключ и код входа.
+        // If "remember session" is enabled, save the key and the sign-in code.
         SessionStore.SaveSession(_keyContent, _phrase, _pin, _keyName);
 
         ConfirmButton.IsEnabled = true;
         Completed?.Invoke();
     }
 
-    /* ---------- создание ключа ---------- */
+    /* ---------- creating a key ---------- */
 
     void OnCreatePhraseNext(object sender, RoutedEventArgs e)
     {
@@ -454,7 +454,7 @@ public sealed partial class WizardView : UserControl
         CreateConfirmError.Visibility = Visibility.Collapsed;
 
         CreateConfirmButton.IsEnabled = false;
-        // Порядок как в 2.1.0: сохраняем файл (если выбрали место), затем открываем сейв.
+        // Order as in 2.1.0: save the file (if a location was chosen), then open the save.
         var content = BuildKeyFile(_phrase, _pin);
         var saved = await SaveKeyFile(content);
 

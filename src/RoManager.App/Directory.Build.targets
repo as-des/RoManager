@@ -1,9 +1,9 @@
 <Project>
   <!--
-    На этой машине нет Visual Studio Build Tools, поэтому задачи
-    Microsoft.Build.AppxPackage.* / Microsoft.Build.Packaging.Pri.Tasks.*
-    недоступны. Для unpackaged-сборки упаковочные output groups не нужны:
-    подменяем их простыми реализациями. PRI отключён в csproj.
+    This machine has no Visual Studio Build Tools, so the
+    Microsoft.Build.AppxPackage.* / Microsoft.Build.Packaging.Pri.Tasks.* tasks
+    are unavailable. An unpackaged build does not need packaging output groups,
+    so they are replaced with simple implementations. PRI is disabled in the csproj.
   -->
   <Target Name="CopyLocalFilesOutputGroup"
           DependsOnTargets="$(CopyLocalFilesOutputGroupDependsOn)"
@@ -24,9 +24,9 @@
   </Target>
 
   <!--
-    Штатная генерация PRI отключена (AppxGeneratePriEnabled=false), поэтому
-    собираем resources.pri сами: makepri.exe + слияние ресурсов WinUI.
-    Без этого приложения падает в XamlControlsResources с
+    The built-in PRI generation is disabled (AppxGeneratePriEnabled=false), so
+    resources.pri is built here: makepri.exe plus merged WinUI resources.
+    Without it the app crashes in XamlControlsResources with
     "Cannot locate resource ... themeresources.xaml".
   -->
   <Target Name="GenerateAppPri" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
@@ -35,9 +35,9 @@
   </Target>
 
   <!--
-    Publish копирует файлы из ReferenceCopyLocalPaths, поэтому сгенерированный
-    resources.pri в папку публикации не попадает — добавляем его сами, иначе
-    портативная сборка падает при старте.
+    Publish copies files from ReferenceCopyLocalPaths, so the generated
+    resources.pri does not reach the publish folder; add it explicitly,
+    otherwise the portable build crashes on startup.
   -->
   <Target Name="CopyAppPriToPublish" AfterTargets="Publish" Condition="'$(PublishDir)' != ''">
     <Copy SourceFiles="$(TargetDir)resources.pri"
@@ -45,7 +45,7 @@
           SkipUnchangedFiles="true"
           Condition="Exists('$(TargetDir)resources.pri')" />
 
-    <!-- Компилированная XAML (*.xbf) тоже не попадает в publish автоматически. -->
+    <!-- Compiled XAML (*.xbf) is not copied to publish automatically either. -->
     <ItemGroup>
       <_XbfToPublish Include="$(TargetDir)**\*.xbf" />
     </ItemGroup>
@@ -55,9 +55,9 @@
   </Target>
 
   <!--
-    Чистим publish от лишнего: ~85 папок локализаций WinUI, которые приложение
-    не использует (интерфейс только ru/en), и *.pdb. Так архив выглядит
-    структурно, а не как свалка файлов.
+    Prunes the publish output: ~85 WinUI localisation folders the app never uses
+    (the UI ships only ru/en) and *.pdb files, so the archive looks structured
+    instead of being a pile of files.
   -->
   <Target Name="PrunePublish" AfterTargets="Publish" Condition="'$(PublishDir)' != ''">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\..\tools\prune-publish.ps1&quot; -Dir &quot;$(PublishDir).&quot;"

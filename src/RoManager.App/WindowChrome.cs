@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml;
 
 namespace RoManager.App;
 
-/** Тёмный заголовок окна и акцентные цвета рамки для всех окон приложения. */
+/** Dark window title bar and accent border colours for every app window. */
 static class WindowChrome
 {
     const int DwmwaUseImmersiveDarkMode = 20;
@@ -28,13 +28,13 @@ static class WindowChrome
     [DllImport("dwmapi.dll", PreserveSig = true)]
     static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
-    /* ---------- владение окнами ---------- */
+    /* ---------- window ownership ---------- */
 
     const int GwlpHwndParent = -8;
 
     /**
-     * Делает окно owned-окном главного (как диалог): оно всегда выше него
-     * и уничтожается вместе с ним. Без этого WinUI-окна живут отдельно.
+     * Makes a window owned by the main window (like a dialog): it always stays
+     * above it and is destroyed with it. Otherwise WinUI windows live separately.
      */
     public static void SetOwner(Window window, Window owner)
     {
@@ -46,10 +46,10 @@ static class WindowChrome
             if (hwnd != IntPtr.Zero && ownerHwnd != IntPtr.Zero && hwnd != ownerHwnd)
                 SetWindowLongPtr(hwnd, GwlpHwndParent, ownerHwnd);
         }
-        catch { /* владение — необязательная косметика */ }
+        catch { /* ownership is optional polish */ }
     }
 
-    /* ---------- минимальный размер окна ---------- */
+    /* ---------- minimum window size ---------- */
 
     const int WmGetMinMaxInfo = 0x0024;
     const int GwlWndProc = -4;
@@ -70,7 +70,7 @@ static class WindowChrome
         public MinMaxPoint Reserved, MaxSize, MaxPosition, MinTrackSize, MaxTrackSize;
     }
 
-    /** Окно нельзя схлопнуть меньше, чем нужно для панелей «Аккаунты»/«Действия». */
+    /** The window cannot shrink below what the Accounts/Actions panels need. */
     public static void SetMinSize(Window window, int width, int height)
     {
         try
@@ -84,7 +84,7 @@ static class WindowChrome
             _proc = MinSizeProc;
             _oldProc = SetWindowLongPtr(hwnd, GwlWndProc, Marshal.GetFunctionPointerForDelegate(_proc));
         }
-        catch { /* WM_GETMINMAXINFO — необязательная косметика */ }
+        catch { /* WM_GETMINMAXINFO is optional polish */ }
     }
 
     static IntPtr MinSizeProc(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)

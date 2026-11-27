@@ -6,12 +6,12 @@ using Windows.Graphics;
 namespace RoManager.App;
 
 /**
- * Отдельное окно добавления аккаунта. Раньше форма рисовалась поверх
- * дашборда (ModalOverlay) и создавала лишний слой интерфейса — теперь это
- * самостоятельное окно, как окно настроек.
+ * Standalone add-account window. The form used to be drawn over the
+ * dashboard (ModalOverlay), adding an extra UI layer; it is now a
+ * separate window, like Settings.
  *
- * Окно не содержит бизнес-логики: оно только собирает ввод и дергает
- * колбэки, а добавление по cookie/через браузер выполняет DashboardView.
+ * The window holds no business logic: it only collects input and invokes
+ * callbacks, while DashboardView adds accounts by cookie or through the browser.
  */
 public sealed partial class AddAccountWindow : Window
 {
@@ -34,7 +34,7 @@ public sealed partial class AddAccountWindow : Window
         CancelButton.Content = s["common.cancel"];
 
         WindowChrome.ApplyDark(this);
-        // Окно принадлежит главному: оно не уходит под него и закрывается вместе с ним.
+        // Owned by the main window: it never falls behind it and closes with it.
         WindowChrome.SetOwner(this, App.Window);
 
         if (AppWindow is { } window)
@@ -49,7 +49,7 @@ public sealed partial class AddAccountWindow : Window
                 presenter.IsMinimizable = false;
             }
 
-            // По центру главного окна, как обычный диалог.
+            // Centred on the main window, like a regular dialog.
             if (App.Window?.AppWindow is { } main)
             {
                 int x = main.Position.X + (main.Size.Width - Width) / 2;

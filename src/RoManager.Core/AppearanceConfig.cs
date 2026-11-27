@@ -4,11 +4,11 @@ using System.Text.RegularExpressions;
 namespace RoManager.Core;
 
 /**
- * Внешний вид интерфейса: акцентный цвет и размытие фона.
+ * Interface appearance: accent colour and background blur.
  *
- * Хранится открытым appearance.json рядом с exe — как shader.json, чтобы
- * вид применялся до разблокировки хранилища. Применение к кистям темы
- * делает UI-слой (Appearance.cs), ядро только читает и проверяет файл.
+ * Stored unencrypted in appearance.json next to the exe, like shader.json, so
+ * the look applies before the vault is unlocked. The UI layer (Appearance.cs)
+ * applies it to theme brushes; the core only reads and validates the file.
  */
 public sealed class AppearanceSettings
 {
@@ -26,7 +26,7 @@ public static class AppearanceConfig
 
     public static AppearanceSettings Current { get; private set; } = new();
 
-    /** Настройки применены — окна могут обновить вычисленные элементы. */
+    /** Settings applied; windows can refresh computed elements. */
     public static event Action Changed;
 
     static string FilePath => Path.Combine(AppContext.BaseDirectory, "appearance.json");
@@ -48,7 +48,7 @@ public static class AppearanceConfig
                 }
             }
         }
-        catch { /* повреждённый файл — значения по умолчанию */ }
+        catch { /* corrupted file: use defaults */ }
 
         Normalize(s);
         Current = s;

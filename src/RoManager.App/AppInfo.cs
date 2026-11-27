@@ -1,10 +1,10 @@
 namespace RoManager.App;
 
 /**
- * Единый источник версии и ссылок на репозиторий.
+ * Single source of truth for the version and repository links.
  *
- * Версия приложения записывается так же, как тег релиза: 0.02 (тег v0.02),
- * а не 0.2.0 — иначе в интерфейсе и в релизе получаются разные обозначения.
+ * The app version matches the release tag: 0.03 (tag v0.03),
+ * not 0.3.0, so the UI and the release always show the same number.
  */
 static class AppInfo
 {

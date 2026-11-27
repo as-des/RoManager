@@ -7,11 +7,11 @@ using Windows.UI;
 namespace RoManager.App;
 
 /**
- * Применение appearance.json к ресурсам темы.
+ * Applies appearance.json to the theme resources.
  *
- * Кисти из Theme.xaml не заменяются, а перекрашиваются: на них уже
- * ссылаются стили и шаблоны, поэтому цвет обновляется во всех окнах
- * сразу, без перезапуска. Акцент из настроек теперь можно менять.
+ * Theme.xaml brushes are recoloured, not replaced: styles and templates already
+ * reference them, so the colour updates in every window at once without a
+ * restart. The accent from Settings can now be changed.
  */
 static class Appearance
 {
@@ -44,8 +44,8 @@ static class Appearance
             SetBrush("AppPrimaryDisabledText", Mix(accent, Color.FromArgb(0xFF, 0xCC, 0xCC, 0xCC), 0.45));
             SetBrush("AppPrimaryGlow", WithAlpha(accent, 0x26));
 
-            // Стандартные контролы (слайдеры, чекбоксы, фокус) берут цвета
-            // акцента из этих ресурсов.
+            // Standard controls (sliders, checkboxes, focus) take their accent
+            // colours from these resources.
             SetColor("SystemAccentColor", accent);
             SetColor("SystemAccentColorLight1", Mix(accent, Colors.White, 0.28));
             SetColor("SystemAccentColorLight2", Mix(accent, Colors.White, 0.52));

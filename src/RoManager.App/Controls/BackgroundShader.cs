@@ -11,26 +11,26 @@ using RoManager.Core;
 namespace RoManager.App.Controls;
 
 /**
- * Анимированный фон — fallback-версия на CPU.
+ * Animated background: CPU fallback version.
  *
- * Основной рендер теперь GPU (см. BackgroundGpu.cs). Этот класс остаётся
- * на случай, если видеокарта/драйвер не принимают шейдер (RDP, старые
- * адаптеры) или в shader.json указано "renderer": "cpu".
+ * The main renderer is now the GPU (see BackgroundGpu.cs). This class remains
+ * for cases where the GPU/driver rejects the shader (RDP, old adapters) or
+ * shader.json specifies "renderer": "cpu".
  *
- * В CPU-версии та же математика, что в GLSL из ShaderBackground.tsx (2.1.0),
- * но с фиксированным шагом времени и предвычислениями: exp/виньетка не
- * считаются на каждый пиксель, pow заменён таблицей.
+ * The CPU version uses the same maths as the GLSL from ShaderBackground.tsx
+ * (2.1.0), but with a fixed time step and precomputation: exp and the vignette
+ * are not evaluated per pixel, and pow is replaced by a lookup table.
  */
 public static class BackgroundShader
 {
-    // Ограничение стоимости кадра: ~36k пикселей независимо от размера окна.
+    // Caps the frame cost at about 36k pixels regardless of window size.
     const double MaxRenderPixels = 36_000;
     const double BaseScale = 3.5;
     const int FrameIntervalMs = 33;
 
     static readonly ParallelOptions RenderOptions = new()
     {
-        // CPU-фолбэк не должен занимать все ядра: 2–4 потока хватает.
+        // The CPU fallback must not occupy every core; 2-4 threads are enough.
         MaxDegreeOfParallelism = Math.Clamp(Environment.ProcessorCount / 2, 2, 4),
     };
 
@@ -44,7 +44,7 @@ public static class BackgroundShader
         }
     }
 
-    // 1:1 параметры трёх волн из getOrganicWave().
+    // 1:1 parameters of the three waves from getOrganicWave().
     static readonly Wave[] Waves =
     {
         new(25f, 0.4f, 0.015f, 0.08f, 0.6f, 5f, 6f, 0.55f),
@@ -70,7 +70,7 @@ public static class BackgroundShader
 
     public static bool IsAttached => _target != null;
 
-    /** Основной GPU-рендер, с автоматическим откатом на CPU при сбое. */
+    /** Primary GPU renderer, with an automatic CPU fallback on failure. */
     public static void Attach(Image target, CanvasAnimatedControl gpu)
     {
         if (_target != null || target == null) return;
@@ -113,7 +113,7 @@ public static class BackgroundShader
     static void FallbackToCpu()
     {
         if (!_useGpu) return;
-        CoreHost.Log("shader: GPU недоступен, переключение на CPU-рендер");
+        CoreHost.Log("shader: GPU unavailable, switching to CPU rendering");
         _useGpu = false;
         if (_gpu != null) _gpu.Visibility = Visibility.Collapsed;
         BackgroundGpu.Detach();
@@ -136,7 +136,7 @@ public static class BackgroundShader
         _timer.Tick += (_, _) => Tick();
     }
 
-    /** Окно свернули/потеряло фокус — не тратим ресурсы на невидимый фон. */
+    /** The window is minimised or unfocused, so do not spend resources on an invisible background. */
     public static void SetActive(bool active)
     {
         if (_active == active) return;
@@ -175,7 +175,7 @@ public static class BackgroundShader
         ToVector(ShaderConfig.Rgb(s.Color3)),
     };
 
-    /* ---------- размеры ---------- */
+    /* ---------- sizes ---------- */
 
     static void Resize()
     {
@@ -201,7 +201,7 @@ public static class BackgroundShader
         _target.Source = new WriteableBitmap(w, h);
     }
 
-    /** Виньетка от времени не зависит — считаем один раз на размер. */
+    /** The vignette does not depend on time, so compute it once per size. */
     static float[] BuildVignette(int w, int h)
     {
         var result = new float[w * h];
@@ -224,13 +224,13 @@ public static class BackgroundShader
         return result;
     }
 
-    /* ---------- кадры ---------- */
+    /* ---------- frames ---------- */
 
     static void Tick()
     {
         if (_target == null || !_settings.Enabled || !_active || _useGpu) return;
 
-        // Фиксированный шаг: движение не зависит от джиттера таймера.
+        // Fixed step: motion does not depend on timer jitter.
         _time += (FrameIntervalMs / 1000f) * (float)Math.Max(0.01, _settings.Speed);
         Schedule(force: false);
     }
@@ -249,7 +249,7 @@ public static class BackgroundShader
         var colors = _colors;
         var bitmap = _target.Source as WriteableBitmap;
 
-        // Размытие в пикселях мини-буфера: настройка задана в DIP.
+        // Blur in mini-buffer pixels: the setting is specified in DIP.
         double scale = _target.ActualSize.X > 1 && w > 0 ? _target.ActualSize.X / w : 1;
         int radius = (int)Math.Round(AppearanceConfig.Current.Blur / scale);
 
@@ -302,11 +302,11 @@ public static class BackgroundShader
 
         Parallel.For(0, h, RenderOptions, y =>
         {
-            // gl_FragCoord.y в GLSL отсчитывается снизу — в BMP-строках y сверху, поэтому инвертируем.
+            // gl_FragCoord.y counts from the bottom in GLSL but BMP rows start at the top, so invert it.
             float sy = 1f - (y + 0.5f) / h;
             int row = y * w * 4;
 
-            // exp(-sty*fade) зависит только от строки и волны.
+            // exp(-sty*fade) depends only on the row and the wave.
             float e1a = MathF.Exp(-sy * Waves[0].Fade);
             float e1b = MathF.Exp(-sy * Waves[0].Fade * 0.5f);
             float e2a = MathF.Exp(-sy * Waves[1].Fade);
@@ -346,8 +346,8 @@ public static class BackgroundShader
     static byte ToByte(float v) => (byte)Math.Clamp((int)(v * 255f + 0.5f), 0, 255);
 
     /**
-     * Дешёвое размытие CPU-фона: два прохода box blur по мини-буферу
-     * (36 тыс. пикселей), поэтому на глаз это гаусс, а по цене — копейки.
+     * Cheap blur for the CPU background: two box-blur passes over the mini-buffer
+     * (36k pixels), so it looks like a Gaussian but costs next to nothing.
      */
     static void BoxBlur(byte[] px, int w, int h, int radius)
     {
@@ -360,8 +360,8 @@ public static class BackgroundShader
 
     static void BlurPass(byte[] src, byte[] dst, int w, int h, int radius, bool horizontal)
     {
-        int outer = horizontal ? h : w;   // строк (или столбцов)
-        int inner = horizontal ? w : h;   // длина прохода
+        int outer = horizontal ? h : w;   // rows (or columns)
+        int inner = horizontal ? w : h;   // pass length
         Parallel.For(0, outer, RenderOptions, o =>
         {
             for (int i = 0; i < inner; i++)
@@ -409,7 +409,7 @@ public static class BackgroundShader
         return intensity * Math.Clamp(fade, 0f, 1f);
     }
 
-    /* ---------- таблица pow(|sin|, softness) ---------- */
+    /* ---------- pow(|sin|, softness) lookup table ---------- */
 
     const int PowXSteps = 512;
     const int PowSoftSteps = 96;
@@ -452,7 +452,7 @@ public static class BackgroundShader
         return t * t * (3f - 2f * t);
     }
 
-    /* ---------- simplex noise (дословный порт vec-функций) ---------- */
+    /* ---------- simplex noise (direct port of the vec functions) ---------- */
 
     static readonly Vector4 C = new(0.211324865405187f, 0.366025403784439f, -0.577350269189626f, 0.024390243902439f);
 

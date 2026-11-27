@@ -19,14 +19,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
-    <!-- На этой машине нет Visual Studio Build Tools, поэтому задачи PRI
-         (Microsoft.Build.Packaging.Pri.Tasks) недоступны. resources.pri
-         собирается отдельным шагом через tools/make-pri.ps1
-         (см. Directory.Build.targets → GenerateAppPri). -->
+    <!-- This machine has no Visual Studio Build Tools, so the PRI tasks
+         (Microsoft.Build.Packaging.Pri.Tasks) are unavailable. resources.pri
+         is built separately by tools/make-pri.ps1
+         (see Directory.Build.targets -> GenerateAppPri). -->
     <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
-    <!-- Приложение переводится только на русский и английский. Без этого
-         publish складывает рядом ~85 папок локализаций WinUI/WindowsAppSDK,
-         в которых нет смысла. -->
+    <!-- The app is localised only into Russian and English. Without this,
+         publish emits ~85 pointless WinUI/WindowsAppSDK localisation folders. -->
     <SatelliteResourceLanguages>ru;en;en-us</SatelliteResourceLanguages>
   </PropertyGroup>
 
@@ -51,15 +50,15 @@
     <Page Include="Views\DashboardView.xaml" />
   </ItemGroup>
 
-  <!-- Иконка окна: WinUI не берёт её из ресурсов сборки, нужен файл рядом с exe. -->
+  <!-- Window icon: WinUI does not take it from assembly resources, so the file must sit next to the exe. -->
   <ItemGroup>
     <Content Include="..\..\app.ico" Link="app.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
-  <!-- Шрифт бренда Unbounded (OFL). Файл должен лежать рядом с exe:
-       FontFamily ссылается на него как ms-appx:///Assets/Fonts/... -->
+  <!-- Brand font Unbounded (OFL). The file must sit next to the exe:
+       FontFamily references it as ms-appx:///Assets/Fonts/... -->
   <ItemGroup>
     <Content Include="Assets\Fonts\Unbounded.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

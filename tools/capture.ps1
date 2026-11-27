@@ -1,8 +1,8 @@
 <#
-    Запуск RoManager.exe (WinUI) и снимок окна через PrintWindow.
-    Нужен для проверки UI без ручного скриншота.
+    Launches RoManager.exe (WinUI) and captures its window with PrintWindow.
+    Used to check the UI without taking a manual screenshot.
 
-    Пример:
+    Example:
       powershell -File tools\capture.ps1 -Out C:\temp\landing.png -Wait 8
 #>
 param(

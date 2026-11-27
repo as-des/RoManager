@@ -1,6 +1,6 @@
 namespace RoManager.App;
 
-/** Общие события UI-слоя (язык меняется в настройках, а обновляются все окна). */
+/** Shared UI-layer events: language is changed in Settings and every window refreshes. */
 public static class UiEvents
 {
     public static Action LanguageChanged;

@@ -11,19 +11,19 @@ using Windows.Foundation;
 namespace RoManager.App.Controls;
 
 /**
- * GPU-версия анимированного фона.
+ * GPU version of the animated background.
  *
- * HLSL — дословный порт GLSL из ShaderBackground.tsx (2.1.0): три аддитивные
- * органические волны (simplex noise + подтёки) и виньетка. Считается
- * пиксельным шейдером на видеокарте через Win2D PixelShaderEffect, кадры
- * тикают в game loop CanvasAnimatedControl, поэтому UI-поток и ЦП кадром
- * не заняты вообще.
+ * The HLSL is a direct port of the GLSL from ShaderBackground.tsx (2.1.0):
+ * three additive organic waves (simplex noise plus streaks) and a vignette.
+ * It runs as a pixel shader on the GPU through Win2D PixelShaderEffect, with
+ * frames driven by the CanvasAnimatedControl game loop, so neither the UI
+ * thread nor the CPU is involved in rendering.
  *
- * Шейдер компилируется на старте через d3dcompiler_47.dll (есть в любой
- * Windows 10/11), fxc в сборочной машине не нужен.
+ * The shader is compiled at startup through d3dcompiler_47.dll (present in every
+ * Windows 10/11), so no fxc is needed on the build machine.
  *
- * Рендер идёт в CanvasRenderTarget в 1/3 разрешения (как в 2.1.0) и
- * растягивается на фон билинейно — визуал тот же, стоимость мизерная.
+ * Rendering targets a CanvasRenderTarget at one third resolution (as in 2.1.0)
+ * and is stretched over the background bilinearly: same look, tiny cost.
  */
 static class BackgroundGpu
 {
@@ -32,7 +32,7 @@ static class BackgroundGpu
     public static bool Ready { get; private set; }
     public static bool Failed { get; private set; }
 
-    /** GPU не смог — вызывающий переключается на CPU-версию. */
+    /** GPU failed; the caller falls back to the CPU version. */
     public static event Action OnFailed;
 
     static CanvasAnimatedControl _canvas;
@@ -50,7 +50,7 @@ static class BackgroundGpu
     static bool _visible = true;
     static Vector3[] _colors = new Vector3[3];
 
-    /* ---------- подключение ---------- */
+    /* ---------- wiring ---------- */
 
     public static bool Attach(CanvasAnimatedControl canvas)
     {
@@ -59,7 +59,7 @@ static class BackgroundGpu
 
         if (ShaderConfig.Current.Renderer == "cpu")
         {
-            CoreHost.Log("shader: GPU отключён настройкой renderer=cpu");
+            CoreHost.Log("shader: GPU disabled by renderer=cpu setting");
             return false;
         }
 
@@ -85,8 +85,8 @@ static class BackgroundGpu
         canvas.Visibility = _visible ? Visibility.Visible : Visibility.Collapsed;
         canvas.Paused = _paused;
 
-        // Фон медленный и мягкий: 30 кадров достаточно, а стоимость кадра
-        // вдвое ниже, чем на 60. Движение остаётся плавным.
+        // The background is slow and soft: 30 fps is plenty and each frame costs
+        // half as much as at 60. Motion still looks smooth.
         canvas.IsFixedTimeStep = true;
         canvas.TargetElapsedTime = TimeSpan.FromMilliseconds(33);
 
@@ -146,7 +146,7 @@ static class BackgroundGpu
     static Vector3 ToVector((byte r, byte g, byte b) c) =>
         new(c.r / 255f, c.g / 255f, c.b / 255f);
 
-    /* ---------- кадры ---------- */
+    /* ---------- frames ---------- */
 
     static void OnCreateResources(ICanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) =>
         ScheduleResize();
@@ -195,8 +195,8 @@ static class BackgroundGpu
             using (var ds = _target.CreateDrawingSession())
                 ds.DrawImage(_effect, new Rect(0, 0, pw, ph), new Rect(0, 0, pw, ph));
 
-            // Размытие задаётся в DIP, а рендер идёт в 1/3 разрешения —
-            // радиус делим на RenderScale, иначе картинка «плывёт».
+            // Blur is specified in DIP but rendering happens at one third resolution,
+            // so divide the radius by RenderScale; otherwise the image drifts.
             float amount = (float)Math.Max(0, AppearanceConfig.Current.Blur / RenderScale);
             if (_blur == null || Math.Abs(_blurAmount - amount) > 0.01f)
             {
@@ -224,12 +224,12 @@ static class BackgroundGpu
         }
     }
 
-    /* ---------- компиляция HLSL ---------- */
+    /* ---------- HLSL compilation ---------- */
 
     static byte[] CompileShader(string source)
     {
         var bytes = Encoding.UTF8.GetBytes(source);
-        // ps_4_0 — профиль, который принимает Direct2D.
+        // ps_4_0 is the profile Direct2D accepts.
         int hr = D3DCompile(bytes, (UIntPtr)(uint)bytes.Length, "Background.hlsl",
             IntPtr.Zero, IntPtr.Zero, "main", "ps_4_0", 0, 0, out var code, out var errors);
 
@@ -275,17 +275,17 @@ static class BackgroundGpu
     [ComImport, Guid("8BA5FB08-5195-40e2-AC58-0D989C3A0102"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     interface ID3DBlob
     {
-        // Возвращают значение напрямую (не HRESULT) — иначе маршалинг
-        // превращает вызов в HRESULT-метод и указатель теряется.
+        // These return a value directly (not an HRESULT); otherwise marshalling
+        // treats the call as an HRESULT method and the pointer is lost.
         [PreserveSig] IntPtr GetBufferPointer();
         [PreserveSig] UIntPtr GetBufferSize();
     }
 
-    /* ---------- HLSL: порт GLSL 1:1 ---------- */
+    /* ---------- HLSL: 1:1 port of the GLSL ---------- */
 
     const string ShaderSource = @"
-// Процедурный фон RoManager: порт GLSL из ShaderBackground.tsx (2.1.0).
-// Без входных текстур: координата берётся из SV_Position целевого буфера.
+// Procedural RoManager background: a port of the GLSL from ShaderBackground.tsx (2.1.0).
+// No input textures: the coordinate comes from SV_Position of the render target.
 
 float Time;
 float2 Resolution;
@@ -371,8 +371,8 @@ float4 main(float4 pos : SV_Position) : SV_Target
     float2 st = pos.xy / Resolution;
     st.x *= Resolution.x / Resolution.y;
 
-    // gl_FragCoord в GLSL отсчитывается снизу — в Direct2D сверху,
-    // поэтому инвертируем Y, чтобы картинка совпала с 2.1.0.
+    // gl_FragCoord counts from the bottom in GLSL but from the top in Direct2D,
+    // so invert Y to match the 2.1.0 image.
     st.y = 1.0 - st.y;
 
     float3 finalColor = float3(0.0, 0.0, 0.0);

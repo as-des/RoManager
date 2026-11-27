@@ -8,8 +8,8 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <!-- UI-слою нужны внутренние типы ядра (Crypto, Vault, Roblox, Jsons):
-         они не публичные специально, чтобы не расширять внешний контракт. -->
+    <!-- The UI layer needs internal core types (Crypto, Vault, Roblox, Jsons):
+         they are non-public on purpose to keep the external contract small. -->
     <InternalsVisibleTo Include="RoManager" />
     <InternalsVisibleTo Include="RoManager.Core.Tests" />
   </ItemGroup>

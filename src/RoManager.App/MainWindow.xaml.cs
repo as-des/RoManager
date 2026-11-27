@@ -39,15 +39,15 @@ public sealed partial class MainWindow : Window
         ApplyLanguage();
         ShowLanding();
 
-        // Owned-окна уничтожаются вместе с владельцем, но подстрахуемся:
-        // иначе окно настроек/добавления может пережить главное окно.
+        // Owned windows are destroyed with their owner, but guard anyway:
+        // otherwise Settings or Add account could outlive the main window.
         Closed += (_, _) =>
         {
             try { _settings?.Close(); } catch { }
             try { _dashboard?.CloseDialogs(); } catch { }
         };
 
-        // Esc закрывает историю обновлений.
+        // Esc closes the changelog.
         Root.KeyDown += (_, e) =>
         {
             if (e.Key == VirtualKey.Escape && ChangelogOverlay.Visibility == Visibility.Visible)
@@ -59,7 +59,7 @@ public sealed partial class MainWindow : Window
 
         ChangelogBar.Attach(ChangelogScroll);
 
-        // Анимированный фон: GPU (HLSL) с откатом на CPU-порт GLSL из 2.1.0.
+        // Animated background: GPU (HLSL) with a fallback to the CPU port of the 2.1.0 GLSL.
         Backdrop.Loaded += (_, _) =>
         {
             BackgroundShader.Attach(Backdrop, BackdropGpu);
@@ -68,7 +68,7 @@ public sealed partial class MainWindow : Window
         ShaderConfig.Changed += () => DispatcherQueue.TryEnqueue(() =>
             Scrim.Visibility = ShaderConfig.Current.Enabled ? Visibility.Visible : Visibility.Collapsed);
 
-        // Не жжём CPU, когда окно свёрнуто или неактивно.
+        // Do not burn CPU while the window is minimised or inactive.
         Activated += (_, e) => BackgroundShader.SetActive(
             e.WindowActivationState != WindowActivationState.Deactivated);
 
@@ -77,7 +77,7 @@ public sealed partial class MainWindow : Window
         CoreHost.AccountsChanged = () => DispatcherQueue.TryEnqueue(() => _dashboard?.Reload());
 
 #if DEBUG
-        // Тестовые крючки для снимков UI (как в 2.1.0): ROM_TEST_SCREEN=settings|wizard|create|dashboard
+        // Test hooks for UI screenshots (as in 2.1.0): ROM_TEST_SCREEN=settings|wizard|create|dashboard
         var testScreen = Environment.GetEnvironmentVariable("ROM_TEST_SCREEN");
         if (!string.IsNullOrEmpty(testScreen))
         {
@@ -89,8 +89,8 @@ public sealed partial class MainWindow : Window
             });
         }
 
-        // ROM_TEST_UNLOCK_KEY=<путь к key.json> + ROM_TEST_UNLOCK_PHRASE/PIN:
-        // открыть хранилище без ручного ввода (только Debug, значения не логируются).
+        // ROM_TEST_UNLOCK_KEY=<path to key.json> + ROM_TEST_UNLOCK_PHRASE/PIN:
+        // unlock the vault without manual input (Debug only; values are never logged).
         var testKey = Environment.GetEnvironmentVariable("ROM_TEST_UNLOCK_KEY");
         if (!string.IsNullOrEmpty(testKey))
         {
@@ -113,12 +113,12 @@ public sealed partial class MainWindow : Window
         }
 #endif
 
-        // Автовход: сохранённая сессия открывается без ручного ввода ключа.
+        // Auto sign-in: a saved session opens without entering the key manually.
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROM_TEST_UNLOCK_KEY")))
             DispatcherQueue.TryEnqueue(async () => await RestoreSavedSession());
     }
 
-    /** Открыть хранилище сохранённой сессией (ключевой файл + фраза + PIN). */
+    /** Unlock the vault with a saved session (key file + phrase + PIN). */
     async Task RestoreSavedSession()
     {
         if (!SessionStore.HasCredentials) return;
@@ -166,7 +166,7 @@ public sealed partial class MainWindow : Window
 
     static string Version() => AppInfo.Version;
 
-    /* ---------- навигация ---------- */
+    /* ---------- navigation ---------- */
 
     public void ShowLanding()
     {
@@ -211,8 +211,8 @@ public sealed partial class MainWindow : Window
     void OnLogout()
     {
         try { CoreHost.Session?.Clear(); } catch { }
-        // Выход из менеджера забывает сохранённую сессию, иначе следующий
-        // запуск снова открыл бы её автоматически.
+        // Signing out forgets the saved session; otherwise the next launch
+        // would open it automatically again.
         SessionStore.ClearCredentials();
         ShowLanding();
         SetStatus(Strings.I["status.sessionClosed"], "idle");
@@ -232,13 +232,13 @@ public sealed partial class MainWindow : Window
         _settings.Closed += (_, _) =>
         {
             _settings = null;
-            // Настройки могли изменить сессию (например, Multi Roblox) — обновим состояние.
+            // Settings may have changed the session (Multi Roblox, for example), so refresh the state.
             ApplyLanguage();
         };
         _settings.Activate();
     }
 
-    /* ---------- история обновлений ---------- */
+    /* ---------- changelog ---------- */
 
     void OnOpenChangelog(object sender, RoutedEventArgs e) => OpenChangelog();
 
@@ -258,7 +258,7 @@ public sealed partial class MainWindow : Window
     void OnChangelogModalTapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e) =>
         e.Handled = true;
 
-    /** Содержимое окна истории: версии, даты и пункты на текущем языке. */
+    /** Changelog content: versions, dates and entries in the current language. */
     void BuildChangelog()
     {
         ChangelogBody.Children.Clear();
@@ -335,7 +335,7 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    /* ---------- статус ---------- */
+    /* ---------- status ---------- */
 
     bool _statusIsIdle = true;
     DispatcherTimer _statusTimer;
@@ -356,14 +356,14 @@ public sealed partial class MainWindow : Window
             ? new SolidColorBrush(Color.FromArgb(0xFF, 0x77, 0x77, 0x77))
             : new SolidColorBrush(Color.FromArgb(0xFF, 0xAA, 0xAA, 0xAA));
 
-        // success/danger дублируются плашкой сверху, как в 2.1.0.
+        // success/danger are also shown as a card on top, as in 2.1.0.
         if (kind is "success" or "danger")
             Notices.Notify(text, kind);
 
         ScheduleStatusReset(text, kind);
     }
 
-    /** Через время статус возвращается к «Готов к работе» (App.tsx). */
+    /** After a delay the status returns to "Ready" (App.tsx). */
     void ScheduleStatusReset(string text, string kind)
     {
         _statusTimer?.Stop();

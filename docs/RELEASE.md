@@ -1,28 +1,28 @@
-# Релиз
+# Release
 
-## Один раз
+## One-time setup
 
-1. Создайте репозиторий на GitHub (например `as-des/RoManager`), ветка `main`.
-2. Проверьте, что в git **не попадут** секреты и данные:
+1. Create a GitHub repository (for example `as-des/RoManager`) with a `main` branch.
+2. Make sure secrets and data **never** reach git:
    ```
    git status --ignored
    ```
-   В индексе не должно быть `rom-key.json`, `AccountData.json*`, `rom.log*`,
-   `shader.json`, `wv2/`, `chrome-win64/`, `bin/`, `obj/`, `wwwroot/`.
-3. Включите Actions (Settings → Actions → General) и private vulnerability reporting
+   The index must not contain `rom-key.json`, `AccountData.json*`, `rom.log*`,
+   `shader.json`, `wv2/`, `chrome-win64/`, `bin/`, `obj/` or `wwwroot/`.
+3. Enable Actions (Settings → Actions → General) and private vulnerability reporting
    (Settings → Security).
 
-## Нумерация версий
+## Versioning
 
-`MAJOR.MINOR.PATCH`, тег с префиксом `v`: `v2.1.0`.
+`MAJOR.MINOR.PATCH`, with a `v` prefix on tags: `v2.1.0`.
 
-- `PATCH` — исправления;
-- `MINOR` — новые функции без ломки данных;
-- `MAJOR` — смена формата ключей/хранилища или несовместимый перенос.
+- `PATCH`: fixes;
+- `MINOR`: new features without breaking data;
+- `MAJOR`: a key/vault format change or an incompatible migration.
 
-`frontend/package.json` → `version` и тег держите синхронно.
+Keep `frontend/package.json` → `version` and the tag in sync.
 
-## Выпуск
+## Publishing
 
 ```bat
 cd frontend
@@ -34,25 +34,25 @@ cd ..
 dotnet publish -c Release -r win-x64 --self-contained true -o publish
 ```
 
-Проверка чистой сборки (важно):
+Clean-build check (important):
 
-1. Возьмите пустую папку пользователя, запустите `publish\RoManager.exe`.
-2. Создайте новый ключ — должен создаться **v2** (`AccountData.json` с `"version": 2`).
-3. Добавьте тестовый аккаунт, перезапустите, войдите снова.
-4. Убедитесь, что в Release не открываются DevTools (F12) и внешние ссылки.
-5. Проверьте, что рядом с `publish` нет `rom-key.json`, `AccountData.json`, `rom.log`.
+1. Use an empty user folder and run `publish\RoManager.exe`.
+2. Create a new key; it must be **v2** (`AccountData.json` with `"version": 2`).
+3. Add a test account, restart and sign in again.
+4. Confirm that Release does not open DevTools (F12) or external links.
+5. Confirm there is no `rom-key.json`, `AccountData.json` or `rom.log` next to `publish`.
 
-Затем:
+Then:
 
 ```bat
 git tag v2.1.0
 git push origin v2.1.0
 ```
 
-Workflow `Release` соберёт zip, `sha256sums.txt` и опубликует GitHub Release.
+The `Release` workflow builds the zip, `sha256sums.txt` and publishes the GitHub Release.
 
-## После релиза
+## After the release
 
-- Проверьте скачанный архив: распакуйте в чистую папку и запустите.
-- Сверьте SHA-256 с `sha256sums.txt`.
-- Обновите `NOTES.md`, если менялись формат данных или поведение.
+- Verify the downloaded archive: unpack it into an empty folder and run it.
+- Compare the SHA-256 with `sha256sums.txt`.
+- Update `NOTES.md` if the data format or behaviour changed.

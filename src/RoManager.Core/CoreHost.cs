@@ -1,8 +1,9 @@
 namespace RoManager.Core;
 
 /**
- * Точка связи ядра с UI. Ядро не знает про WinUI/WinForms:
- * статусы и обновления списка аккаунтов приходят подписчикам событиями.
+ * Bridge between the core and the UI. The core knows nothing about
+ * WinUI/WinForms: status updates and account-list refreshes reach
+ * subscribers through events.
  */
 public static class CoreHost
 {
@@ -11,10 +12,10 @@ public static class CoreHost
     /** (text, kind) — kind: idle | busy | success | danger. */
     public static Action<string, string> Status;
 
-    /** Запросить у UI перечитывание списка аккаунтов. */
+    /** Ask the UI to reload the account list. */
     public static Action AccountsChanged;
 
-    /** Необязательный получатель лога (например, отладочная панель). */
+    /** Optional log receiver (for example, a debug panel). */
     public static Action<string> LogLine;
 
     public static void PushStatus(string text, string kind = "idle") =>
@@ -41,7 +42,7 @@ public static class CoreHost
         catch { }
     }
 
-    /** Подробный лог только при включённом DevLogMode (после открытия сейва). */
+    /** Verbose logging only when DevLogMode is enabled (after the vault is open). */
     public static void LogDev(string s)
     {
         try { if (Vault.Settings.DevLogMode) Log(s); } catch { }

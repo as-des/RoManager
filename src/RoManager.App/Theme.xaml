@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:RoManager.App.Controls">
 
-    <!-- Дизайн-токены перенесены из frontend/src/styles/app.css (2.1.0). -->
+    <!-- Design tokens ported from frontend/src/styles/app.css (2.1.0). -->
     <SolidColorBrush x:Key="AppBg" Color="#FF0A0A0A" />
     <SolidColorBrush x:Key="AppCard" Color="#8C12141C" />
     <SolidColorBrush x:Key="AppCardSolid" Color="#FF141414" />
@@ -18,7 +18,7 @@
     <SolidColorBrush x:Key="AppPrimaryPressed" Color="#FF1D4ED8" />
     <SolidColorBrush x:Key="AppPrimaryDisabled" Color="#FF1E3A5F" />
     <SolidColorBrush x:Key="AppPrimaryDisabledText" Color="#FF5A7AA5" />
-    <!-- Свечение вокруг активных элементов: тот же акцент с прозрачностью. -->
+    <!-- Glow around active elements: the same accent with transparency. -->
     <SolidColorBrush x:Key="AppPrimaryGlow" Color="#263B82F6" />
     <SolidColorBrush x:Key="AppSuccess" Color="#FF22C55E" />
     <SolidColorBrush x:Key="AppWarning" Color="#FFEAB308" />
@@ -32,7 +32,7 @@
     <SolidColorBrush x:Key="AppWhiteA12" Color="#1FFFFFFF" />
     <SolidColorBrush x:Key="AppWhiteA4" Color="#0AFFFFFF" />
 
-    <!-- Скроллбары как в 2.1.0: тонкий тёмный ползунок #3a3a3a без трека -->
+    <!-- Scrollbars as in 2.1.0: a thin dark #3a3a3a thumb with no track -->
     <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#FF3A3A3A" />
     <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#FF4A4A4A" />
     <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#FF4A4A4A" />
@@ -43,7 +43,7 @@
     <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver" Color="Transparent" />
     <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="#FF3A3A3A" />
 
-    <!-- Акцент: совпадает с legacy primary -->
+    <!-- Accent: matches the legacy primary -->
     <Color x:Key="SystemAccentColor">#FF3B82F6</Color>
     <Color x:Key="SystemAccentColorLight1">#FF60A5FA</Color>
     <Color x:Key="SystemAccentColorLight2">#FF93C5FD</Color>
@@ -55,12 +55,12 @@
     <x:Double x:Key="AppRadius">14</x:Double>
     <x:Double x:Key="AppRadiusSm">10</x:Double>
 
-    <!-- Шрифт бренда: Unbounded (OFL, лежит в Assets/Fonts). Им набраны
-         заголовки, кнопки и вкладки; текст таблиц и подписи остаются
-         системным шрифтом, иначе широкие буквы ломают колонки. -->
+    <!-- Brand font: Unbounded (OFL, shipped in Assets/Fonts). Headings, buttons
+         and tabs use it; table text and captions stay on the system font,
+         otherwise the wide letters break the columns. -->
     <FontFamily x:Key="AppFont">ms-appx:///Assets/Fonts/Unbounded.ttf#Unbounded</FontFamily>
 
-    <!-- ========== Текст ========== -->
+    <!-- ========== Text ========== -->
     <Style x:Key="AppH1" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AppText}" />
         <Setter Property="FontSize" Value="26" />
@@ -125,7 +125,7 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
-    <!-- ========== Контейнеры ========== -->
+    <!-- ========== Containers ========== -->
     <Style x:Key="AppCardBorder" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource AppCard}" />
         <Setter Property="BorderBrush" Value="{StaticResource AppBorder}" />
@@ -142,7 +142,7 @@
         <Setter Property="Padding" Value="20" />
     </Style>
 
-    <!-- ========== Стеклянные поверхности (backdrop blur) ========== -->
+    <!-- ========== Glass surfaces (backdrop blur) ========== -->
     <Style x:Key="AppGlassBase" TargetType="controls:GlassSurface">
         <Setter Property="Background" Value="{StaticResource AppCard}" />
         <Setter Property="BorderBrush" Value="{StaticResource AppBorder}" />
@@ -155,9 +155,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="controls:GlassSurface">
                     <Grid>
-                        <!-- Тонировка и рамка поверх размытого фона окна.
-                             Отдельного backdrop-слоя нет: именно он давал
-                             «двойные» панели при кликах и ресайзе. -->
+                        <!-- Tint and border over the window's blurred background.
+                             There is no separate backdrop layer: that layer produced
+                             the doubled panels on click and resize. -->
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -190,7 +190,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- Нижняя панель статуса: тёмная плашка поверх размытого фона -->
+    <!-- Status bar: a dark strip over the blurred background -->
     <Style x:Key="AppGlassStatus" TargetType="controls:GlassSurface" BasedOn="{StaticResource AppGlassBase}">
         <Setter Property="Background" Value="{StaticResource AppStatusBar}" />
         <Setter Property="BorderBrush" Value="#24FFFFFF" />
@@ -199,7 +199,7 @@
         <Setter Property="Padding" Value="28,0" />
     </Style>
 
-    <!-- Плашка уведомления поверх размытого фона -->
+    <!-- Notification card over the blurred background -->
     <Style x:Key="AppGlassNotice" TargetType="controls:GlassSurface" BasedOn="{StaticResource AppGlassBase}">
         <Setter Property="Background" Value="#D91E222D" />
         <Setter Property="BorderBrush" Value="#1FFFFFFF" />
@@ -207,7 +207,7 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- ========== Кнопки ========== -->
+    <!-- ========== Buttons ========== -->
     <Style x:Key="AppPrimaryButton" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource AppPrimary}" />
         <Setter Property="Foreground" Value="White" />
@@ -411,7 +411,7 @@
         </Setter>
     </Style>
 
-    <!-- Квадратная иконочная кнопка (44×44) -->
+    <!-- Square icon button (44x44) -->
     <Style x:Key="AppIconButton" TargetType="Button" BasedOn="{StaticResource AppSecondaryButton}">
         <Setter Property="Width" Value="44" />
         <Setter Property="Height" Value="44" />
@@ -428,7 +428,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- Кнопка в правом верхнем углу (шестерёнка) -->
+    <!-- Top-right button (gear) -->
     <Style x:Key="AppOverlayButton" TargetType="Button">
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
@@ -471,7 +471,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка-образец цвета: открывает палитру ColorPicker -->
+    <!-- Colour swatch button: opens the ColorPicker palette -->
     <Style x:Key="AppColorSwatchButton" TargetType="Button">
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="32" />
@@ -542,7 +542,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка «Выйти» в шапке dashboard -->
+    <!-- Sign-out button in the dashboard header -->
     <Style x:Key="AppHeaderGhostButton" TargetType="Button" BasedOn="{StaticResource AppSecondaryButton}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="#FF2A2A2A" />
@@ -554,7 +554,7 @@
         <Setter Property="MinHeight" Value="0" />
     </Style>
 
-    <!-- Управление аккаунтом: «шторки» по do.html в палитре приложения -->
+    <!-- Account controls: drawers from do.html in the app palette -->
     <Style x:Key="AppManageTitle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource AppMuted}" />
         <Setter Property="FontSize" Value="13" />
@@ -607,7 +607,7 @@
         </Setter>
     </Style>
 
-    <!-- Стрелка, приклеенная к правому краю раскрытой шторки -->
+    <!-- Arrow attached to the right edge of an expanded drawer -->
     <Style x:Key="AppManageArrow" TargetType="Button">
         <Setter Property="Width" Value="42" />
         <Setter Property="Background" Value="#8C141822" />
@@ -653,7 +653,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка «Запустить» внутри третьей шторки -->
+    <!-- Launch button inside the third drawer -->
     <Style x:Key="AppManageLaunch" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource AppPrimary}" />
         <Setter Property="Foreground" Value="White" />
@@ -699,7 +699,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка версии в нижней панели (открывает историю обновлений) -->
+    <!-- Version button in the status bar (opens the changelog) -->
     <Style x:Key="AppVersionChip" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource AppWhiteA4}" />
         <Setter Property="BorderBrush" Value="{StaticResource AppWhiteA12}" />
@@ -740,7 +740,7 @@
         </Setter>
     </Style>
 
-    <!-- Действие в уведомлении -->
+    <!-- Action inside a notification -->
     <Style x:Key="AppNoticeAction" TargetType="Button">
         <Setter Property="Background" Value="#12FFFFFF" />
         <Setter Property="BorderBrush" Value="#1FFFFFFF" />
@@ -781,7 +781,7 @@
         </Setter>
     </Style>
 
-    <!-- Крестик уведомления -->
+    <!-- Notification close button -->
     <Style x:Key="AppNoticeClose" TargetType="Button">
         <Setter Property="Width" Value="24" />
         <Setter Property="Height" Value="24" />
@@ -817,7 +817,7 @@
         </Setter>
     </Style>
 
-    <!-- Кнопка «Назад» в окне истории обновлений -->
+    <!-- Back button in the changelog -->
     <Style x:Key="AppChangelogBack" TargetType="Button">
         <Setter Property="Background" Value="#0FFFFFFF" />
         <Setter Property="BorderBrush" Value="#24FFFFFF" />
@@ -858,7 +858,7 @@
         </Setter>
     </Style>
 
-    <!-- Карточка модального окна (добавление/удаление аккаунта) -->
+    <!-- Modal card (add/delete account) -->
     <Style x:Key="AppModalCard" TargetType="Border">
         <Setter Property="Background" Value="#B810121A" />
         <Setter Property="BorderBrush" Value="{StaticResource AppBorder}" />
@@ -870,7 +870,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- Табы настроек -->
+    <!-- Settings tabs -->
     <Style x:Key="AppTabButton" TargetType="Button">
         <Setter Property="Padding" Value="16,9" />
         <Setter Property="FontSize" Value="12" />
@@ -910,7 +910,7 @@
         </Setter>
     </Style>
 
-    <!-- ========== Поля ввода ========== -->
+    <!-- ========== Input fields ========== -->
     <Style x:Key="AppTextBox" TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource AppInputBg}" />
         <Setter Property="BorderBrush" Value="{StaticResource AppInputBorder}" />
@@ -1030,7 +1030,7 @@
         <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
 
-    <!-- ========== Чекбокс в стиле приложения ========== -->
+    <!-- ========== App-styled checkbox ========== -->
     <Style x:Key="AppCheckBox" TargetType="CheckBox">
         <Setter Property="Foreground" Value="#FFC2C8D4" />
         <Setter Property="FontSize" Value="13.5" />

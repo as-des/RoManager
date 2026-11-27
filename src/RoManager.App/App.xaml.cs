@@ -30,15 +30,15 @@ public partial class App : Application
         try
         {
             Loc.Load();
-            // Настройки фона (цвета, скорость, renderer) читаются до окна:
-            // без этого shader.json применялся только после открытия настроек.
+            // Background settings (colours, speed, renderer) are loaded before the window:
+            // otherwise shader.json only applied after Settings was opened.
             ShaderConfig.Load();
-            // Акцент и размытие фона — тоже до окна, иначе первый кадр
-            // рисуется дефолтным синим и приходится ждать перерисовки.
+            // Accent and background blur are also applied before the window; otherwise
+            // the first frame uses the default blue and waits to be repainted.
             AppearanceConfig.Load();
             AppearanceConfig.Changed += Appearance.Apply;
             Appearance.Apply();
-            // Ядро не создаёт сессию само: это делает UI-слой при старте (как MainFrame в 2.1.0).
+            // The core does not create a session itself; the UI layer does it at startup (like MainFrame in 2.1.0).
             CoreHost.Session = new VaultSession();
             Window = new MainWindow();
             Window.Activate();

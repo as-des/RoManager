@@ -1,4 +1,4 @@
-# ---------- Сборка ----------
+# ---------- Build ----------
 /bin/
 /obj/
 /new-build/
@@ -10,8 +10,8 @@
 /_artifacts/
 *.tsbuildinfo
 
-# ---------- Личные данные и секреты ----------
-# Ключевой файл и хранилище аккаунтов НИКОГДА не коммитим.
+# ---------- Personal data and secrets ----------
+# Never commit the key file or the account vault.
 rom-key.json
 AccountData.json
 AccountData.json.*
@@ -24,13 +24,13 @@ shader.json
 ui.json
 /wv2/
 
-# ---------- Локальный браузер (422 МБ) ----------
+# ---------- Local browser (422 MB) ----------
 /chrome-win64/
 
-# ---------- Старые локальные DLL WebView2 (заменены NuGet) ----------
+# ---------- Old local WebView2 DLLs (now from NuGet) ----------
 /libs/
 
-# ---------- IDE / ОС ----------
+# ---------- IDE / OS ----------
 .vs/
 .idea/
 .vscode/
@@ -42,7 +42,7 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# ---------- src/*: ��������� ������ ����� �������� ----------
+# ---------- src/*: build output is ignored above ----------
 /src/**/bin/
 /src/**/obj/
 

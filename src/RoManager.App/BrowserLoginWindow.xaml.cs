@@ -10,15 +10,15 @@ using Windows.Graphics;
 namespace RoManager.App;
 
 /**
- * Окно входа в Roblox на встроенном Chromium (WebView2).
+ * Roblox sign-in window using the embedded Chromium (WebView2).
  *
- * Внешний браузер для этого не годится: он не отдаёт cookie менеджеру, если
- * открыт без отладочного порта (а Edge/Chrome всё чаще его игнорируют).
- * WebView2 работает внутри процесса, поэтому после входа мы просто читаем
- * .ROBLOSECURITY через CookieManager — так же, как это делала версия 2.1.0.
+ * An external browser is unsuitable here: it does not expose cookies to the
+ * manager unless started with a debug port, which Edge/Chrome increasingly ignore.
+ * WebView2 runs in-process, so after sign-in we simply read .ROBLOSECURITY
+ * through CookieManager, exactly as version 2.1.0 did.
  *
- * Перед показом страницы cookie прошлых сессий очищаются, поэтому чужой
- * аккаунт не подтягивается.
+ * Cookies from previous sessions are cleared before the page is shown,
+ * so another account cannot carry over.
  */
 public sealed partial class BrowserLoginWindow : Window
 {
@@ -43,7 +43,7 @@ public sealed partial class BrowserLoginWindow : Window
         Closed += OnClosed;
     }
 
-    /** Показать окно и дождаться cookie; null — окно закрыли без входа. */
+    /** Shows the window and waits for a cookie; null if it was closed without signing in. */
     public Task<string> ShowAsync()
     {
         Activate();
@@ -58,14 +58,14 @@ public sealed partial class BrowserLoginWindow : Window
 
             var core = Browser.CoreWebView2;
 
-            // Чистим cookie прошлых сессий: чужой аккаунт не подтянется.
+            // Clear cookies from previous sessions so another account does not carry over.
             try { core.CookieManager.DeleteAllCookies(); } catch { }
 
             core.Settings.AreDefaultContextMenusEnabled = false;
             core.Settings.IsStatusBarEnabled = false;
             core.Settings.AreDevToolsEnabled = false;
 
-            // Всплывающие окна (вход через Google и т.п.) открываем в этом же окне.
+            // Popups (Google sign-in etc.) open in this same window.
             core.NewWindowRequested += (_, args) =>
             {
                 args.Handled = true;

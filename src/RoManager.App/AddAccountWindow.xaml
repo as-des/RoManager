@@ -6,7 +6,7 @@
 
     <Grid Background="{StaticResource AppBg}" Padding="22,20,22,18">
         <StackPanel VerticalAlignment="Center">
-            <!-- Основной путь: вход через браузер -->
+            <!-- Main path: sign in through the browser -->
             <Button x:Name="BrowserButton" Style="{StaticResource AppPrimaryButton}"
                     Height="46" Click="OnBrowser">
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
@@ -15,7 +15,7 @@
                 </StackPanel>
             </Button>
 
-            <!-- Разделитель: браузер / ручная вставка cookie -->
+            <!-- Divider: browser / manual cookie paste -->
             <Grid Margin="0,14" ColumnSpacing="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

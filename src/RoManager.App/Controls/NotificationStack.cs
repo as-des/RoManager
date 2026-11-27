@@ -6,11 +6,11 @@ using Windows.UI;
 namespace RoManager.App.Controls;
 
 /**
- * Плашки уведомлений над содержимым окна — порт NotificationStack.tsx (2.1.0).
+ * Notification cards above the window content, a port of NotificationStack.tsx (2.1.0).
  *
- * Новые ложатся поверх старых «стопкой карточек»: у нижних видны только края.
- * Одно уведомление на текст (повтор обновляет существующее), у каждого свой
- * срок жизни: success 5 c, info 6 c, warning 9 c, danger 12 c.
+ * New cards stack on top of older ones, so only the edges of the lower cards show.
+ * There is one notification per text (repeating it refreshes the existing card),
+ * each with its own lifetime: success 5 s, info 6 s, warning 9 s, danger 12 s.
  */
 public sealed class NotificationStack : Grid
 {

@@ -34,7 +34,7 @@ static class Crypto
 
     /* ---------- v2: PBKDF2-SHA256 + AES-256-GCM ---------- */
 
-    public static string CheckHash(string salt, string phrase, string pin) // v1, только чтение старых ключей
+    public static string CheckHash(string salt, string phrase, string pin) // v1: read-only support for old key files
     {
         using var sha = SHA256.Create();
         return Convert.ToBase64String(sha.ComputeHash(
@@ -46,7 +46,7 @@ static class Crypto
         return string.Join(' ', w).ToLowerInvariant();
     }
 
-    /** v2: один PBKDF2-проход; check = HMAC-SHA256(ключ, "rom-v2-check"). */
+    /** v2: a single PBKDF2 pass; check = HMAC-SHA256(key, "rom-v2-check"). */
     public static (byte[] key, string check) DeriveKey(string fileSalt, string phrase, string pin, int iterations)
     {
         var pass = $"rom-v2|{fileSalt}|{Normalize(phrase)}|{pin}";
@@ -91,7 +91,7 @@ static class Crypto
         return Encoding.UTF8.GetString(plain);
     }
 
-    /* ---------- v1: AES-256-CBC (совместимость) ---------- */
+    /* ---------- v1: AES-256-CBC (compatibility) ---------- */
 
     public static byte[] DeriveLegacyKey(string fileSalt, string phrase, string pin, string check)
     {
@@ -135,7 +135,7 @@ public sealed class VaultSession
     public string Check = "";
     public string Phrase = "";
     public string Pin = "";
-    /** Ключ v2 (AES-GCM) держим в памяти, чтобы не гонять PBKDF2 при каждом сохранении. */
+    /** The v2 key (AES-GCM) stays in memory so PBKDF2 does not run on every save. */
     public byte[] Key;
     public int Version = 1;
     public int Iterations = Crypto.LegacyIterations;
@@ -177,7 +177,7 @@ static class Vault
 
     static VaultSession S => CoreHost.Session;
     static AccountRepo _repo = new();
-    static bool _writable = true;   // нельзя перезаписывать чужое/нерасшифрованное хранилище
+    static bool _writable = true;   // never overwrite someone else's or an undecrypted vault
 
     public static (bool ok, string msg) TryUnlock(string keyJson, string phrase, string pin)
     {
@@ -259,7 +259,7 @@ static class Vault
                 {
                     if (path == FilePath)
                     {
-                        // хранилище принадлежит другому ключу — писать в него нельзя
+                        // the vault belongs to another key, so writing to it is forbidden
                         _writable = false;
                         return new AccountRepo();
                     }
@@ -284,7 +284,7 @@ static class Vault
         if (!_writable) { CoreHost.Log("vault save skipped (not writable)"); return; }
         try
         {
-            // резервная копия предыдущего состояния (если там были аккаунты)
+            // back up the previous state if it contained accounts
             try
             {
                 if (File.Exists(FilePath) && _repo.Accounts.Count > 0)
@@ -333,7 +333,7 @@ static class Vault
         catch (Exception ex) { CoreHost.PushStatus(Loc.T("Ошибка сохранения: ", "Save error: ") + ex.Message, "danger"); }
     }
 
-    /** Хранилище могли восстановить из бэкапа с атрибутом «только чтение». */
+    /** A restored backup may still carry the read-only attribute. */
     static void MakeWritable(string path)
     {
         try
@@ -399,9 +399,9 @@ public class AccountInfo
     public string LastPlaceId = "";
     public string LastJobId = "";
     public string LastGameName = "";
-    /* клиент запущен менеджером прямо сейчас (не сохраняется) */
+    /* the client was launched by the manager right now (not persisted) */
     [System.Text.Json.Serialization.JsonIgnore] public bool LaunchTracked;
-    /** Избранный аккаунт: строка подсвечивается золотом. */
+    /** Favourite account: its row is highlighted in gold. */
     public bool Favorite;
 }
 
@@ -412,8 +412,8 @@ static class Roblox
     static HttpClient _http;
     public static HttpClient Http
     {
-        // Ленивая инициализация: вход в аккаунт может произойти раньше, чем
-        // кто-то вызовет Init(), и тогда Http был бы null.
+        // Lazy init: sign-in may happen before anyone calls Init(), which
+        // would leave Http null.
         get
         {
             if (_http == null) Init();
@@ -432,7 +432,7 @@ static class Roblox
         h.DefaultRequestHeaders.UserAgent.ParseAdd("RoManager/1.0");
         h.Timeout = TimeSpan.FromSeconds(15);
         _http = h;
-        try { StartTimers(); } catch { /* настройки ещё не загружены */ }
+        try { StartTimers(); } catch { /* settings are not loaded yet */ }
     }
     public static void Shutdown()
     {
@@ -449,8 +449,8 @@ static class Roblox
         catch { }
     }
 
-    /* Multi Roblox: держим системный мьютекс, который проверяет клиент.
-       Работает только если Roblox был закрыт в момент включения. */
+    /* Multi Roblox: hold the system mutex that the client checks.
+       Works only if Roblox was closed when the option was enabled. */
     public static bool ApplyMultiInstance()
     {
         var enabled = Vault.Settings.MultiInstance;
@@ -515,7 +515,7 @@ static class Roblox
         return r;
     }
 
-    /* запросы, которым нужен конкретный Referer (auth-ticket) */
+    /* requests that need a specific Referer (auth-ticket) */
     public static HttpRequestMessage AuthReq(string url, string cookie)
     {
         var r = Req(new HttpMethod("POST"), url, cookie, "{}");
@@ -578,7 +578,7 @@ static class Roblox
             var c = For(cookie);
             const string ticketUrl = "https://auth.roblox.com/v1/authentication-ticket";
 
-            // CSRF берём из ответа на "пустой" запрос (403 + x-csrf-token)
+            // CSRF comes from the response to an "empty" request (403 + x-csrf-token)
             string csrf = null;
             try
             {
@@ -594,7 +594,7 @@ static class Roblox
             var resp = c.SendAsync(r).GetAwaiter().GetResult();
             var txt = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-            // Roblox отдаёт билет в заголовке rbx-authentication-ticket
+            // Roblox returns the ticket in the rbx-authentication-ticket header
             string ticket = null;
             foreach (var hn in new[] { "rbx-authentication-ticket", "authentication-ticket", "x-authentication-ticket" })
                 if (resp.Headers.TryGetValues(hn, out var vals)) { ticket = vals.FirstOrDefault(); break; }
@@ -630,7 +630,7 @@ static class Roblox
         return _trackerId;
     }
 
-    /* presence игрока -> (placeId, jobId) чтобы подключиться «К игроку» */
+    /* player presence -> (placeId, jobId) for joining a player */
     public static (string placeId, string jobId, string err) GetUserPlace(string cookie, long userId)
     {
         try
@@ -665,7 +665,7 @@ static class Roblox
             }
             else
             {
-                // формат как в оригинале RAM
+                // same format as the original RAM
                 launchUrl = "https://assetgame.roblox.com/game/PlaceLauncher.ashx?request=RequestGame" +
                             $"&browserTrackerId={btid}&placeId={placeId}" +
                             (string.IsNullOrEmpty(jobId) ? "" : $"&gameId={jobId}") +
@@ -703,7 +703,7 @@ static class Roblox
         WatchClient(acc, before);
     }
 
-    /* ---------- учёт «последний онлайн» по факту запуска/закрытия клиента ---------- */
+    /* ---------- track "last online" from client launch/close events ---------- */
     static HashSet<int> ClientPids()
     {
         var set = new HashSet<int>();
@@ -812,7 +812,7 @@ static class Roblox
         try
         {
             var acc = list[0];
-            // Реальный last online + presence
+            // Real last online plus presence
             var r = Req(new HttpMethod("POST"), "https://presence.roblox.com/v1/presence/users", acc.Cookie,
                 Jsons.S(new { userIds = list.Select(a => a.UserId).Distinct().ToArray() }));
             var resp = await Http.SendAsync(r);
@@ -826,7 +826,7 @@ static class Roblox
                 var type = u.GetProperty("userPresenceType").GetInt32();
                 var accT = list.FirstOrDefault(a => a.UserId == uid);
                 if (accT == null) continue;
-                if (accT.LaunchTracked) continue; // сейчас играем через менеджер — не трогаем
+                if (accT.LaunchTracked) continue; // launched via the manager: leave it alone
                 accT.Online = type > 0;
             }
             CoreHost.RequestAccountsRefresh();
@@ -853,7 +853,7 @@ static class ChromeLogin
 {
     static string FindBrowser()
     {
-        // 1. портативный рядом (можно отключить в настройках)
+        // 1. portable copy next to the app (can be disabled in settings)
         if (Vault.Settings.UseBundledChrome)
         {
             var dir = AppContext.BaseDirectory;
@@ -863,7 +863,7 @@ static class ChromeLogin
                 if (File.Exists(c)) return c;
             }
         }
-        // 2. реестр App Paths - Chrome приоритетно
+        // 2. App Paths registry: prefer Chrome
         string chromePath = null;
         try
         {
@@ -879,7 +879,7 @@ static class ChromeLogin
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Google\\Chrome\\Application\\chrome.exe"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google\\Chrome\\Application\\chrome.exe") })
             if (File.Exists(c)) return c;
-        // 4. Edge как последний fallback
+        // 4. Edge as the last fallback
         foreach (var c in new[] {
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft\\Edge\\Application\\msedge.exe"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft\\Edge\\Application\\msedge.exe") })
@@ -893,8 +893,8 @@ static class ChromeLogin
         l.Start(); var p = ((IPEndPoint)l.LocalEndpoint).Port; l.Stop(); return p;
     }
 
-    /* Запуск временного профиля Chrome + слежение за .ROBLOSECURITY через БРАУЗЕРНЫЙ
-       эндпоинт DevTools (устойчив к навигациям/вкладкам - структура /json/version). */
+    /* Launch a temporary Chrome profile and watch .ROBLOSECURITY through the browser
+       DevTools endpoint (stable across navigations and tabs via /json/version). */
     public static async Task<(string cookie, string name, long uid)> StartAsync(
         Action<string> status, string injectCookie = null)
     {

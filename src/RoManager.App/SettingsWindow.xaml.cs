@@ -15,10 +15,10 @@ using Windows.UI;
 namespace RoManager.App;
 
 /**
- * Полное окно настроек: три вкладки как в 2.1.0, но на стилях приложения
- * (свои чекбоксы, поля, табы и кнопки вместо системных WinUI-контролов).
- * До авторизации доступны интерфейс и фон; Roblox-разделы показаны,
- * но выключены с пояснением «Доступно после входа».
+ * Full Settings window: three tabs as in 2.1.0 but using the app styles
+ * (custom checkboxes, fields, tabs and buttons instead of stock WinUI controls).
+ * Interface and background are available before sign-in; Roblox sections are
+ * visible but disabled with an "Available after sign-in" hint.
  */
 public sealed partial class SettingsWindow : Window
 {
@@ -39,7 +39,7 @@ public sealed partial class SettingsWindow : Window
             appWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "app.ico"));
         }
         WindowChrome.ApplyDark(this);
-        // Настройки принадлежат главному окну: закрываются вместе с ним.
+        // Owned by the main window, so Settings closes with it.
         WindowChrome.SetOwner(this, App.Window);
         SettingsBar.Attach(SettingsScroll);
 
@@ -49,15 +49,15 @@ public sealed partial class SettingsWindow : Window
         RefreshLockState();
         SetTab("general");
 
-        // Переключатель языка в самих настройках должен перерисовываться
-        // сразу, а не только после повторного открытия окна.
+        // The language switch inside Settings must refresh immediately,
+        // not only after reopening the window.
         UiEvents.LanguageChanged += OnLanguageChanged;
         Closed += (_, _) => UiEvents.LanguageChanged -= OnLanguageChanged;
     }
 
     void OnLanguageChanged() => DispatcherQueue.TryEnqueue(ApplyLanguage);
 
-    /* ---------- вкладки ---------- */
+    /* ---------- tabs ---------- */
 
     void OnTabGeneral(object sender, RoutedEventArgs e) => SetTab("general");
     void OnTabDeveloper(object sender, RoutedEventArgs e) => SetTab("developer");
@@ -80,7 +80,7 @@ public sealed partial class SettingsWindow : Window
         button.Foreground = active ? TabActiveFg : TabIdleFg;
     }
 
-    /* ---------- язык ---------- */
+    /* ---------- language ---------- */
 
     public void ApplyLanguage()
     {
@@ -163,7 +163,7 @@ public sealed partial class SettingsWindow : Window
                DeveloperPane.Visibility == Visibility.Visible ? "developer" : "misc");
     }
 
-    /* ---------- «О программе» ---------- */
+    /* ---------- About ---------- */
 
     const string RepoUrl = AppInfo.RepoUrl;
     const string ReleasesApi = AppInfo.ReleasesApi;
@@ -233,7 +233,7 @@ public sealed partial class SettingsWindow : Window
         return Version.TryParse(trimmed, out var version) ? version : null;
     }
 
-    /* ---------- состояние доступа ---------- */
+    /* ---------- access state ---------- */
 
     public void RefreshLockState()
     {
@@ -241,7 +241,7 @@ public sealed partial class SettingsWindow : Window
 
         LockBanner.Visibility = _unlocked ? Visibility.Collapsed : Visibility.Visible;
 
-        // Настройки интерфейса и фона доступны всегда; Roblox-разделы — после входа.
+        // Interface and background settings are always available; Roblox sections need sign-in.
         foreach (var section in new UIElement[] { SessionSection, MultiSection, PresenceSection, FpsSection, BrowserSection, DebugSection })
         {
             section.Opacity = _unlocked ? 1 : 0.45;
@@ -250,14 +250,14 @@ public sealed partial class SettingsWindow : Window
         SaveButton.IsEnabled = true;
     }
 
-    /** Сессия открылась/закрылась, пока окно настроек уже было открыто. */
+    /** The session opened or closed while Settings was already open. */
     public void RefreshSession()
     {
         LoadSettings();
         RefreshLockState();
     }
 
-    /* ---------- фон ---------- */
+    /* ---------- background ---------- */
 
     void LoadShaderSettings()
     {
@@ -293,7 +293,7 @@ public sealed partial class SettingsWindow : Window
     static Brush Swatch(string hex) =>
         Hex.IsMatch(hex ?? "") ? new SolidColorBrush(ColorFromHex(hex)) : new SolidColorBrush(Color.FromArgb(0xFF, 0x33, 0x33, 0x33));
 
-    /* ---------- палитра цветов ---------- */
+    /* ---------- colour palette ---------- */
 
     void OnPickColor1(object sender, RoutedEventArgs e) => ShowPicker(Color1Swatch);
     void OnPickColor2(object sender, RoutedEventArgs e) => ShowPicker(Color2Swatch);
@@ -302,8 +302,8 @@ public sealed partial class SettingsWindow : Window
 
     static void ShowPicker(Button button)
     {
-        // Flyout живёт на кнопке; показываем явно, чтобы клик срабатывал
-        // независимо от кастомного шаблона кнопки.
+        // The flyout lives on the button; show it explicitly so the click works
+        // regardless of the custom button template.
         if (button.Flyout is Flyout flyout && !flyout.IsOpen)
             flyout.ShowAt(button);
     }
@@ -350,7 +350,7 @@ public sealed partial class SettingsWindow : Window
         BlurValue.Text = ((int)Math.Round(BlurSlider.Value)).ToString();
     }
 
-    /* ---------- значения ---------- */
+    /* ---------- values ---------- */
 
     void LoadSettings()
     {
@@ -386,7 +386,7 @@ public sealed partial class SettingsWindow : Window
         return int.TryParse(text, out var value) ? value : fallback;
     }
 
-    /* ---------- сохранение сессии ---------- */
+    /* ---------- session saving ---------- */
 
     void OnSaveSessionToggled(object sender, RoutedEventArgs e) => UpdateSessionControls();
 
@@ -420,8 +420,8 @@ public sealed partial class SettingsWindow : Window
 
         try
         {
-            // «Запоминать сессию» хранится отдельно от хранилища: настройку
-            // нужно видеть до входа, когда сейв ещё зашифрован.
+            // "Remember session" is stored outside the vault: the setting must be
+            // visible before sign-in, while the save is still encrypted.
             bool remember = SaveSessionCheck.IsChecked == true;
             int days = Math.Clamp(IntFromText(SessionDaysBox, SessionStore.Current.Days),
                 SessionStore.MinDays, SessionStore.MaxDays);
@@ -452,7 +452,7 @@ public sealed partial class SettingsWindow : Window
                 await Task.Run(() => Roblox.ApplyMultiInstance());
             }
 
-            // Фон хранится отдельно (shader.json) и доступен до входа.
+            // The background is stored separately (shader.json) and is available before sign-in.
             ShaderConfig.Save(new ShaderSettings
             {
                 Enabled = ShaderEnabledCheck.IsChecked == true,
@@ -460,11 +460,11 @@ public sealed partial class SettingsWindow : Window
                 Color2 = Color2Box.Text,
                 Color3 = Color3Box.Text,
                 Speed = SpeedSlider.Value,
-                // Рендерер задаётся вручную в shader.json — не сбрасываем его.
+                // The renderer is set manually in shader.json, so do not reset it.
                 Renderer = ShaderConfig.Current.Renderer,
             });
 
-            // Акцент и размытие — в appearance.json; применится сразу
+            // Accent and blur live in appearance.json and apply immediately
             // (AppearanceConfig.Changed → Appearance.Apply).
             AppearanceConfig.Save(new AppearanceSettings
             {
@@ -477,7 +477,7 @@ public sealed partial class SettingsWindow : Window
             CoreHost.PushStatus(Strings.I["status.settingsSaved"], "success");
             UiEvents.RaiseSettingsSaved();
 
-            // Как в 2.1.0: окно закрывается через 600 мс после сохранения.
+            // As in 2.1.0, the window closes 600 ms after saving.
             var timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
             timer.Interval = TimeSpan.FromMilliseconds(600);
             timer.Tick += (_, _) => { timer.Stop(); Close(); };

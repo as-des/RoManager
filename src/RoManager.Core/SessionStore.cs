@@ -6,16 +6,16 @@ using System.Text.Json;
 namespace RoManager.Core;
 
 /**
- * «Запомнить меня»: сохранённый ключевой файл и код авторизации
- * (фраза + PIN), чтобы следующий запуск открыл хранилище сам.
+ * "Remember me": a saved key file and sign-in code (phrase + PIN) so the
+ * next launch can unlock the vault automatically.
  *
- * Секреты шифруются DPAPI (CryptProtectData) для текущего пользователя
- * Windows: файл нельзя перенести на другую машину или открыть другим
- * аккаунтом Windows. Срок хранения задаётся в настройках; после
- * истечения сессия стирается и приложение снова просит вход.
+ * Secrets are encrypted with DPAPI (CryptProtectData) for the current Windows
+ * user: the file cannot be moved to another machine or opened by another
+ * Windows account. The retention period is set in Settings; once it expires,
+ * the session is erased and the app asks for credentials again.
  *
- * Конфигурация (включено/срок) хранится в том же файле manager-session.json
- * и доступна до разблокировки хранилища.
+ * The configuration (enabled/retention) lives in the same manager-session.json
+ * file and is available before the vault is unlocked.
  */
 public static class SessionStore
 {
@@ -33,7 +33,7 @@ public static class SessionStore
         public string SavedAt = "";
         public string ExpiresAt = "";
         public string KeyFileName = "";
-        /** Секреты ниже хранятся в base64(DPAPI), а не открытым текстом. */
+        /** The secrets below are stored as base64(DPAPI), never as plain text. */
         public string KeyJson = "";
         public string Phrase = "";
         public string Pin = "";
@@ -93,7 +93,7 @@ public static class SessionStore
         }
     }
 
-    /** Сохранить настройки «запоминать сессию» и срок хранения. */
+    /** Save the "remember session" setting and the retention period. */
     public static void Configure(bool enabled, int days)
     {
         lock (Lock)
@@ -106,7 +106,7 @@ public static class SessionStore
                 ClearSecrets(d);
             else if (!string.IsNullOrEmpty(d.KeyJson))
             {
-                // Срок могли уменьшить — пересчитываем дату истечения от сохранения.
+                // The period may have been shortened, so recalculate expiry from save time.
                 if (DateTime.TryParse(d.SavedAt, null,
                         System.Globalization.DateTimeStyles.RoundtripKind, out var saved))
                     d.ExpiresAt = saved.AddDays(d.Days).ToString("o");
@@ -116,7 +116,7 @@ public static class SessionStore
         }
     }
 
-    /** Сохранить текущую сессию после успешного входа (если включено). */
+    /** Save the current session after a successful sign-in (if enabled). */
     public static void SaveSession(string keyJson, string phrase, string pin, string keyFileName = "")
     {
         if (string.IsNullOrWhiteSpace(keyJson) ||
@@ -150,7 +150,7 @@ public static class SessionStore
         }
     }
 
-    /** Расшифровать сохранённые данные для автоматического входа. */
+    /** Decrypt the saved data for automatic sign-in. */
     public static bool TryRestore(out string keyJson, out string phrase, out string pin)
     {
         keyJson = phrase = pin = null;
@@ -175,7 +175,7 @@ public static class SessionStore
         }
     }
 
-    /** Забыть сохранённые секреты, оставив настройку и срок. */
+    /** Forget the saved secrets but keep the setting and period. */
     public static void ClearCredentials()
     {
         lock (Lock)
@@ -196,7 +196,7 @@ public static class SessionStore
         d.ExpiresAt = "";
     }
 
-    /* ---------- DPAPI (текущий пользователь Windows) ---------- */
+    /* ---------- DPAPI (current Windows user) ---------- */
 
     const int CryptProtectUiForbidden = 0x1;
 

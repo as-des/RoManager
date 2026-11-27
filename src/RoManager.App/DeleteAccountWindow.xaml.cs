@@ -10,11 +10,11 @@ using Windows.Graphics;
 namespace RoManager.App;
 
 /**
- * Отдельное окно подтверждения удаления аккаунтов — такое же самостоятельное
- * окно, как добавление аккаунта и настройки. Раньше подтверждение рисовалось
- * поверх дашборда, из-за чего смешивались два разных слоя интерфейса.
+ * Standalone account-deletion confirmation window, as independent as the
+ * add-account and Settings windows. The confirmation used to be drawn over the
+ * dashboard, mixing two different UI layers.
  *
- * Окно только спрашивает подтверждение; удаление выполняет DashboardView.
+ * The window only asks for confirmation; DashboardView performs the deletion.
  */
 public sealed partial class DeleteAccountWindow : Window
 {
@@ -64,7 +64,7 @@ public sealed partial class DeleteAccountWindow : Window
         Closed += (_, _) => Finish(false);
     }
 
-    /** true — пользователь подтвердил удаление, false — отмена или закрытие. */
+    /** true when the user confirmed deletion; false on cancel or close. */
     public Task<bool> ShowAsync()
     {
         Activate();

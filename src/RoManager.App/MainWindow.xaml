@@ -12,23 +12,23 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Фон-шейдер и затемнение растянуты на всю клиентскую область,
-             включая нижнюю строку статуса, как в 2.1.0. GPU-рендер (HLSL через
-             Win2D), CPU-версия остаётся запасной и включается при сбое. -->
+        <!-- The shader background and dim layer span the whole client area,
+             including the status bar, as in 2.1.0. Rendering is GPU (HLSL via
+             Win2D); the CPU version stays as a fallback for failures. -->
         <Image x:Name="Backdrop" Grid.RowSpan="2" Stretch="Fill" IsHitTestVisible="False" />
         <canvas:CanvasAnimatedControl x:Name="BackdropGpu" Grid.RowSpan="2"
                                       IsHitTestVisible="False" Visibility="Collapsed"
                                       ClearColor="Transparent" />
         <Border x:Name="Scrim" Grid.RowSpan="2" Background="#4D080A10" IsHitTestVisible="False" />
 
-        <!-- Рабочая область: landing → мастер → dashboard -->
+        <!-- Workspace: landing -> wizard -> dashboard -->
         <Grid Grid.Row="0">
             <ContentControl x:Name="ContentHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
 
-            <!-- Плашки уведомлений над содержимым -->
+            <!-- Notification cards above the content -->
             <controls:NotificationStack x:Name="Notices" />
 
-            <!-- Шестерёнка в правом верхнем углу, как в 2.1.0 -->
+            <!-- Gear button in the top-right corner, as in 2.1.0 -->
             <StackPanel x:Name="AuthTopBar" Orientation="Horizontal" Spacing="10"
                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,18,18,0">
                 <Button x:Name="HeaderSettings" Style="{StaticResource AppOverlayButton}" Click="OnOpenSettings">
@@ -37,7 +37,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Строка состояния: прозрачное стекло поверх фона (как в 2.1.0) -->
+        <!-- Status bar: clear glass over the background (as in 2.1.0) -->
         <controls:GlassSurface x:Name="StatusBar" Grid.Row="1" Height="36" Visibility="Collapsed"
                                Style="{StaticResource AppGlassStatus}">
             <Grid>
@@ -61,7 +61,7 @@
             </Grid>
         </controls:GlassSurface>
 
-        <!-- История обновлений: полноэкранный оверлей поверх клиентской области -->
+        <!-- Changelog: full-screen overlay over the client area -->
         <Grid x:Name="ChangelogOverlay" Grid.RowSpan="2" Background="#99000000" Visibility="Collapsed"
               Tapped="OnChangelogBackdropTapped">
             <Grid x:Name="ChangelogRoot" Tapped="OnChangelogModalTapped">

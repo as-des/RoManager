@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 namespace RoManager.Core;
 
 /**
- * Настройки анимированного фона. Как и в 2.1.0, хранятся открытым
- * shader.json рядом с exe — фон не зависит от разблокировки хранилища.
+ * Animated background settings. As in 2.1.0 they are stored unencrypted in
+ * shader.json next to the exe, so the background does not depend on the vault.
  */
 public sealed class ShaderSettings
 {
@@ -15,8 +15,8 @@ public sealed class ShaderSettings
     public string Color3 { get; set; } = "#7863b3";
     public double Speed { get; set; } = 1.0;
     /**
-     * auto — GPU (Win2D/HLSL), при сбое CPU-порт;
-     * gpu  — только GPU; cpu — только CPU (например, на RDP/старых драйверах).
+     * auto: GPU (Win2D/HLSL), with the CPU port on failure;
+     * gpu: GPU only; cpu: CPU only (for example on RDP or old drivers).
      */
     public string Renderer { get; set; } = "auto";
 }
@@ -30,7 +30,7 @@ public static class ShaderConfig
 
     public static ShaderSettings Current { get; private set; } = new();
 
-    /** Фон изменился — окна перерисовывают слои. */
+    /** The background changed; windows redraw their layers. */
     public static event Action Changed;
 
     static string FilePath => Path.Combine(AppContext.BaseDirectory, "shader.json");
@@ -56,7 +56,7 @@ public static class ShaderConfig
                 }
             }
         }
-        catch { /* повреждённый файл — значения по умолчанию */ }
+        catch { /* corrupted file: use defaults */ }
 
         Normalize(s);
         Current = s;

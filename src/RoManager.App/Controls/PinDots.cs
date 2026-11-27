@@ -5,12 +5,12 @@ using Windows.UI;
 
 namespace RoManager.App.Controls;
 
-/** РЁРµСЃС‚СЊ С‚РѕС‡РµРє PIN-РєРѕРґР° РєР°Рє РІ 2.1.0: РїСѓСЃС‚С‹Рµ вЂ” РєРѕРЅС‚СѓСЂ, РІРІРµРґС‘РЅРЅС‹Рµ вЂ” Р·Р°Р»РёРІРєР°. */
+/** Six PIN dots as in 2.1.0: empty dots are outlines, entered dots are filled. */
 public sealed class PinDots : StackPanel
 {
     static readonly SolidColorBrush EmptyBorder = new(Color.FromArgb(0xFF, 0x44, 0x44, 0x44));
 
-    /** Заполненные точки красятся акцентом из настроек. */
+    /** Filled dots use the accent colour from Settings. */
     static SolidColorBrush Filled => new(Appearance.AccentColor);
 
     readonly Border[] _dots = new Border[6];

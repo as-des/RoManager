@@ -12,7 +12,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Табы -->
+        <!-- Tabs -->
         <Border Grid.Row="0" Padding="16,12" BorderBrush="#12FFFFFF" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" Spacing="6">
                 <Button x:Name="GeneralTab" Style="{StaticResource AppTabButton}" Click="OnTabGeneral" />
@@ -29,7 +29,7 @@
             <ScrollViewer x:Name="SettingsScroll" Grid.Column="0" VerticalScrollBarVisibility="Hidden">
                 <Grid Padding="20,18,14,24">
 
-                <!-- Общие -->
+                <!-- General -->
                 <StackPanel x:Name="GeneralPane" MaxWidth="620" HorizontalAlignment="Left" Spacing="0">
 
                     <TextBlock x:Name="InterfaceTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,10" />
@@ -110,7 +110,7 @@
                     <TextBlock x:Name="AppliedHint" Style="{StaticResource AppRowHint}" Margin="0,20,0,0" />
                 </StackPanel>
 
-                <!-- Разработчик -->
+                <!-- Developer -->
                 <StackPanel x:Name="DeveloperPane" MaxWidth="620" HorizontalAlignment="Left" Visibility="Collapsed">
                     <TextBlock x:Name="DebugTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,12" />
                     <ContentControl x:Name="DebugSection" HorizontalContentAlignment="Stretch">
@@ -121,7 +121,7 @@
                     </ContentControl>
                 </StackPanel>
 
-                <!-- Разное -->
+                <!-- Misc -->
                 <StackPanel x:Name="MiscPane" MaxWidth="620" HorizontalAlignment="Left" Visibility="Collapsed">
                     <TextBlock x:Name="PresenceTitle" Style="{StaticResource AppSectionTitle}" Margin="0,0,0,12" />
                     <ContentControl x:Name="PresenceSection" HorizontalContentAlignment="Stretch">
@@ -293,7 +293,7 @@
             <controls:ThinScrollBar x:Name="SettingsBar" Grid.Column="1" ThumbBrush="#40FFFFFF" Margin="0,8,0,8" />
         </Grid>
 
-        <!-- Нижняя панель: компактные Save/Cancel слева, как в 2.1.0 -->
+        <!-- Bottom bar: compact Save/Cancel on the left, as in 2.1.0 -->
         <Border Grid.Row="2" Background="{StaticResource AppStatusBar}" BorderBrush="#12FFFFFF"
                 BorderThickness="0,1,0,0" Padding="20,12">
             <StackPanel Orientation="Horizontal" Spacing="10">

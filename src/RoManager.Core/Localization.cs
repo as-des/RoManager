@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace RoManager.Core;
 
 /**
- * Язык интерфейса ядра. Хранится в незашифрованном ui.json рядом с exe,
- * поэтому доступен до разблокировки хранилища. UI-слой сам обновляет заголовки окон.
+ * Core UI language. Stored in an unencrypted ui.json next to the exe, so it is
+ * available before the vault is unlocked. The UI layer updates window titles.
  */
 public static class Loc
 {
@@ -30,7 +30,7 @@ public static class Loc
                 if (lang == "en" || lang == "ru") Language = lang;
             }
         }
-        catch { /* повреждённый файл — остаётся ru */ }
+        catch { /* corrupted file: keep ru */ }
     }
 
     public static void Set(string lang)

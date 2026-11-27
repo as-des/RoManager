@@ -1,19 +1,19 @@
 <#
-    Генерация resources.pri для RoManager.App (WinUI 3, unpackaged).
+    Generates resources.pri for RoManager.App (WinUI 3, unpackaged).
 
-    Почему скрипт, а не MSBuild-задача MrtCore.PriGen:
-    на этой машине нет Visual Studio Build Tools, поэтому задачи
-    Microsoft.Build.Packaging.Pri.Tasks / Microsoft.Build.AppxPackage
-    недоступны, а <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
-    отключает штатную генерацию. Makepri.exe берём из NuGet-пакета
+    Why a script instead of the MrtCore.PriGen MSBuild task:
+    this machine has no Visual Studio Build Tools, so the
+    Microsoft.Build.Packaging.Pri.Tasks / Microsoft.Build.AppxPackage tasks
+    are unavailable, and <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+    disables the built-in generation. Makepri.exe comes from the NuGet package
     Microsoft.Windows.SDK.BuildTools.
 
-    Скрипт собирает промежуточный каталог из *.xbf приложения и
-    Microsoft.UI.Xaml.Controls.pri (ресурсы WinUI: generic.xbf,
-    themeresources.xbf и т.д.) и сливает их в единый resources.pri,
-    где карта приложения становится основной.
+    The script collects an intermediate directory from the app's *.xbf files and
+    Microsoft.UI.Xaml.Controls.pri (WinUI resources: generic.xbf,
+    themeresources.xbf, etc.) and merges them into a single resources.pri,
+    with the application map as the main one.
 
-    Вызывается автоматически из Directory.Build.targets после Build.
+    Called automatically from Directory.Build.targets after Build.
 #>
 [CmdletBinding()]
 param(
@@ -42,19 +42,19 @@ function Find-MakePri {
 $OutputDir = (Resolve-Path $OutputDir).Path.TrimEnd('\')
 $makepri = Find-MakePri
 if (-not $makepri) {
-    Write-Warning 'makepri.exe не найден; resources.pri не будет обновлён.'
+    Write-Warning 'makepri.exe was not found; resources.pri will not be updated.'
     exit 0
 }
 
 $xbf = Get-ChildItem $OutputDir -Filter '*.xbf' -File
 if (-not $xbf) {
-    Write-Warning "В $OutputDir нет *.xbf; resources.pri не будет обновлён."
+    Write-Warning "No *.xbf files in $OutputDir; resources.pri will not be updated."
     exit 0
 }
 
 $frameworkPri = Join-Path $OutputDir 'Microsoft.UI.Xaml.Controls.pri'
 if (-not (Test-Path $frameworkPri)) {
-    Write-Warning "Не найден Microsoft.UI.Xaml.Controls.pri; ресурсы WinUI не попадут в PRI."
+    Write-Warning "Microsoft.UI.Xaml.Controls.pri was not found; WinUI resources will not be included in the PRI."
 }
 
 $stage = Join-Path ([System.IO.Path]::GetTempPath()) ("rom-pri-" + [Guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -67,13 +67,13 @@ try {
     $pri = Join-Path $stage 'resources.pri'
 
     & $makepri createconfig /cf $config /dq en-US /o | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "makepri createconfig завершился с кодом $LASTEXITCODE" }
+    if ($LASTEXITCODE -ne 0) { throw "makepri createconfig failed with exit code $LASTEXITCODE" }
 
     & $makepri new /pr $stage /cf $config /of $pri /in $IndexName /o | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "makepri new завершился с кодом $LASTEXITCODE" }
+    if ($LASTEXITCODE -ne 0) { throw "makepri new failed with exit code $LASTEXITCODE" }
 
     Copy-Item $pri (Join-Path $OutputDir 'resources.pri') -Force
-    Write-Host "resources.pri: $((Get-Item (Join-Path $OutputDir 'resources.pri')).Length) байт"
+    Write-Host "resources.pri: $((Get-Item (Join-Path $OutputDir 'resources.pri')).Length) bytes"
 }
 finally {
     Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
