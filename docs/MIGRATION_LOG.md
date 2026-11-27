@@ -389,3 +389,12 @@ ef05c60b7a7523fef32523c4905d1a7d54155b4803dda84ffe6c11da085aa159  AccountData.js
 - [x] Unbounded font (`Assets/Fonts/Unbounded.ttf`, OFL license) for headings, buttons and tabs; tables and captions stay on the system font. `prune-publish.ps1` preserves `Assets`.
 - [x] Version `0.03` in `AppInfo.Version` and csproj, entry in the changelog, `README.md` / `README.ru.md`, notes `.github/releases/v0.03.md`.
 - [x] Published release v0.03: archive `RoManager-win-x64-v0.03.zip` — 70 862 133 bytes, 173.0 MB unpacked, SHA-256 `785c5c92fe81d3265abb2edc78abe05dc455f38116041ca8ebb7613c0537f807`, SHA-256 of `RoManager.exe` `fd11a8847168c732a6dde0a0827b7fe4350b4fa38e70dc9f0c2d320121c25890`; commit `0090f4a`, workflow run `45790804372`; attestation verified. The archive has 6 folders (`Assets`, `en-GB`, `en-us`, `Microsoft.UI.Xaml`, `ru-RU`, `Views`). Release v0.02 is preserved and remains available.
+
+
+## 2026-11-27 — English-only code comments and release notes
+
+- [x] Translated every remaining Russian code comment to English across the C#, XAML, MSBuild, PowerShell and config files. Russian now remains only in the in-app localization (`Strings.cs`, `Changelog.cs`), `README.ru.md` and the README language link.
+- [x] Translated `SECURITY.md`, `NOTES.md`, `docs/BUILD.md`, `docs/RELEASE.md`, `docs/MIGRATION_LOG.md` and `docs/MIGRATION_WINUI3.md` to English.
+- [x] Release notes `.github/releases/v0.02.md` and `v0.03.md` are English-only; the live GitHub release bodies were updated. Both releases remain published.
+- [x] Removed stale `design/offer.html` references after the reference folder was deleted.
+- [x] Debug build passes with 0 warnings and 0 errors.
